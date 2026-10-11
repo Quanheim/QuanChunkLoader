@@ -1,0 +1,11 @@
+# Build output
+bin/
+obj/
+dist/
+
+# Machine-specific paths (copy Local.props.example to Local.props)
+Local.props
+
+# IDE noise
+.vs/
+*.user

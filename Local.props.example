@@ -1,0 +1,15 @@
+<!-- Copy to Local.props (gitignored) and point these at your own machine. -->
+<Project>
+  <PropertyGroup>
+    <!-- Valheim game install (the folder containing valheim.exe). Omit to use the default Steam path. -->
+    <ValheimDir>D:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+
+    <!-- This mod's own Gale test profile (the folder containing BepInEx), e.g.
+         %APPDATA%\com.kesomannen.gale\valheim\profiles\<ProfileName> -->
+    <GaleProfileDir>C:\Users\Andy\AppData\Roaming\com.kesomannen.gale\valheim\profiles\MyMod</GaleProfileDir>
+
+    <!-- Optional override if the changelog heuristic ever picks the wrong BepInExPack version:
+    <BepInExPackDependency>denikson-BepInExPack_Valheim-5.4.2351</BepInExPackDependency>
+    -->
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,41 @@
+<!-- Shared settings and references. Machine-specific paths live in Local.props (gitignored). -->
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)Local.props" Condition="Exists('$(MSBuildThisFileDirectory)Local.props')" />
+
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- Your Thunderstore team (author prefix). Gale installs packages to BepInEx\plugins\<Team>-<Name>,
+         so dev builds deploy to the same folder and a later Thunderstore install overwrites them cleanly. -->
+    <ThunderstoreTeam Condition="'$(ThunderstoreTeam)' == ''">Quandru</ThunderstoreTeam>
+
+    <ValheimDir Condition="'$(ValheimDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+    <ManagedDir>$(ValheimDir)\valheim_Data\Managed</ManagedDir>
+    <BepInExDir>$(GaleProfileDir)\BepInEx</BepInExDir>
+
+    <JotunnDll Condition="'$(JotunnDll)' == ''">$(BepInExDir)\plugins\ValheimModding-Jotunn\Jotunn.dll</JotunnDll>
+    <JotunnManifest Condition="'$(JotunnManifest)' == ''">$(BepInExDir)\plugins\ValheimModding-Jotunn\manifest.json</JotunnManifest>
+    <!-- BepInExPack unpacks into the profile root; its changelog.txt is the only record of its version there -->
+    <BepInExPackChangelog Condition="'$(BepInExPackChangelog)' == ''">$(GaleProfileDir)\changelog.txt</BepInExPackChangelog>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Lets the modern .NET SDK compile against .NET Framework 4.6.2 without installing a targeting pack -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Compile-time references only. Private=false: NOT copied to output, the game/BepInEx/Jotunn provide them. -->
+  <ItemGroup>
+    <Reference Include="assembly_valheim"><HintPath>$(ManagedDir)\assembly_valheim.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(ManagedDir)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <!-- Needed by Jotunn's API surface (e.g. CustomPiece has AssetBundle overloads), even when unused -->
+    <Reference Include="UnityEngine.AssetBundleModule"><HintPath>$(ManagedDir)\UnityEngine.AssetBundleModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx"><HintPath>$(BepInExDir)\core\BepInEx.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(BepInExDir)\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Jotunn"><HintPath>$(JotunnDll)</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,122 @@
+<!-- Shared build steps: reference checks, version generation, dev deploy, Thunderstore packaging. -->
+<Project>
+
+  <!-- Skipped in IDE design-time builds so an unconfigured repo (e.g. the template) loads cleanly;
+       real builds still fail with a readable message. -->
+  <Target Name="CheckValheimReferences" BeforeTargets="ResolveAssemblyReferences"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(GaleProfileDir)' == ''" Text="GaleProfileDir isn't set. Copy Local.props.example to Local.props and fill it in." />
+    <Error Condition="!Exists('$(ManagedDir)\assembly_valheim.dll')"
+           Text="assembly_valheim.dll not found in '$(ManagedDir)'. Set ValheimDir in Local.props." />
+    <Error Condition="!Exists('$(BepInExDir)\core\BepInEx.dll')"
+           Text="BepInEx.dll not found in '$(BepInExDir)\core'. Check GaleProfileDir and launch the profile once." />
+    <Error Condition="!Exists('$(JotunnDll)')"
+           Text="Jotunn.dll not found at '$(JotunnDll)'. Install Jotunn in this mod's Gale profile." />
+  </Target>
+
+  <!-- Single source of truth for the version: generates PluginInfo.Version from <Version> in the .csproj. -->
+  <Target Name="GeneratePluginInfo" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <PluginInfoFile>$(IntermediateOutputPath)PluginInfo.g.cs</PluginInfoFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(PluginInfoFile)"
+                      Lines="namespace $(RootNamespace) { internal static class PluginInfo { public const string Version = &quot;$(Version)&quot;%3B } }"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(PluginInfoFile)" />
+      <FileWrites Include="$(PluginInfoFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Stage the complete Thunderstore package (DLL, generated manifest.json, Package\* files) into
+       obj\<Configuration>\package\. Debug deploys it to the Gale profile; Release zips it. Same contents either way. -->
+  <Target Name="StageThunderstorePackage" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(ThunderstoreDescription)' == ''"
+           Text="Set ThunderstoreDescription in $(MSBuildProjectFile) (max 250 characters, no double quotes)." />
+    <Error Condition="!Exists('$(JotunnManifest)')"
+           Text="Jotunn's manifest.json not found at '$(JotunnManifest)'. Set JotunnManifest in Local.props." />
+    <Error Condition="'$(BepInExPackDependency)' == '' And !Exists('$(BepInExPackChangelog)')"
+           Text="BepInExPack changelog not found at '$(BepInExPackChangelog)'. Set BepInExPackDependency in Local.props." />
+
+    <!-- RepoUrl: explicit value in the .csproj wins; otherwise derive it from the git remote this repo was cloned from. -->
+    <Exec Condition="'$(RepoUrl)' == ''" Command="git config --get remote.origin.url"
+          WorkingDirectory="$(MSBuildProjectDirectory)" ConsoleToMSBuild="true" IgnoreExitCode="true"
+          StandardOutputImportance="low" StandardErrorImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_GitRemoteUrl" />
+    </Exec>
+    <PropertyGroup Condition="'$(RepoUrl)' == '' And '$(_GitRemoteUrl)' != ''">
+      <_RepoUrl>$(_GitRemoteUrl.Trim())</_RepoUrl>
+      <!-- git@github.com:Org/Repo.git -> https://github.com/Org/Repo.git -->
+      <_RepoUrl Condition="$(_RepoUrl.StartsWith('git@'))">https://$(_RepoUrl.Substring(4).Replace(':', '/'))</_RepoUrl>
+      <!-- Strip any credentials embedded in an https remote: this URL goes into a PUBLIC manifest -->
+      <_RepoUrl>$([System.Text.RegularExpressions.Regex]::Replace('$(_RepoUrl)', '^(https?://)[^@/]+@', '$1'))</_RepoUrl>
+      <_RepoUrl Condition="$(_RepoUrl.EndsWith('.git'))">$(_RepoUrl.Substring(0, $([MSBuild]::Subtract($(_RepoUrl.Length), 4))))</_RepoUrl>
+      <RepoUrl>$(_RepoUrl)</RepoUrl>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <PackageStageDir>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)package\</PackageStageDir>
+
+      <!-- Versions as installed in this mod's Gale profile, i.e. what you actually tested against -->
+      <JotunnPackageVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(JotunnManifest)')), '"version_number"\s*:\s*"([^"]+)"').Groups[1].Value)</JotunnPackageVersion>
+
+      <!-- BepInExPack versions are x.y.NNNN (e.g. 5.4.2351); BepInEx's own are x.y.zz.w (e.g. 5.4.23.5).
+           The changelog is newest-first, so the first x.y.NNNN is the installed pack version. -->
+      <_BepInExPackVersion Condition="'$(BepInExPackDependency)' == ''">$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(BepInExPackChangelog)')), '(?&lt;![\d.])\d+\.\d+\.\d{4,}(?![\d.])').Value)</_BepInExPackVersion>
+      <BepInExPackDependency Condition="'$(BepInExPackDependency)' == '' And '$(_BepInExPackVersion)' != ''">denikson-BepInExPack_Valheim-$(_BepInExPackVersion)</BepInExPackDependency>
+    </PropertyGroup>
+
+    <Error Condition="'$(JotunnPackageVersion)' == ''" Text="Couldn't read version_number from '$(JotunnManifest)'." />
+    <Error Condition="'$(BepInExPackDependency)' == ''"
+           Text="Couldn't find a BepInExPack version in '$(BepInExPackChangelog)'. Set BepInExPackDependency in Local.props." />
+
+    <PropertyGroup>
+      <_TsDeps>"$(BepInExPackDependency)", "ValheimModding-Jotunn-$(JotunnPackageVersion)"</_TsDeps>
+      <_TsDeps Condition="'@(ThunderstoreDependency)' != ''">$(_TsDeps), @(ThunderstoreDependency->'"%(Identity)"', ', ')</_TsDeps>
+      <_ManifestJson>{
+  "name": "$(AssemblyName)",
+  "version_number": "$(Version)",
+  "website_url": "$(RepoUrl)",
+  "description": "$(ThunderstoreDescription)",
+  "dependencies": [ $(_TsDeps) ]
+}</_ManifestJson>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ThunderstoreFiles Include="$(MSBuildProjectDirectory)\Package\*" />
+    </ItemGroup>
+    <RemoveDir Directories="$(PackageStageDir)" />
+    <Copy SourceFiles="@(ThunderstoreFiles);$(TargetPath)" DestinationFolder="$(PackageStageDir)" />
+    <WriteLinesToFile File="$(PackageStageDir)manifest.json" Lines="$(_ManifestJson)" Overwrite="true" />
+  </Target>
+
+  <!-- Debug builds: deploy the full staged package into this mod's Gale profile, laid out exactly as a
+       Thunderstore install (BepInEx\plugins\<Team>-<ModName>\), so a later install of the release overwrites it. -->
+  <Target Name="DeployToGaleProfile" AfterTargets="Build" DependsOnTargets="StageThunderstorePackage"
+          Condition="'$(Configuration)' == 'Debug' And '$(GaleProfileDir)' != '' And '$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_DeployDir>$(BepInExDir)\plugins\$(ThunderstoreTeam)-$(AssemblyName)\</_DeployDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <_StagedFiles Include="$(PackageStageDir)*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_StagedFiles)" DestinationFolder="$(_DeployDir)" />
+    <Message Importance="high" Text="Deployed $(AssemblyName) $(Version) package to $(_DeployDir)" />
+  </Target>
+
+  <!-- Release builds: zip the staged package into /dist, named <Team>-<ModName>-<Version>.zip like Thunderstore's own downloads. -->
+  <Target Name="PackageThunderstore" AfterTargets="Build" DependsOnTargets="StageThunderstorePackage"
+          Condition="'$(Configuration)' == 'Release'">
+    <Warning Condition="'$(RepoUrl)' == ''"
+             Text="RepoUrl is empty (not set in $(MSBuildProjectFile) and no git remote found): the Thunderstore page won't link to the repo or its issues." />
+    <PropertyGroup>
+      <PackageDistDir>$(MSBuildThisFileDirectory)dist\</PackageDistDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(PackageDistDir)" />
+    <ZipDirectory SourceDirectory="$(PackageStageDir)"
+                  DestinationFile="$(PackageDistDir)$(ThunderstoreTeam)-$(AssemblyName)-$(Version).zip" Overwrite="true" />
+    <Message Importance="high" Text="Packaged $(AssemblyName) $(Version)" />
+    <Message Importance="high" Text="  depends on: $(BepInExPackDependency), ValheimModding-Jotunn-$(JotunnPackageVersion) @(ThunderstoreDependency)" />
+  </Target>
+
+</Project>

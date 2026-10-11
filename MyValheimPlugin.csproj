@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Framework, references, deploy and packaging come from Directory.Build.props/.targets. -->
+  <PropertyGroup>
+    <AssemblyName>MyValheimPlugin</AssemblyName>
+    <RootNamespace>MyValheimPlugin</RootNamespace>
+
+    <!-- The ONLY place to bump the version: feeds the plugin attribute and the generated manifest.json -->
+    <Version>1.0.0</Version>
+
+    <!-- Thunderstore manifest description: max 250 characters, no double quotes. -->
+    <ThunderstoreDescription>Describe the mod here.</ThunderstoreDescription>
+    <!-- Becomes website_url in manifest.json: the Thunderstore page's link to the repo (and its Issues).
+         Leave empty to use this repo's git remote automatically; set it only to point somewhere else. -->
+    <RepoUrl></RepoUrl>
+  </PropertyGroup>
+
+  <!-- Extra Thunderstore dependencies beyond BepInExPack and Jotunn (both added automatically), e.g.
+  <ItemGroup>
+    <ThunderstoreDependency Include="Author-ModName-1.2.3" />
+  </ItemGroup>
+  -->
+</Project>
