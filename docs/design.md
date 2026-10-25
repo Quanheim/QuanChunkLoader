@@ -40,6 +40,13 @@ Two more facts limit what any chunk loader can do:
 
 ## Pieces
 
+**Observer model (decided 2026-10-25):** Frogger's original `ChunkLoader_stone` model, as a tribute. It comes from the `chunkloader` asset bundle in [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader) (`src/assets/chunkloader`, MIT).
+- Ship the bundle as an embedded resource. Build `Quan_ChunkObserver` from its mesh, materials, light and particles, not from its prefab: the prefab references the old mod's `ChunkLoaderMono` script, which would log missing-script warnings.
+- MIT requires the copyright and licence notice in copies, so add `THIRD-PARTY-NOTICES.md` to the repo root and to `Package/` (which ships in the Thunderstore zip).
+- Check the shaders on the bundle's materials in game. If they don't render correctly, remap them to Valheim's own shaders.
+- The bundle can't be loaded twice, so it would clash with the old mod if both were installed. The incompatibility check already prevents that.
+
+
 Both pieces go in the **QuanPieces** hammer tab. Each costs 10 stone (configurable) and needs no crafting station. Neither carries a PlayerBase `EffectArea`, so neither suppresses spawners or counts as a base.
 
 ### Quan's Chunk Observer (`Quan_ChunkObserver`)
@@ -175,7 +182,7 @@ Client config:
 ## README outline
 
 1. **What it does,** in two lines.
-2. **Credit:** Frogger had the original idea of a Valheim chunk loader, and is credited for it as a courtesy. State plainly that no code is reused from Frogger's mod or any other current chunk loader mod.
+2. **Dedication and credit (highlighted, near the top):** Frogger had the original idea of a Valheim chunk loader. As a tribute, the Chunk Observer uses Frogger's original chunk loader model, used under the MIT licence (Copyright (c) 2023 Vyacheslav, [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader)). State plainly that the model is the only thing reused: no code comes from Frogger's mod or any other current chunk loader mod.
 3. **What's improved,** described factually and without criticising earlier mods, with the reason for each:
    - ownership goes back to nearby players;
    - auto-fuel and auto-store work in loaded bases;
@@ -244,4 +251,4 @@ The first release is 1.0.0. Builds stay at 1.0.0 through development and testing
 - **Seed Totem 4.3.13:** confirm by decompiling that its failures belong to the same "owner expected to be a local player" class. They are probably fixed by the ownership rule.
 - **Plant ownership on the live server:** the v3 diagnostic (installed 2026-10-25) will show who owned overdue plants.
 - **Real conversion station values and empty-server wind:** v3 logs both.
-- **Visuals:** our own look, kitbashed from vanilla parts in Jotunn, with a different look for each piece and custom active/inactive map icons. A recoloured vanilla piece is the fallback. Low priority; it may come after v1.
+- **Phantom Spawner look:** to be chosen in game by the user. The fallback is a recoloured or kitbashed vanilla piece. Map icons: vanilla pin icons for now.
