@@ -190,3 +190,23 @@ server profile in Gale like any other mod.
 | Kicked on connect with a version mismatch | Server and client have different plugin versions. `VersionStrictness.Minor` means `x.y` must match. |
 | `Could not load file or assembly 'System.ValueTuple'` in the log, and the mod's content is missing | The code uses C# tuples, which Valheim's runtime can't load. Replace them with a `struct` or `out` parameters (see section 0). |
 | Need a private game field | Add `BepInEx.AssemblyPublicizer.MSBuild` and set `Publicize="true"` on the `assembly_valheim` reference. |
+| Build errors about types from `research/` or another project in a subfolder | The SDK compiles every `.cs` file under the repo. `research/` is excluded in `Directory.Build.props`; exclude any other folder in the mod's `.csproj` with `<DefaultItemExcludes>$(DefaultItemExcludes);Folder/**</DefaultItemExcludes>`. |
+
+## 9. Keeping mods in step with the template
+
+A mod repo starts as a copy of the template and never picks up later template changes by itself. So **any
+difference found between a mod and the template is a learning to share, not something to leave**:
+
+1. **Decide which side is right.** A fix or improvement first found in a mod (a build setting, a reference, a
+   `.gitignore` entry, a doc note) goes into the template first.
+2. **Merge it into every other mod, one repo at a time.** Commit only the template-derived files, and leave any
+   unrelated work in progress in that repo untouched.
+3. **Check every mod, not just the ones cloned here.** Start with the local folders, then list the Quanheim GitHub
+   organisation (`gh repo list Quanheim`) for mod repos that aren't cloned yet.
+
+Template-derived files to compare: `.gitignore`, `Directory.Build.props`, `Directory.Build.targets`,
+`Local.props.example`, `docs/DEVELOPMENT.md`, and the shape of `.vscode/` (which the template no longer tracks).
+
+Expected differences, which are **not** drift: the mod's name, GUID, version and description in its `.csproj` and
+plugin class, its `Package/` files, its root `README.md`, and machine- or mod-specific paths in
+`Local.props.example`.

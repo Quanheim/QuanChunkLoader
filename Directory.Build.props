@@ -20,6 +20,10 @@
     <JotunnManifest Condition="'$(JotunnManifest)' == ''">$(BepInExDir)\plugins\ValheimModding-Jotunn\manifest.json</JotunnManifest>
     <!-- BepInExPack unpacks into the profile root; its changelog.txt is the only record of its version there -->
     <BepInExPackChangelog Condition="'$(BepInExPackChangelog)' == ''">$(GaleProfileDir)\changelog.txt</BepInExPackChangelog>
+
+    <!-- The SDK compiles every .cs file under the repo. research/ (gitignored) holds reference material and
+         samples, so keep it out of the mod's DLL. A mod's .csproj can add more paths the same way. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);research/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
