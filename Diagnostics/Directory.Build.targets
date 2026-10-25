@@ -1,0 +1,29 @@
+<!-- Stops the repo root's Directory.Build.targets (Jotunn checks, Thunderstore packaging) applying here. -->
+<Project>
+  <Target Name="CheckDiagReferences" BeforeTargets="ResolveAssemblyReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="!Exists('$(ManagedDir)\assembly_valheim.dll')"
+           Text="assembly_valheim.dll not found in '$(ManagedDir)'. Set ValheimDir in Local.props." />
+    <Error Condition="!Exists('$(DiagBepInExCoreDir)\BepInEx.dll')"
+           Text="BepInEx.dll not found in '$(DiagBepInExCoreDir)'. Set DiagBepInExCoreDir (or GaleProfileDir) in Local.props." />
+  </Target>
+
+  <!-- Same as the root template: PluginInfo.Version generated from <Version> in the .csproj. -->
+  <Target Name="GeneratePluginInfo" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <PluginInfoFile>$(IntermediateOutputPath)PluginInfo.g.cs</PluginInfoFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(PluginInfoFile)"
+                      Lines="namespace $(RootNamespace) { internal static class PluginInfo { public const string Version = &quot;$(Version)&quot;%3B } }"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(PluginInfoFile)" />
+      <FileWrites Include="$(PluginInfoFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Copy the finished DLL to Diagnostics\dist\ so there's one obvious file to drop on the server. -->
+  <Target Name="CopyDiagToDist" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(MSBuildThisFileDirectory)dist\" />
+    <Message Importance="high" Text="$(AssemblyName) $(Version) -> $(MSBuildThisFileDirectory)dist\$(TargetFileName)" />
+  </Target>
+</Project>

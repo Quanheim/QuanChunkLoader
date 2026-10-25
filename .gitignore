@@ -11,3 +11,6 @@ Local.props
 .vs/
 .vscode/
 *.user
+
+# Claude session notes for this project (kept local, outside the repo history)
+.claude/

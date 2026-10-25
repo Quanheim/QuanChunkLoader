@@ -12,6 +12,9 @@
     <!-- Becomes website_url in manifest.json: the Thunderstore page's link to the repo (and its Issues).
          Leave empty to use this repo's git remote automatically; set it only to point somewhere else. -->
     <RepoUrl></RepoUrl>
+
+    <!-- Keep other projects and reference material out of the mod's compile glob. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Diagnostics/**;Upstream Previous Mods/**;research/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <!-- Extra Thunderstore dependencies beyond BepInExPack and Jotunn (both added automatically), e.g.

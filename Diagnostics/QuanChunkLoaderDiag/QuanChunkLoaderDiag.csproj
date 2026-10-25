@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Read-only, server-only diagnostic for the old chunk loader. See docs/diagnostic-test-plan.md. -->
+  <PropertyGroup>
+    <AssemblyName>QuanChunkLoaderDiagV3</AssemblyName>
+    <RootNamespace>QuanChunkLoaderDiag</RootNamespace>
+    <Version>0.3.0</Version>
+  </PropertyGroup>
+</Project>
