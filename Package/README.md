@@ -1,4 +1,6 @@
-# MyValheimPlugin
+# Quan's Chunk Loader
 
-What the mod does, how to configure it, and anything players need to know.
-This file becomes the mod's Thunderstore page.
+Keeps your bases running while you're elsewhere in the world, without the side effects of earlier chunk loaders.
+
+This page is a placeholder while the mod is in development. The full write-up (what's improved, configuration,
+recommended companion mods, tested-with list and migration from older chunk loaders) comes with the 1.0.0 release.

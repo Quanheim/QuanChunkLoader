@@ -175,7 +175,7 @@ Client config:
 ## README outline
 
 1. **What it does,** in two lines.
-2. **Credit:** Frogger wrote the original ChunkLoader, which this builds on in concept. Thanks also to the maintainers of the later forks.
+2. **Credit:** Frogger had the original idea of a Valheim chunk loader, and is credited for it as a courtesy. State plainly that no code is reused from Frogger's mod or any other current chunk loader mod.
 3. **What's improved,** described factually and without criticising earlier mods, with the reason for each:
    - ownership goes back to nearby players;
    - auto-fuel and auto-store work in loaded bases;
@@ -198,6 +198,10 @@ Client config:
 8. **Tested with:** every mod and version from the live server's plugin list.
 9. **Migrating from an old chunk loader.**
 10. **Known limits:** only loaded stock is processed while offline, windmill variability, an hour at most, nothing overnight.
+
+## Versioning
+
+The first release is 1.0.0. Builds stay at 1.0.0 through development and testing. The tagged commit that goes to Thunderstore fixes what 1.0.0 is; later changes bump the version. It has to be on Thunderstore so every player gets it through the shared Gale profile.
 
 ## Test plan for the real mod
 
