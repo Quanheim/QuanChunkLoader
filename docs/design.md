@@ -41,6 +41,7 @@ Two more facts limit what any chunk loader can do:
 ## Pieces
 
 **Observer model (decided 2026-10-25):** Frogger's original `ChunkLoader_stone` model, as a tribute. It comes from the `chunkloader` asset bundle in [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader) (`src/assets/chunkloader`, MIT).
+- Scale the model to 75% of its original size (the original is very big). Review the look when we build.
 - Ship the bundle as an embedded resource. Build `Quan_ChunkObserver` from its mesh, materials, light and particles, not from its prefab: the prefab references the old mod's `ChunkLoaderMono` script, which would log missing-script warnings.
 - MIT requires the copyright and licence notice in copies, so add `THIRD-PARTY-NOTICES.md` to the repo root and to `Package/` (which ships in the Thunderstore zip).
 - Check the shaders on the bundle's materials in game. If they don't render correctly, remap them to Valheim's own shaders.
@@ -181,30 +182,33 @@ Client config:
 
 ## README outline
 
-1. **What it does,** in two lines.
-2. **Dedication and credit (highlighted, near the top):** Frogger had the original idea of a Valheim chunk loader. As a tribute, the Chunk Observer uses Frogger's original chunk loader model, used under the MIT licence (Copyright (c) 2023 Vyacheslav, [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader)). State plainly that the model is the only thing reused: no code comes from Frogger's mod or any other current chunk loader mod.
-3. **What's improved,** described factually and without criticising earlier mods, with the reason for each:
-   - ownership goes back to nearby players;
-   - auto-fuel and auto-store work in loaded bases;
-   - plants regrow;
-   - boats float at the edges;
-   - surtling farms run;
-   - the map doesn't lag;
-   - the empty-server hour;
-   - despawn protection;
-   - the defensive fixes.
-4. **The common misunderstandings,** explained plainly:
+1. **Intro:** what the mod is, in a couple of lines.
+2. **What it fixes:** the symptoms players actually see, each with its cause.
+   - Production chains stall while players are in the base: ownership never goes back to them, so auto-fuel and auto-store can't act.
+   - Plants show "Ready" but never regrow.
+   - Moored boats sink at the edge of a loaded area.
+   - Picks fail silently.
+   - Surtling farms stop without a player nearby.
+   - The large map lags, which blocks portal selection.
+3. **How chunk loading really works, and what every chunk loader gets wrong:** explained as how the game works, not as criticism of anyone's mod.
    - "Loaded" doesn't mean "owned by a player".
    - Telling the game every loaded point is in range of everyone makes the server and departed players hoard objects.
    - Some vanilla code assumes the owner is a player.
    - A boat needs every water sample point loaded.
-   - The world clock stops when nobody is online, so no loader can make things run all night.
-5. **The two pieces,** with costs and how to use each.
-6. **Configuration reference.**
-7. **Recommended companions,** described by type only, not by name: conversion capacity and speed mods, auto-fuel, auto-store, with why each matters. Readers who want our picks can see them in "Tested with".
-8. **Tested with:** every mod and version from the live server's plugin list.
-9. **Migrating from an old chunk loader.**
-10. **Known limits:** only loaded stock is processed while offline, windmill variability, an hour at most, nothing overnight.
+4. **What no chunk loader can ever do:**
+   - The world clock stops when nobody is online, so nothing runs all night.
+   - Auto-fuel and auto-store need a player nearby, so offline production only uses what's already loaded.
+   - What this mod does instead: up to an hour of real-time production after the last logout.
+5. **Features:** the two pieces with costs and how to use them; ownership handback; boats; the phantom spawner; the empty-server hour; despawn protection; map and admin controls; the defensive fixes.
+6. **Dedication and credit (highlighted):**
+   - Frogger had the original idea of a Valheim chunk loader.
+   - As a tribute, the Chunk Observer uses Frogger's original chunk loader model, under the MIT licence (Copyright (c) 2023 Vyacheslav, [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader)).
+   - The model is the only thing reused: no code comes from Frogger's mod or any other current chunk loader mod.
+7. **Configuration reference.**
+8. **Recommended companions,** described by type only, not by name: conversion capacity and speed mods, auto-fuel, auto-store, with why each matters. Readers who want our picks can see them in "Tested with".
+9. **Tested with:** every mod and version from the live server's plugin list.
+10. **Migrating from an old chunk loader.**
+11. **Known limits:** windmill variability, one hour at most.
 
 ## Versioning
 
