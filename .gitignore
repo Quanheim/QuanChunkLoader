@@ -2,10 +2,12 @@
 bin/
 obj/
 dist/
+research/
 
 # Machine-specific paths (copy Local.props.example to Local.props)
 Local.props
 
 # IDE noise
 .vs/
+.vscode/
 *.user
