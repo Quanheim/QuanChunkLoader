@@ -70,9 +70,27 @@
     <Error Condition="'$(BepInExPackDependency)' == ''"
            Text="Couldn't find a BepInExPack version in '$(BepInExPackChangelog)'. Set BepInExPackDependency in Local.props." />
 
+    <!-- Extra dependencies: "Team-Name" takes the version installed in this mod's Gale profile (what you tested
+         against), read from BepInEx\plugins\Team-Name\manifest.json. "Team-Name-x.y.z" pins that version. -->
+    <ItemGroup>
+      <_TsDepFromProfile Include="@(ThunderstoreDependency)"
+                         Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(Identity)', '-\d+\.\d+\.\d+$'))">
+        <Manifest>$(BepInExDir)\plugins\%(Identity)\manifest.json</Manifest>
+      </_TsDepFromProfile>
+    </ItemGroup>
+    <Error Condition="'@(_TsDepFromProfile)' != '' And !Exists('%(_TsDepFromProfile.Manifest)')"
+           Text="Dependency '%(_TsDepFromProfile.Identity)' isn't installed in the Gale profile (no %(_TsDepFromProfile.Manifest)). Install it there, or pin a version as Team-Name-x.y.z." />
+    <ItemGroup>
+      <_TsDepFromProfile Condition="Exists('%(Manifest)')">
+        <InstalledVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('%(Manifest)')), '\x22version_number\x22\s*:\s*\x22([^\x22]+)\x22').Groups[1].Value)</InstalledVersion>
+      </_TsDepFromProfile>
+      <_TsDepResolved Include="@(ThunderstoreDependency)" Exclude="@(_TsDepFromProfile)" />
+      <_TsDepResolved Include="@(_TsDepFromProfile->'%(Identity)-%(InstalledVersion)')" />
+    </ItemGroup>
+
     <PropertyGroup>
       <_TsDeps>"$(BepInExPackDependency)", "ValheimModding-Jotunn-$(JotunnPackageVersion)"</_TsDeps>
-      <_TsDeps Condition="'@(ThunderstoreDependency)' != ''">$(_TsDeps), @(ThunderstoreDependency->'"%(Identity)"', ', ')</_TsDeps>
+      <_TsDeps Condition="'@(_TsDepResolved)' != ''">$(_TsDeps), @(_TsDepResolved->'"%(Identity)"', ', ')</_TsDeps>
       <_ManifestJson>{
   "name": "$(AssemblyName)",
   "version_number": "$(Version)",
@@ -116,7 +134,7 @@
     <ZipDirectory SourceDirectory="$(PackageStageDir)"
                   DestinationFile="$(PackageDistDir)$(ThunderstoreTeam)-$(AssemblyName)-$(Version).zip" Overwrite="true" />
     <Message Importance="high" Text="Packaged $(AssemblyName) $(Version)" />
-    <Message Importance="high" Text="  depends on: $(BepInExPackDependency), ValheimModding-Jotunn-$(JotunnPackageVersion) @(ThunderstoreDependency)" />
+    <Message Importance="high" Text="  depends on: $(BepInExPackDependency), ValheimModding-Jotunn-$(JotunnPackageVersion) @(_TsDepResolved, ', ')" />
   </Target>
 
 </Project>

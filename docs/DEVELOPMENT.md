@@ -165,7 +165,7 @@ How the generated `manifest.json` gets its fields:
 | `version_number` | `<Version>` |
 | `description` | `<ThunderstoreDescription>`: 250 characters max, and no double quotes, because it isn't JSON-escaped. |
 | `website_url` | `<RepoUrl>` if set; otherwise the repo's `origin` remote, converted to https, with any embedded credentials and `.git` removed. |
-| `dependencies` | BepInExPack's version, read from the profile's `changelog.txt`; Jotunn's version, read from its `manifest.json` in the profile; and any `<ThunderstoreDependency>` items in the `.csproj`. |
+| `dependencies` | BepInExPack's version, read from the profile's `changelog.txt`; Jotunn's version, read from its `manifest.json` in the profile; and any `<ThunderstoreDependency>` items in the `.csproj`. Write those as `Team-Name` to use the version installed in the mod's Gale profile (read from `BepInEx\plugins\Team-Name\manifest.json`, so it's the version you tested against), or `Team-Name-x.y.z` to pin one. |
 
 About the BepInExPack heuristic: the pack's `changelog.txt` is a git log listed newest first. Pack versions look
 like `5.4.2351` (four-digit patch), while BepInEx's own versions look like `5.4.23.5`. The build takes the first
@@ -197,6 +197,7 @@ server profile in Gale like any other mod.
 | Kicked on connect with a version mismatch | Server and client have different plugin versions. `VersionStrictness.Minor` means `x.y` must match. |
 | `Could not load file or assembly 'System.ValueTuple'` in the log, and the mod's content is missing | The code uses C# tuples, which Valheim's runtime can't load. Replace them with a `struct` or `out` parameters (see section 0). |
 | A cloned piece's build card shows red-and-white shields and "None" for the station | It was copied from another mod's piece before Jotunn replaced its `JVLmock_` placeholders. Strip that prefix from the item and station names (see section 0). |
+| Release: `Dependency '...' isn't installed in the Gale profile` | A `<ThunderstoreDependency>` without a version takes it from the profile. Install that mod in the profile, or pin a version as `Team-Name-x.y.z`. |
 | Need a private game field | Add `BepInEx.AssemblyPublicizer.MSBuild` and set `Publicize="true"` on the `assembly_valheim` reference. |
 | Build errors about types from `research/` or another project in a subfolder | The SDK compiles every `.cs` file under the repo. `research/` is excluded in `Directory.Build.props`; exclude any other folder in the mod's `.csproj` with `<DefaultItemExcludes>$(DefaultItemExcludes);Folder/**</DefaultItemExcludes>`. |
 
