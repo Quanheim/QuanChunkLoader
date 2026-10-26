@@ -29,6 +29,13 @@ without complaint, then throw `Could not load file or assembly 'System.ValueTupl
 in game. Use a small `struct` or `out` parameters instead. To check a build, search the decompiled DLL for
 `ValueTuple`: `ilspycmd bin\Release\<ModName>.dll | findstr ValueTuple` should print nothing.
 
+**Cloning another mod's pieces: strip Jotunn's placeholder names.** A piece added by another Jotunn mod doesn't
+hold its real recipe items and crafting station straight away. Until Jotunn resolves them, each is a placeholder
+named `JVLmock_<real name>` (for example `JVLmock_Bronze`). If your mod copies that piece's recipe or station
+during `OnVanillaPrefabsAvailable`, remove the `JVLmock_` prefix from each name before building your own
+`RequirementConfig` and `CraftingStation`, or the copy points at names that never resolve. Jotunn's own constant
+for the prefix (`MockManager.JVLMockPrefix`) is internal, so declare your own. Vanilla pieces aren't affected.
+
 ## 1. Install the tools (once per machine)
 
 1. **Git for Windows**: <https://git-scm.com/download/win>. The default install options are fine.
@@ -189,6 +196,7 @@ server profile in Gale like any other mod.
 | Plugin missing from the log | The DLL isn't in that profile's `BepInEx\plugins`, or you launched a different profile. |
 | Kicked on connect with a version mismatch | Server and client have different plugin versions. `VersionStrictness.Minor` means `x.y` must match. |
 | `Could not load file or assembly 'System.ValueTuple'` in the log, and the mod's content is missing | The code uses C# tuples, which Valheim's runtime can't load. Replace them with a `struct` or `out` parameters (see section 0). |
+| A cloned piece's build card shows red-and-white shields and "None" for the station | It was copied from another mod's piece before Jotunn replaced its `JVLmock_` placeholders. Strip that prefix from the item and station names (see section 0). |
 | Need a private game field | Add `BepInEx.AssemblyPublicizer.MSBuild` and set `Publicize="true"` on the `assembly_valheim` reference. |
 | Build errors about types from `research/` or another project in a subfolder | The SDK compiles every `.cs` file under the repo. `research/` is excluded in `Directory.Build.props`; exclude any other folder in the mod's `.csproj` with `<DefaultItemExcludes>$(DefaultItemExcludes);Folder/**</DefaultItemExcludes>`. |
 
