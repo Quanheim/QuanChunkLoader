@@ -125,7 +125,13 @@ The diagnostic plugin retires at 1.0, so everything below is built into the mod.
 - **Ownership summaries for forced zones,** every 5 minutes: object counts by owner (server or player), as the diagnostic's beat line does.
 - **Large changes at once:** a warning when 20 or more objects leave forced zones, or change owner, within one 2 s pass, with counts by category (tames, containers and so on) and the players involved. That is exactly what 1 Nov looked like.
 - **Distant claims taken back** (see the ownership rule), counted per player, so a misbehaving mod shows up.
-- A debug switch adds per-object detail.
+- **Log detail is a server setting**, default **Info**, so the log stays small and respectful of disk space:
+  - **Info:** only the lines above: switches, forced set changes, 5-minute summaries, warnings for large changes,
+    distant claims taken back, unknown prefabs skipped. A handful of lines per minute at most, and nothing every frame.
+  - **Debug:** adds per-object detail for ownership changes and loads.
+  - **Trace:** adds every ownership decision and scene pass, for chasing a specific bug, then switching back.
+- Everything goes to the normal BepInEx log. Writing a separate daily log file (as the diagnostic did, up to about
+  10 MB a day) is an option, off by default, with a setting for how many days of files to keep.
 
 Timestamps include the UTC offset, as the diagnostic does, so they can be matched against client `Player.log` files.
 
@@ -194,7 +200,10 @@ Nothing this mod does may permanently remove or damage anything. These rules hol
   loaders carry the same exposure. In forced zones the server skips unknown prefabs and logs them instead.
 - **Buildings at the edge keep full support.** Vanilla only runs building wear and support in the inner part of the
   loaded area, so a piece can always see the pieces holding it up (`WearNTear.UpdateWear` returns early when
-  `ZNetScene.OutsideActiveArea` is true). On the server, a point in a forced zone counts as "active" only when all
+  `ZNetScene.OutsideActiveArea` is true). Vanilla works by zone (64 x 64 m): around a player it loads the 5 x 5 zones
+  centred on their zone and runs only the 3 x 3 in the middle (trimmed at the corners), keeping a one-zone margin of
+  loaded neighbours (`ZNetScene.CreateDestroyObjects`, `ZNetScene.PointInsideActiveArea`). We mirror that margin.
+  On the server, a point in a forced zone counts as "active" only when all
   eight neighbouring zones are forced too. Pieces at the edge of a loaded area then keep full support and don't
   weather, instead of checking their support without their neighbours and possibly collapsing. The same rule applies
   to crops dropping to the ground (`StaticPhysics`) and to `SpawnArea`, the other users of that check. With a 3x3
