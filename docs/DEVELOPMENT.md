@@ -55,6 +55,24 @@ Also:
 - Never rename a section or setting after release: players' saved values sit under the old name and would be lost.
   If a rename is unavoidable, migrate the old value in code and say so in the changelog.
 
+**Server-enforced or personal: decide for every setting.** Our mods run on the server and every client, and the
+server's settings are authoritative wherever they affect other players.
+- **Use Jotunn's config sync,** not ServerSync. Mark a setting `IsAdminOnly = true` (in `ConfigurationManagerAttributes`,
+  or `BindConfig(..., synced: true)`). Every client then gets the server's value on connect and any later change, and
+  only admins (the server's `adminlist.txt`) can change it in game. ServerSync, which many mods embed, exists mainly so
+  mods can sync without depending on Jotunn; ours already depend on Jotunn, so it adds nothing. There's no master
+  "Lock Configuration" switch: each setting is enforced or not by design.
+- **Challenge each setting:** does it affect other players, fairness or the server's experience? Then it's
+  enforced. Is it about the player's own view or comfort? Then it's personal. For example, a map mod enforces the
+  exploration radius and forced position sharing, while which pin types show is personal.
+- **Keep enforced and personal settings in separate sections** where possible, and mark personal ones in the section
+  name, e.g. `8 - Map (personal)`.
+- **Say it in every description:** "Synced from the server; admins only." or "Personal." Gale shows descriptions but
+  not Configuration Manager's lock icon.
+- Each design doc's config table has an Enforced/Personal column.
+- **Data that isn't a setting** (a YAML list, for instance) doesn't sync by itself. Register an extra config file
+  with Jotunn's `SynchronizationManager.RegisterCustomConfig`, or send it with a Jotunn custom RPC.
+
 ## 1. Install the tools (once per machine)
 
 1. **Git for Windows**: <https://git-scm.com/download/win>. The default install options are fine.
