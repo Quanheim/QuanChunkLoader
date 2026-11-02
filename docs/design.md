@@ -1,10 +1,10 @@
 # Quan's Chunk Loader: design
 
-Status: design agreed on 2026-10-25, not yet built. Valheim 1.0.20 (network version 41), BepInEx, Jotunn.
+Status: design agreed on 2026-10-25, not yet built. Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
 
 Quan's Chunk Loader (`QuanChunkLoader`) is a new chunk loader for dedicated servers. It replaces Frogger's original ChunkLoader and two later forks of it, NerdLounge "ChunkLoader Continued" and zeeCamelSnake "ChunkLoaderFix". It's a rewrite rather than a fork. The old mods share one core mechanism, and that mechanism causes their main bugs (see [Why the old approach fails](#why-the-old-approach-fails)).
 
-Every claim below was checked against the 1.0.20 decompile and, where possible, against logs from a read-only diagnostic plugin. The diagnostic ran for two weeks on a live 5-player, 69-mod server (see `diagnostic-test-plan.md`).
+Every claim below was checked against the 1.0.20 decompile, re-checked against 1.0.21 on 2026-11-01, and, where possible, against logs from a read-only diagnostic plugin. The diagnostic ran for two weeks on a live 5-player, 69-mod server (see `diagnostic-test-plan.md`).
 
 ## Goals
 
@@ -14,6 +14,7 @@ Every claim below was checked against the 1.0.20 decompile and, where possible, 
 4. **Surtling farms keep spawning** without a player present.
 5. **Up to one real hour of offline production** after the last player logs off.
 6. **Low overhead** and clean coexistence with large modpacks.
+7. **No player's game ever runs a loaded base it isn't near.** Only the server keeps a base running while nobody is there, so a player's client-side mods can never act on a base they've left.
 
 Out of scope for v1:
 - Changing conversion capacity or speed. Leave that to other mods.
@@ -25,10 +26,13 @@ All three old mods postfix `ZNetScene.InActiveArea` to return `true` for any poi
 
 - **The server hoards ownership.** `ZDOMan.ReleaseNearbyZDOS` runs every 2 s for the server and for each player. A player takes an object only if its current owner is out of range, and the patched check always says the server is in range. So objects in a loaded zone stay with the server even while a player stands next to them. The only exception is a chest a player opens, which moves explicitly. Logs: across a week there were 57 handovers to players, every one of them an opened chest or a touched tame, and none happened through proximity. Separately, 1,873 objects went to the server across 31 logouts.
 - **Players who leave keep ownership.** The same check tells the game that every loaded object is in range of every player. A player who visits a base and walks away keeps its objects until they log out. One logout moved 271 objects at five different bases to the server. zeeCamelSnake also patches `IsInPeerActiveArea`, which makes this worse.
+- **Whoever switches a loader on takes the whole base.** The player standing there when it's switched on owns everything in its zones from then on, even if it isn't their base. On 1 Nov 2026 one player switched on the loader at another player's farm. The diagnostic showed all of its roughly 130 tames, plus its containers and stations, owned by that player for the next 75 minutes while they explored 4–5 km away.
+- **Distant players run the base on their own machine.** The patched check also runs on clients, so a player keeps the loaded base's objects instantiated and simulated on their PC wherever they are. Their client-side mods then act on a base they aren't near. On 1 Nov, when that player died far away, a tame mod on their PC moved about 200 tames from two loaded bases to the death spot in one second. See the QuanTames feature list (`QuanTames/docs/feature-list.md`) for the tame mod's side of this.
+- **Commands to a base's creatures get lost.** Vanilla sends a creature command (E to follow or stay) to the PC that owns the creature, and only that PC can change it. When the owner is a player far away, their PC can't find the requesting player, so the command is quietly ignored. On 1 Nov, players in the farm couldn't reliably make their own tames stay.
 - **Mods that need a player owner stop.** AzuAutoStore and OttoFuel only act on objects the local player owns, so with the server as owner they never run. Smelting chains stall even with a player in the base.
 - **Vanilla code that assumes the owner has a player** throws errors when the server is the owner:
   - `Pickable.RPC_Pick` calls `Player.m_localPlayer.GetZDOID()`, so picking fails silently. One harvest logged about 120 of these errors.
-  - `Ship.UpdateSailSize` fails the same way. The exception escapes `MonoUpdatersExtra.CustomFixedUpdate` and aborts the rest of that physics tick for fish, AI, characters and area effects.
+  - `Ship.UpdateSailSize` fails the same way. The exception escapes `MonoUpdatersExtra.CustomFixedUpdate` and aborts the rest of that physics tick for fish, AI, characters and area effects. 1.0.21 narrowed this: the local-player lookup now runs only while someone is at the ship's controls. It still runs on every machine that has the ship loaded, including the server, so a player changing sail inside a loaded zone still throws on the server.
 - **Plants never regrow.** Only the owner's copy of a pickable runs its regrow check (`Pickable.UpdateRespawn`, every 60 s). If the owner is a player who has left, nobody runs it. PlantEverything's hover then shows "Ready" while the plant stays bare, until someone switches the loader off and reloads the area.
 - **Boats sink at the edge of a loaded area.** `Ship.CustomFixedUpdate` averages five water samples: centre, bow, stern, left and right. A sample in a zone the server hasn't loaded returns -10000, so the average collapses and buoyancy switches off entirely. A server-owned boat moored at the edge of a loaded area then rests on the seabed. The diagnostic confirmed this in about 40,000 observations with no counter-examples. Every sinking had a sample in an unloaded zone, and every boat with all five samples loaded floated.
 - **The map lags.** The old mods remove and re-add every loader pin every 4 s and scan all ZDOs on the client. Opening the large map stalls for a second or two, which also blocks TargetPortal's portal selection.
@@ -76,18 +80,52 @@ Both pieces go in the **QuanPieces** hammer tab. Each costs 10 stone (configurab
 All of this runs on the server. Clients load nothing extra.
 
 1. **Forced set.** This is the union of the zones of all active observers. It's rebuilt from every active observer whenever one is placed, removed or switched, never by subtracting a removed observer's zones, because another observer may still cover them. There's no periodic per-observer work.
-2. **Loading.** The server keeps every forced zone generated and its objects instantiated. The old `InActiveArea` postfix is replaced by narrow patches that apply only to the server's own scene and ownership decisions.
+2. **Loading.** The server keeps every forced zone generated and its objects instantiated, **except tames** (see [Tames](#tames)). The old `InActiveArea` postfix is replaced by narrow patches that apply only to the server's own scene and ownership decisions.
 3. **Edge ring (on by default).** Around the combined forced area the server also loads a one-zone ring of zone roots only: terrain and water, no objects (`PokeLocalZone`). Physics at the edge then has ground and water, so boats moored on the edge float. The ring is computed from the combined set, so overlapping areas share it.
 4. **Ownership rule.**
    - The server claims an object in a forced zone only when no connected player's vanilla, unpatched active area covers it. It gives the object up as soon as one does, and vanilla `ReleaseNearbyZDOS` hands it to that player within one 2 s pass.
    - Observers only add zones to the set. They're never compared with player positions, so overlapping or duplicate observers can't change ownership.
    - We never patch the range checks as seen by players. That's what stops departed players keeping ownership.
+   - **Who switched an observer on doesn't matter.** Switching only changes the forced set. It never gives the switcher ownership of anything.
+   - **Distant claims don't stick.** Some mods take ownership of a creature or object directly (`ZNetView.ClaimOwnership`). If a player far from a forced zone does that, the server's 2 s pass sees the new owner out of their vanilla range and takes the object back. So a stray claim lasts at most one pass and can't turn into a base run from far away.
+   - **Clients never load forced zones.** A client only creates and simulates objects in its own vanilla active area. Forced zones exist only on the server (see goal 7).
 5. **Observer list.**
    - The server holds the authoritative observer list: position, on/off, builder, admin flag. Clients don't receive observers' data from across the world.
    - **Who gets what.** The server knows who is an admin (the world's admin list); clients don't, so it tells each client.
      - **Admins** get the full list: a snapshot on connect, then small add/change/remove updates. A client replaces its list on each snapshot, so a missed update can't leave a stale pin. It can also ask for a fresh snapshot, for example when opening the large map.
      - **Other players** get only their own observers and the server-wide total, which is enough for the limit pre-check. They never receive anyone else's positions.
    - If a player's admin status changes while they're online, the server sends the right set on their next snapshot request or reconnect.
+
+## Tames
+
+**Decision (2026-11-01): the loader ignores tames.** A tamed creature in a forced zone is left exactly as vanilla leaves it in an unloaded zone. The server doesn't instantiate it, doesn't run its AI and never claims it. It's paused until a player comes near, and then vanilla instantiates it and hands it to that player as usual.
+
+**Why.** On 1 Nov 2026 the old loader let one player's client own and instantiate about 200 tames at two bases 4–5 km away. That player died, and in the same second every one of those tames jumped to the death spot. The most likely cause is a BetterTames defect: its name-based follower match also matches tames with no leader when the player name is blank. We've reported it to the BetterTames author. Whatever the trigger, the old loader made it possible by giving a distant client both ownership and live instances. More generally:
+- **Tame mods assume they act on nearby tames.** BetterTames and TeleportCreatures run on clients and act on `Character.GetAllCharacters()` or on ZDOs the client owns. Anything that lets a client hold distant tames turns a local bug into a world-wide one.
+- **Server-run tame AI adds nothing players need.** A loaded pen would breed, get hungry and wander under the server, and tame mods' feeding and breeding code would run on the server. Breeding limits are local (BetterTames crowd limit, 10 m), so an unattended pen could keep growing.
+- **It stops whole classes of problem:** tames pushed out of pens with nobody watching, server-side AI cost, and the server holding tames that a player then can't command. Vanilla routes `Tameable.RPC_Command` to the owner, and only the owner can clear `follow`. That's why our E presses were ignored on the 1st.
+
+**How.**
+- A prefix on the server's object creation for forced zones skips any ZDO whose `tamed` flag is set (`ZDOVars.s_tamed`). It reads the ZDO directly, so it doesn't need a prefab lookup or an instance.
+- Instances in forced zones go through the same check every 2 s, so a creature tamed while the zone is loaded is dropped. Taming needs a player nearby, so ownership has already moved to them.
+- Only the server's own creation decisions change. Players' vanilla active areas are untouched, so a player in the base sees and owns their tames normally.
+- Players' clients never load forced zones (see [How loading and ownership work](#how-loading-and-ownership-work)). That's the other half of the protection: no client ever holds distant tames.
+
+**What players will notice.** Tames in a loaded base don't eat, breed, grow up or regain health while nobody is near. That's the same as vanilla without a loader. The README says so under Known limits.
+
+**Config:** "Simulate tames in loaded zones", **off** by default, server-synced and admin-only. Turning it on restores server-run tames under the normal ownership rule, for servers that really want unattended breeding. The README warns about the risks above.
+
+## Logging
+
+On 1 Nov 2026 the only reason we could reconstruct the incident was the diagnostic plugin's log: who switched which loader on and when, who owned what, and the exact second objects left the loaded zones. The real mod keeps the useful part of that at info level on the server, without the diagnostic's volume:
+- **Every observer switch:** position, on or off, who switched it, and the builder.
+- **Forced set changes:** zones added and removed, with the total.
+- **Ownership summaries for forced zones,** every 5 minutes: object counts by owner (server or player), as the diagnostic's beat line does.
+- **Large changes at once:** a warning when 20 or more objects leave forced zones, or change owner, within one 2 s pass, with counts by category (tames, containers and so on) and the players involved. That is exactly what 1 Nov looked like.
+- **Distant claims taken back** (see the ownership rule), counted per player, so a misbehaving mod shows up.
+- A debug switch adds per-object detail.
+
+Timestamps include the UTC offset, as the diagnostic does, so they can be matched against client `Player.log` files.
 
 ## The empty-server hour
 
@@ -127,7 +165,7 @@ Neither adds a PlayerBase area, so neither affects spawners.
 Normally the ownership rule means these situations don't arise. The patches cover the roughly 2 s before ownership moves.
 
 - `Pickable.RPC_Pick` on a server owner hands ownership to the player who asked and re-sends the RPC.
-- `Ship.UpdateSailSize` skips the local-player effect when there's no local player.
+- `Ship.UpdateSailSize(float dt, bool haveControllingPlayer)` skips the local-player effect when there's no local player. The signature gained `haveControllingPlayer` in 1.0.21, so the patch must target the new one.
 
 ## Limits and admin controls
 
@@ -147,6 +185,7 @@ Server config, synced, admin-only:
 | Phantom `CreatureSpawner` allowlist | `Spawner_imp_respawn` |
 | Phantom `SpawnArea` support | On |
 | Despawn protection | On |
+| Simulate tames in loaded zones | Off |
 | Build cost | 10 stone, no station |
 
 - **Admin placement.** Each observer stores its builder and an admin flag, set when it's built and checked against the server's admin list. Admin-placed observers count towards neither limit, and losing admin status later changes nothing.
@@ -167,12 +206,13 @@ Client config:
 - **Hard dependency:** Jotunn (in the manifest too). ServerSync is embedded.
 - **Incompatible:** the three old chunk loaders, declared with `BepInIncompatibility`. Two GUIDs cover all three: `com.Frogger.ChunkLoader` (Frogger's original, and NerdLounge's ChunkLoader Continued 1.8.0, which kept that GUID) and `com.zeecamelsnake.ChunkLoaderFix` (zeeCamelSnake 1.0.4; checked from the Thunderstore DLLs on 2026-10-25). Running alongside one would bring back the ownership bug. If BepInEx doesn't show the refusal clearly, the mod detects the old loader itself, logs a clear error and stays inactive.
 - **No soft dependencies.** Nothing needs a particular load order. The hammer tab name is a fixed constant, `QuanPieces`, matching the QuanPieces mod, so if both are installed their pieces share one tab. That needs only the same name, not a dependency.
-- **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `ZDOMan` ownership, `ZNetScene` object creation, `CreatureSpawner`/`SpawnArea` updates, `Pickable.RPC_Pick`, `Ship.UpdateSailSize` and `WearNTear.RPC_Damage`.
+- **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are `ZNetScene` object creation (including the tame skip), `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `ZDOMan` ownership, `ZNetScene` object creation, `CreatureSpawner`/`SpawnArea` updates, `Pickable.RPC_Pick`, `Ship.UpdateSailSize` and `WearNTear.RPC_Damage`. The full list, with what each relies on, belongs in the mod's Valheim Code Dependency doc.
 - **Known interactions, none needing code:**
   - **AzuAutoStore and OttoFuel** start working inside loaded bases again, because players get ownership.
   - **PlantEverything** hover timers become accurate.
   - **Conversion Size & Speed** and similar mods complement the empty-server hour.
   - **TargetPortal's** map selection is no longer blocked.
+  - **BetterTames and TeleportCreatures** only ever see tames near a player, because neither the server nor a distant client keeps tames loaded (see [Tames](#tames)).
 
 ## Migrating from an old chunk loader
 
@@ -190,6 +230,7 @@ Client config:
    - Picks fail silently.
    - Surtling farms stop without a player nearby.
    - The large map lags, which blocks portal selection.
+   - Tames in a loaded base ignore E, or get moved by another player's mods: whoever switched the loader on keeps running the base from wherever they are.
 3. **How chunk loading really works, and what every chunk loader gets wrong:** explained as how the game works, not as criticism of anyone's mod.
    - "Loaded" doesn't mean "owned by a player".
    - Telling the game every loaded point is in range of everyone makes the server and departed players hoard objects.
@@ -208,7 +249,7 @@ Client config:
 8. **Recommended companions,** described by type only, not by name: conversion capacity and speed mods, auto-fuel, auto-store, with why each matters. Readers who want our picks can see them in "Tested with".
 9. **Tested with:** every mod and version from the live server's plugin list.
 10. **Migrating from an old chunk loader.**
-11. **Known limits:** windmill variability, one hour at most.
+11. **Known limits:** windmill variability, one hour at most, and tames pause while nobody is near (with the config option to change that and its risks).
 
 ## Versioning
 
@@ -230,9 +271,13 @@ The first release is 1.0.0. Builds stay at 1.0.0 through development and testing
    - A player stands in a forced zone but out of range of a target object. That object should stay with the server until the player approaches.
    - After logout, everything should return to the server within about 2 s.
    - A player who walks away while staying online should lose ownership within about 2 s.
+   - Player A switches on an observer at player B's base, then travels 1 km or more away. Nothing at that base should stay with A, and A's client should have none of its objects instantiated.
+   - With A far away, use a mod or a console command to have A claim an object in the forced zone. The server should take it back within about 2 s and log it.
+   - With A far away, player B stands in the base and presses E on tames to follow and stay. Every command should work at once.
 2. **Regrowth.**
    - Pick plants in a forced zone, walk out of range, wait past the regrow time and return. The plants should have regrown, under the server as owner.
    - Repeat with two players, where the one who picked leaves but stays online.
+   - Pick plants planted with PlantEverything (thistles in particular) inside a forced zone and leave. They should regrow on time under the server. This checks the zone 7,-7 thistles that the v3 logs showed stuck.
 3. **Boats.** Moor longships with the bow over the edge zone. They should float under server ownership, both with and without the edge ring. Without the ring they should sink, which reproduces the bug.
 4. **Auto mods.** AzuAutoStore and OttoFuel should work in a loaded base with a player present.
 5. **Phantom.**
@@ -241,6 +286,7 @@ The first release is 1.0.0. Builds stay at 1.0.0 through development and testing
    - Drops near it should survive more than an hour of world time.
 6. **Empty-server hour.**
    - Log out with loaded smelters. World time should advance for 60 real minutes, then stop.
+   - Picked plants in the loaded base should regrow during the hour.
    - The output should still be there after the next login.
    - A 10-minute absence should gain exactly 10 minutes.
    - With no active observer there should be no window.
@@ -249,10 +295,31 @@ The first release is 1.0.0. Builds stay at 1.0.0 through development and testing
 8. **Map.** Toggle default off and visible only to admins. A non-admin has no toggle and receives no other players' observers (check the RPC traffic). An admin sees "Admin-placed" on hover; a non-admin doesn't. Pins should match the server list after offline changes. Open the map through a TargetPortal portal: portals should be clickable immediately.
 9. **Toggle feedback.** The glow should change at once for every nearby player.
 10. **Old mod present.** Our mod should refuse clearly.
+11. **Tames (the 1 Nov scenario).** Use a copy of the world with tames in pens and BetterTames and TeleportCreatures installed.
+    - Switch on an observer at a base with tames. The server log should show no tames instantiated or owned by the server in its zones.
+    - A player switches it on, walks 1 km or more away, then dies and respawns. No tame at the base should move, change owner or change `follow`.
+    - Do the same with Alt+H and a portal trip. Neither should touch the base's tames.
+    - Walk back in. The tames should load normally and pass to that player within about 2 s. E (follow and stay) should work at once.
+    - Tame a creature inside a forced zone with a player present, then leave. The server should drop it within about 2 s and never claim it.
+    - Turn on "Simulate tames in loaded zones" and repeat the first check. Tames should be server-owned with no player near and handed over when one arrives.
 
 ## Still open
 
 - **Seed Totem 4.3.13:** confirm by decompiling that its failures belong to the same "owner expected to be a local player" class. They are probably fixed by the ownership rule.
-- **Plant ownership on the live server:** the v3 diagnostic (installed 2026-10-25) will show who owned overdue plants.
+- **Plant ownership on the live server: settled enough to build.** The v3 logs (25–31 Oct) show:
+  - **The server regrows plants it owns and has loaded.** Batches of 17 to 64 regrew on time, none overdue.
+  - **The old loader's plant bug is the walked-away case:** a player picks, walks away but stays online, and keeps ownership. It was seen only twice, owners 134–208 m away. The ownership rule fixes it.
+  - **Most overdue plants had no owner:** wild dandelions, flint, branches and mushrooms outside the loaded zones. They regrew as soon as a player came near, even 150+ h late. That's vanilla behaviour, and we leave it alone.
+  - **Plants found overdue when a player arrives** regrew within minutes of that player taking ownership. Not a bug.
+  - **One anomaly:** three server-owned, loaded thistles beside Haudr's loader (zone 7,-7) stayed overdue for at least 1 h 45 min on 31 Oct, while the server regrew 14 other plants in the same 5-minute window. The cause is unknown and probably separate from ownership. Check them in game (are they PlantEverything plantings?) and watch for repeats under the new mod.
+  - **Offline regrowth can't show up in these logs**, because the world clock stops with nobody online. Regrowth during the empty-server hour is tested with the new mod.
 - **Real conversion station values and empty-server wind:** v3 logs both.
+- **Wild creatures in forced zones:** the server runs their AI (as the old loaders do), so monsters can wander or attack an empty base. Decide whether to treat them like tames and leave them unloaded, keeping only phantom-spawned surtlings. Spawners would still need to run for the phantom.
+- **Who may switch an observer:** wards already decide this. Consider an option to limit switching to the builder (and admins), so nobody switches on a loader at someone else's base without asking. With the ownership rule this is no longer dangerous, so it's a courtesy setting, not a safety one.
+- **Diagnostic during the swap:** keep the v3 diagnostic installed through stage 2. Its 1 Nov log is the reference for what the old loader did, and running it alongside lets us compare like for like.
+- **Game version: checked, nothing blocks the build.** The 1.0.20 to 1.0.21 diff (in the `.decompiles` repo) changes none of `ZNetScene`, `ZDOMan`, `ZNet`, `ZoneSystem`, `Pickable`, `CreatureSpawner`, `SpawnArea`, `Smelter` or `Fermenter`, nor `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange` or `WearNTear.RPC_Damage`. Changes that touch us:
+  - `Ship.UpdateSailSize` gained a parameter and now skips the local player when nobody steers. Our patch stays, smaller, on the new signature (see [Defensive patches](#defensive-patches)).
+  - `WearNTear` caches its supporting pieces differently. Support isn't something we patch, but watch for collapses in loaded zones during testing.
+  - `CookingStation` now records who put each item on, and credits them as crafter when it's taken off. It falls back to `Player.m_localPlayer` only for items put on before 1.0.21, which throws when the server owns the station. That's the same bug class as `Pickable.RPC_Pick`, already handled by the ownership rule (a player nearby takes ownership), so no new patch. Test: take cooked food off a station in a loaded zone, both with a player present and after the empty-server hour.
+  - The earlier note that 1.0.21 moved saves to chunk files was wrong: chunked saves were already in 1.0.20. 1.0.21 only changed how the save list reloads, and the world version is unchanged.
 - **Phantom Spawner look:** to be chosen in game by the user. The fallback is a recoloured or kitbashed vanilla piece. Map icons: vanilla pin icons for now.
