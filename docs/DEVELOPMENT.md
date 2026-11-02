@@ -292,3 +292,19 @@ on something new in the game. A mod that only adds Jotunn pieces still lists the
 6. **Record the result.** Update "Checked against Valheim" in each mod's dependency doc. A mod that needed no code
    change still gets a release if Thunderstore users need a sign it works, usually as a patch version with a
    changelog line "Checked against Valheim x.y.z".
+
+## 11. Working together
+
+More than one person may develop these mods. The workspace rules in the private `.claude` repo (`CLAUDE.md`) set
+out the details; the essentials:
+
+- **Clone every repo.** Every repo in the Quanheim organisation lives beside `.claude` and in
+  `Quanheim.code-workspace`, so that a change to the template or a convention can reach every mod. The `.claude`
+  repo's `scripts\whats-new.ps1` reports any that are missing.
+- **Check what's new before you start.** The same script pulls the shared repos and lists what anyone else changed.
+- **Log every convention change** in `.claude/CONVENTIONS-LOG.md`, in the same commit: what, why, and what the other
+  person needs to do. That covers this guide, the rest of the template, the `.decompiles` scripts and the workspace
+  rules.
+- **Pull before working on a mod, push when done.** Two people on the same mod at the same time: use a branch and a
+  pull request.
+- **Disagree in conversation, not by reverting.** Raise it with the other person and log what you agree.
