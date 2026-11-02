@@ -126,6 +126,12 @@ They stay exactly where they were and load normally when a player comes near.
 
 **Config:** "Simulate tames in loaded zones", **off** by default, server-synced and admin-only. Turning it on restores server-run tames under the normal ownership rule, for servers that really want unattended breeding. The README warns about the risks above.
 
+**Decision (2 Nov 2026): ship it off, run Quanheim with it on.** Other servers opt in knowingly; we turn it on in our
+config for offline breeding. Breeding is vanilla's `Procreation`, not a mod feature: every 10 s a tamed adult that
+isn't hungry or alarmed rolls a chance, checks the crowd limit (`m_maxCreatures` of its kind, adults and young, within
+`m_totalCheckRange`) and a partner within `m_partnerCheckRange`, gains a love point, and becomes pregnant at
+`m_requiredLovePoints`. BetterTames only tunes those numbers and shows them on hover. It all needs the tame running.
+
 ## Logging
 
 The diagnostic plugin retires at 1.0, so everything below is built into the mod. On 1 Nov 2026 the only reason we could reconstruct the incident was the diagnostic plugin's log: who switched which loader on and when, who owned what, and the exact second objects left the loaded zones. The real mod keeps the useful part of that at info level on the server, without the diagnostic's volume:
@@ -390,7 +396,6 @@ The checks below are done on the live server as each feature is switched on.
   - **One anomaly:** three server-owned, loaded thistles beside Haudr's loader (zone 7,-7) stayed overdue for at least 1 h 45 min on 31 Oct, while the server regrew 14 other plants in the same 5-minute window. The cause is unknown and probably separate from ownership. Check them in game (are they PlantEverything plantings?) and watch for repeats under the new mod.
   - **Offline regrowth can't show up in these logs**, because the world clock stops with nobody online. Regrowth during the empty-server hour is tested with the new mod.
 - **Real conversion station values and empty-server wind:** v3 logs both.
-- **Tames on our server (to confirm):** offline breeding needs "Simulate tames in loaded zones" on. The 1 Nov danger (a distant player's PC holding tames) can't happen with this design, so turning it on is far safer than it was with the old loader. What remains: other mods' tame code runs on the server, and an unattended pen breeds up to its crowd limit. Decide whether Quanheim runs with it on, and whether the shipped default changes.
 - **Who may switch an observer:** wards already decide this. Consider an option to limit switching to the builder (and admins), so nobody switches on a loader at someone else's base without asking. With the ownership rule this is no longer dangerous, so it's a courtesy setting, not a safety one.
 - **The diagnostic retires at 1.0.** Its logs up to the swap stay in `research/logs` as the reference for what the old loader did. Anything we still need to see after the swap is logged by the mod itself.
 - **Game version: checked, nothing blocks the build.** The 1.0.20 to 1.0.21 diff (in the `.decompiles` repo) changes none of `ZNetScene`, `ZDOMan`, `ZNet`, `ZoneSystem`, `Pickable`, `CreatureSpawner`, `SpawnArea`, `Smelter` or `Fermenter`, nor `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange` or `WearNTear.RPC_Damage`. Changes that touch us:
