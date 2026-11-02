@@ -81,7 +81,9 @@ All of this runs on the server. Clients load nothing extra.
 
 1. **Forced set.** This is the union of the zones of all active observers. It's rebuilt from every active observer whenever one is placed, removed or switched, never by subtracting a removed observer's zones, because another observer may still cover them. There's no periodic per-observer work.
 2. **Loading.** The server keeps every forced zone generated and its objects instantiated, **except tames** (see [Tames](#tames)). The old `InActiveArea` postfix is replaced by narrow patches that apply only to the server's own scene and ownership decisions.
-3. **Edge ring (on by default).** Around the combined forced area the server also loads a one-zone ring of zone roots only: terrain and water, no objects (`PokeLocalZone`). Physics at the edge then has ground and water, so boats moored on the edge float. The ring is computed from the combined set, so overlapping areas share it.
+3. **Edges: no extra zones loaded.** Nothing outside the forced set is loaded, not even terrain. Two rules make the edge safe instead:
+   - **Boats:** a water sample in a zone that isn't loaded is left out of the ship's average (see [Boats at the edge](#boats-at-the-edge)).
+   - **Buildings:** wear and support only run on pieces whose neighbouring zones are all loaded, as vanilla does (see [Safety rules](#safety-rules)).
 4. **Ownership rule.**
    - The server claims an object in a forced zone only when no connected player's vanilla, unpatched active area covers it. It gives the object up as soon as one does, and vanilla `ReleaseNearbyZDOS` hands it to that player within one 2 s pass.
    - Observers only add zones to the set. They're never compared with player positions, so overlapping or duplicate observers can't change ownership.
@@ -117,7 +119,7 @@ All of this runs on the server. Clients load nothing extra.
 
 ## Logging
 
-On 1 Nov 2026 the only reason we could reconstruct the incident was the diagnostic plugin's log: who switched which loader on and when, who owned what, and the exact second objects left the loaded zones. The real mod keeps the useful part of that at info level on the server, without the diagnostic's volume:
+The diagnostic plugin retires at 1.0, so everything below is built into the mod. On 1 Nov 2026 the only reason we could reconstruct the incident was the diagnostic plugin's log: who switched which loader on and when, who owned what, and the exact second objects left the loaded zones. The real mod keeps the useful part of that at info level on the server, without the diagnostic's volume:
 - **Every observer switch:** position, on or off, who switched it, and the builder.
 - **Forced set changes:** zones added and removed, with the total.
 - **Ownership summaries for forced zones,** every 5 minutes: object counts by owner (server or player), as the diagnostic's beat line does.
@@ -160,6 +162,47 @@ Offline output would therefore start vanishing shortly after the next login. Two
 
 Neither adds a PlayerBase area, so neither affects spawners.
 
+## Boats at the edge
+
+`Ship.CustomFixedUpdate` averages five water samples (centre, bow, stern, port, starboard) from
+`Floating.GetWaterLevel`. A sample reads -10000 in two cases: the point is over **land**, or its zone **isn't
+loaded**. With four samples at about 30 and the bow in an unloaded zone, the average is (4 x 30 - 10000) / 5, about
+-1976, so buoyancy switches off and the boat settles on the seabed.
+
+**Fix:** while a ship runs its physics on the server (a scoped flag set by a prefix and cleared by a finalizer on
+`Ship.CustomFixedUpdate`), a postfix on `Floating.GetWaterLevel` replaces a -10000 reading **only when that point's
+zone isn't loaded** (`ZoneSystem.IsZoneLoaded`), using the centre sample taken first in the same update. The average
+and the per-corner forces then come out as if the water carried on. A -10000 over loaded land is real ("no water
+here") and is left alone, so beached and docked ships behave exactly as in vanilla.
+
+- No extra zones are loaded and no unvisited zones are generated.
+- A ship that drifts out of the forced set entirely is unloaded by the game (`ZNetScene.RemoveObjects`): it stops
+  simulating where it is rather than sinking, and loads normally when a player arrives.
+- Runs on the server only. Players' own areas are vanilla.
+
+## Safety rules
+
+Nothing this mod does may permanently remove or damage anything. These rules hold throughout the code:
+
+- **The mod never deletes an object itself.** No call removes a ZDO. Care is needed with unloading too: when the
+  owner unloads a non-persistent object, the game deletes it (`ZNetScene.RemoveObjects`), so the mod never unloads
+  anything it wouldn't be safe to lose, and tames are only ever skipped at creation, never destroyed.
+- **Unknown objects are left alone.** When the server tries to create an object whose prefab it doesn't know, the
+  game deletes it for good (`ZNetScene.CreateObjectsSorted`: "Destroyed invalid prefab ZDO"). A normal dedicated
+  server rarely loads anything, but a chunk loader makes it load whole bases, so any object from a mod the server
+  lacks, or doesn't register on the server, would be lost. That's how LetMeTameYou's fawns were deleted, and the old
+  loaders carry the same exposure. In forced zones the server skips unknown prefabs and logs them instead.
+- **Buildings at the edge keep full support.** Vanilla only runs building wear and support in the inner part of the
+  loaded area, so a piece can always see the pieces holding it up (`WearNTear.UpdateWear` returns early when
+  `ZNetScene.OutsideActiveArea` is true). On the server, a point in a forced zone counts as "active" only when all
+  eight neighbouring zones are forced too. Pieces at the edge of a loaded area then keep full support and don't
+  weather, instead of checking their support without their neighbours and possibly collapsing. The same rule applies
+  to crops dropping to the ground (`StaticPhysics`) and to `SpawnArea`, the other users of that check. With a 3x3
+  observer the centre zone gets full vanilla wear. The phantom's `SpawnArea` support must allow for this.
+- **Never claim an object that's in use** (an open chest, a station being used), and never claim near any player.
+- **Everything is logged by this mod.** The diagnostic plugin retires at 1.0, so all the logging needed to spot an
+  ownership or loading problem lives in the mod itself (see [Logging](#logging)).
+
 ## Defensive patches
 
 Normally the ownership rule means these situations don't arise. The patches cover the roughly 2 s before ownership moves.
@@ -178,7 +221,6 @@ Server config, synced, admin-only:
 | Admins ignore limits | On |
 | Only admins can build observers and phantoms | Off |
 | Area size | 3×3 (or 1×1; changing it recalculates live) |
-| Edge ring | On |
 | Expire after N hours without a refresh | Never |
 | Switching respects wards | On |
 | Empty-server window | 60 min (0 = off) |
@@ -206,7 +248,7 @@ Client config:
 - **Hard dependency:** Jotunn (in the manifest too). ServerSync is embedded.
 - **Incompatible:** the three old chunk loaders, declared with `BepInIncompatibility`. Two GUIDs cover all three: `com.Frogger.ChunkLoader` (Frogger's original, and NerdLounge's ChunkLoader Continued 1.8.0, which kept that GUID) and `com.zeecamelsnake.ChunkLoaderFix` (zeeCamelSnake 1.0.4; checked from the Thunderstore DLLs on 2026-10-25). Running alongside one would bring back the ownership bug. If BepInEx doesn't show the refusal clearly, the mod detects the old loader itself, logs a clear error and stays inactive.
 - **No soft dependencies.** Nothing needs a particular load order. The hammer tab name is a fixed constant, `QuanPieces`, matching the QuanPieces mod, so if both are installed their pieces share one tab. That needs only the same name, not a dependency.
-- **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are `ZNetScene` object creation (including the tame skip), `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `ZDOMan` ownership, `ZNetScene` object creation, `CreatureSpawner`/`SpawnArea` updates, `Pickable.RPC_Pick`, `Ship.UpdateSailSize` and `WearNTear.RPC_Damage`. The full list, with what each relies on, belongs in the mod's Valheim Code Dependency doc.
+- **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are `ZNetScene` object creation (including the tame skip), `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `ZDOMan` ownership, `ZNetScene` object creation, `CreatureSpawner`/`SpawnArea` updates, `Pickable.RPC_Pick`, `Ship.UpdateSailSize`, `Ship.CustomFixedUpdate` with `Floating.GetWaterLevel`, `ZNetScene.OutsideActiveArea`, `ZNetScene.CreateObjectsSorted` (unknown-prefab guard) and `WearNTear.RPC_Damage`. The full list, with what each relies on, belongs in the mod's Valheim Code Dependency doc.
 - **Known interactions, none needing code:**
   - **AzuAutoStore and OttoFuel** start working inside loaded bases again, because players get ownership.
   - **PlantEverything** hover timers become accurate.
@@ -257,13 +299,28 @@ The first release is 1.0.0. Builds stay at 1.0.0 through development and testing
 
 ## Test plan for the real mod
 
-**Stage 1, home lab:** a separate dedicated server running a copy of the live world, with one or two clients. This catches crashes, save problems and mod conflicts before anything touches live. It covers ownership, boats, the empty-server hour, the map and limits.
+**Tested on the live server.** There's no separate test server: this is a hobby, and the mod is a luxury the server
+can run without. That's acceptable because of the risk assessment (2 Nov 2026):
+- Almost every failure is fixed by removing the mod from the shared Gale profile.
+- The ways to lose something permanently are designed out (see [Safety rules](#safety-rules)) or are small and
+  local: a few items in a chest if an ownership bug slips through, or one boat.
+- The mod never touches how the game saves, so corrupting the world is very unlikely.
+- The old loader it replaces has already done more damage than these risks allow.
 
-**Stage 2, live server:** with "Only admins can build" on, so only admins place observers while everyone plays normally. This tests real bases, several players and the full modpack.
-- It's a full swap, not a side-by-side trial. The old loader is incompatible, and every client needs the new mod, so the migration steps below happen first.
-- Back up the world before the swap.
-- Keep the diagnostic running so the logs show ownership, plants and boats under the new mod.
-- Lift the restriction once the admins' observers have behaved for a few days.
+**Rollout:**
+1. **Back up the world** just before the swap, and keep that backup for a couple of weeks.
+2. **Swap** the old loader for ours on the server and every client at once (see
+   [Migrating from an old chunk loader](#migrating-from-an-old-chunk-loader)).
+3. **Start cautious:** "Only admins can build" on, empty-server window 0 (off). Admins place a few observers at bases
+   that want them.
+4. **Day one checks:** moored boats at the edge of a loaded area are afloat; a busy base's chests and smelters hold
+   what they should; the server log shows no unknown-prefab skips, no large ownership swings and no errors.
+5. **Then switch on one thing at a time:** the empty-server hour, phantoms, more observers, and finally building for
+   everyone.
+6. **Rollback:** remove the mod from the profile. Restore the backup only if the logs show something was actually
+   lost.
+
+The checks below are done on the live server as each feature is switched on.
 
 1. **Ownership.**
    - Set up two overlapping observers.
@@ -278,24 +335,25 @@ The first release is 1.0.0. Builds stay at 1.0.0 through development and testing
    - Pick plants in a forced zone, walk out of range, wait past the regrow time and return. The plants should have regrown, under the server as owner.
    - Repeat with two players, where the one who picked leaves but stays online.
    - Pick plants planted with PlantEverything (thistles in particular) inside a forced zone and leave. They should regrow on time under the server. This checks the zone 7,-7 thistles that the v3 logs showed stuck.
-3. **Boats.** Moor longships with the bow over the edge zone. They should float under server ownership, both with and without the edge ring. Without the ring they should sink, which reproduces the bug.
-4. **Auto mods.** AzuAutoStore and OttoFuel should work in a loaded base with a player present.
-5. **Phantom.**
+3. **Boats.** Moor longships with the bow over the edge of a loaded area. They should float under server ownership. A ship pulled up on a beach inside a loaded area should sit on the sand as in vanilla.
+4. **Edge buildings.** A building that crosses the edge of a loaded area should keep its support with nobody near: no damage, no collapse.
+5. **Auto mods.** AzuAutoStore and OttoFuel should work in a loaded base with a player present.
+6. **Phantom.**
    - A surtling farm with no player nearby should keep spawning while someone is online elsewhere.
    - The phantom should show the dormant message without an observer.
    - Drops near it should survive more than an hour of world time.
-6. **Empty-server hour.**
+7. **Empty-server hour.**
    - Log out with loaded smelters. World time should advance for 60 real minutes, then stop.
    - Picked plants in the loaded base should regrow during the hour.
    - The output should still be there after the next login.
    - A 10-minute absence should gain exactly 10 minutes.
    - With no active observer there should be no window.
    - The world clock should never run faster than real time.
-7. **Limits.** Test the per-player and server-total caps and their messages, admin placement, the server's over-limit safety net, and expiry turned on later.
-8. **Map.** Toggle default off and visible only to admins. A non-admin has no toggle and receives no other players' observers (check the RPC traffic). An admin sees "Admin-placed" on hover; a non-admin doesn't. Pins should match the server list after offline changes. Open the map through a TargetPortal portal: portals should be clickable immediately.
-9. **Toggle feedback.** The glow should change at once for every nearby player.
-10. **Old mod present.** Our mod should refuse clearly.
-11. **Tames (the 1 Nov scenario).** Use a copy of the world with tames in pens and BetterTames and TeleportCreatures installed.
+8. **Limits.** Test the per-player and server-total caps and their messages, admin placement, the server's over-limit safety net, and expiry turned on later.
+9. **Map.** Toggle default off and visible only to admins. A non-admin has no toggle and receives no other players' observers (check the RPC traffic). An admin sees "Admin-placed" on hover; a non-admin doesn't. Pins should match the server list after offline changes. Open the map through a TargetPortal portal: portals should be clickable immediately.
+10. **Toggle feedback.** The glow should change at once for every nearby player.
+11. **Old mod present.** Our mod should refuse clearly.
+12. **Tames (the 1 Nov scenario).** At a base with tames in pens, with BetterTames installed.
     - Switch on an observer at a base with tames. The server log should show no tames instantiated or owned by the server in its zones.
     - A player switches it on, walks 1 km or more away, then dies and respawns. No tame at the base should move, change owner or change `follow`.
     - Do the same with Alt+H and a portal trip. Neither should touch the base's tames.
@@ -316,10 +374,10 @@ The first release is 1.0.0. Builds stay at 1.0.0 through development and testing
 - **Real conversion station values and empty-server wind:** v3 logs both.
 - **Wild creatures in forced zones:** the server runs their AI (as the old loaders do), so monsters can wander or attack an empty base. Decide whether to treat them like tames and leave them unloaded, keeping only phantom-spawned surtlings. Spawners would still need to run for the phantom.
 - **Who may switch an observer:** wards already decide this. Consider an option to limit switching to the builder (and admins), so nobody switches on a loader at someone else's base without asking. With the ownership rule this is no longer dangerous, so it's a courtesy setting, not a safety one.
-- **Diagnostic during the swap:** keep the v3 diagnostic installed through stage 2. Its 1 Nov log is the reference for what the old loader did, and running it alongside lets us compare like for like.
+- **The diagnostic retires at 1.0.** Its logs up to the swap stay in `research/logs` as the reference for what the old loader did. Anything we still need to see after the swap is logged by the mod itself.
 - **Game version: checked, nothing blocks the build.** The 1.0.20 to 1.0.21 diff (in the `.decompiles` repo) changes none of `ZNetScene`, `ZDOMan`, `ZNet`, `ZoneSystem`, `Pickable`, `CreatureSpawner`, `SpawnArea`, `Smelter` or `Fermenter`, nor `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange` or `WearNTear.RPC_Damage`. Changes that touch us:
   - `Ship.UpdateSailSize` gained a parameter and now skips the local player when nobody steers. Our patch stays, smaller, on the new signature (see [Defensive patches](#defensive-patches)).
-  - `WearNTear` caches its supporting pieces differently. Support isn't something we patch, but watch for collapses in loaded zones during testing.
+  - `WearNTear` caches its supporting pieces differently. Support isn't something we patch, and the edge rule in [Safety rules](#safety-rules) keeps edge pieces at full support.
   - `CookingStation` now records who put each item on, and credits them as crafter when it's taken off. It falls back to `Player.m_localPlayer` only for items put on before 1.0.21, which throws when the server owns the station. That's the same bug class as `Pickable.RPC_Pick`, already handled by the ownership rule (a player nearby takes ownership), so no new patch. Test: take cooked food off a station in a loaded zone, both with a player present and after the empty-server hour.
   - The earlier note that 1.0.21 moved saves to chunk files was wrong: chunked saves were already in 1.0.20. 1.0.21 only changed how the save list reloads, and the world version is unchanged.
 - **Phantom Spawner look:** to be chosen in game by the user. The fallback is a recoloured or kitbashed vanilla piece. Map icons: vanilla pin icons for now.

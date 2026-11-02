@@ -33,6 +33,10 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Pickable.RPC_Pick` | Prefix, *planned* | On a server owner, hands ownership to the picker and re-sends. | Still assumes a local player? If fixed, drop the patch. |
 | `Ship.UpdateSailSize` | Prefix, *planned* | Skips the local-player effect on the server. Signature `(float, bool)` since 1.0.21. | If Iron Gate guards `Player.m_localPlayer`, drop the patch. |
 | `WearNTear.RPC_Damage` | *planned* | Defensive damage handling in forced zones (see design). | Damage path. |
+| `Ship.CustomFixedUpdate` | Prefix and Finalizer, *planned* | Scoped flag while a ship runs physics on the server. | Still averages `Floating.GetWaterLevel` samples? |
+| `Floating.GetWaterLevel` | Postfix, *planned* | In ship context, replaces -10000 from an unloaded zone with the centre sample. | Still returns -10000 for no water? Still static with this signature? |
+| `ZNetScene.OutsideActiveArea` | Postfix, *planned* | On the server, forced points count as active only with all 8 neighbouring zones forced. | Still what `WearNTear`, `StaticPhysics` and `SpawnArea` ask? |
+| `ZNetScene.CreateObjectsSorted` | *planned* | Unknown-prefab guard: never let the server delete unknown objects in forced zones. | Still destroys invalid-prefab ZDOs on the server? |
 
 ### Private members reached by reflection
 
@@ -42,7 +46,6 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZNetScene.m_instances` | Field | Diagnostic: which ZDOs the server has instantiated. |
 | `ItemDrop.s_instances` | Field | Diagnostic: dropped items in forced zones. |
 | `Floating.s_waterVolumeMask` | Field | Diagnostic: boat water sampling. |
-| `ZoneSystem.PokeLocalZone` | Method, *planned* | Edge ring: load zone roots without objects. |
 | `ZNet.m_netTime` | Field, *planned* | Empty-server hour: advance the world clock with no players. |
 
 ### Public game code called or read
@@ -63,7 +66,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZNet.GetNrOfPlayers` | Empty-server detection. |
 | `ZNet.IsDedicated` | Server-only logic. |
 | `ZoneSystem.GetZone` | Zone of a position. |
-| `ZoneSystem.IsZoneLoaded` | Diagnostic: boat samples in loaded zones. |
+| `ZoneSystem.IsZoneLoaded` | Boat fix: is a water sample's zone loaded. Diagnostic: the same check. |
 | `ZDOVars.s_tamed` | Skipping tames in forced zones. |
 | `ZDOVars.s_picked` | Plant state. |
 | `ZDOVars.s_pickedTime` | Plant regrow timing. |
@@ -82,7 +85,9 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Pickable.UpdateRespawn` | Only the owner runs the regrow check, every 60 s. |
 | `ZNet.UpdateNetTime` | World time only advances with a player online. |
 | `ZDOMan.ReleaseNearbyZDOS` | Runs every 2 s per peer and hands an object over only when its owner is out of range. |
-| `Ship.CustomFixedUpdate` | Averages five water samples; a sample in an unloaded zone reads -10000. |
+| `ZNetScene.RemoveObjects` | Unloading a non-persistent object you own deletes it. The mod must never rely on unloading being harmless. |
+| `WearNTear.UpdateWear` | Skips wear and support (keeping full support) when `OutsideActiveArea` is true. |
+| `Ship.CustomFixedUpdate` | Averages five water samples; a sample over land or in an unloaded zone reads -10000. |
 | `Tameable.RPC_Command` | Routed to the owner; only the owner can clear `follow`. |
 | `Smelter` | Conversion runs on the owner from world time, so it catches up when the clock moves. |
 | `Fermenter` | As above. |
