@@ -165,7 +165,7 @@ How the generated `manifest.json` gets its fields:
 |---|---|
 | `name` | `<AssemblyName>`. Letters, digits and underscores only. |
 | `version_number` | `<Version>` |
-| `description` | `<ThunderstoreDescription>`: 250 characters max, and no double quotes, because it isn't JSON-escaped. |
+| `description` | `<ThunderstoreDescription>`: 250 characters max, and no double quotes, because it isn't JSON-escaped. Thunderstore's search matches descriptions as well as names, so include the words people will search for (e.g. "tame", "breed") and the names of mods this one replaces. |
 | `website_url` | `<RepoUrl>` if set; otherwise the repo's `origin` remote, converted to https, with any embedded credentials and `.git` removed. |
 | `dependencies` | BepInExPack's version, read from the profile's `changelog.txt`; Jotunn's version, read from its `manifest.json` in the profile; and any `<ThunderstoreDependency>` items in the `.csproj`. Write those as `Team-Name` to use the version installed in the mod's Gale profile (read from `BepInEx\plugins\Team-Name\manifest.json`, so it's the version you tested against), or `Team-Name-x.y.z` to pin one. |
 
