@@ -239,23 +239,31 @@ Normally the ownership rule means these situations don't arise. The patches cove
 
 ## Limits and admin controls
 
-Server config, synced, admin-only:
+Config file layout (`quandru.QuanChunkLoader.cfg`), following the numbered-section convention in
+`docs/DEVELOPMENT.md`. Sections 1–7 and 9 are server settings, synced and admin-only; section 8 is each player's own.
+Settings are listed in the order they're bound.
 
-| Setting | Default |
-|---|---|
-| Observers per player | 2 |
-| Observers in total | 12 (108 zones at 3×3) |
-| Admins ignore limits | On |
-| Only admins can build observers and phantoms | Off |
-| Area size | 3×3 (or 1×1; changing it recalculates live) |
-| Expire after N hours without a refresh | Never |
-| Only the builder or an admin can switch an observer | On (off: wards decide) |
-| Empty-server window | 60 min (0 = off) |
-| Phantom `CreatureSpawner` allowlist | `Spawner_imp_respawn` |
-| Phantom `SpawnArea` support | On |
-| Despawn protection | On |
-| Simulate tames in loaded zones | Off |
-| Build cost | 10 stone, no station |
+| Section | Setting | Default |
+|---|---|---|
+| `1 - General` | Only admins can build observers and phantoms | Off |
+| | Only the builder or an admin can switch an observer | On (off: wards decide) |
+| `2 - Limits` | Observers per player | 2 |
+| | Observers in total | 12 (108 zones at 3×3) |
+| | Admins ignore limits | On |
+| | Expire after N hours without a refresh | Never |
+| `3 - Loading` | Area size | 3×3 (or 1×1; changing it recalculates live) |
+| | Simulate tames in loaded zones | Off (Quanheim runs it on) |
+| `4 - Empty server` | Empty-server window | 60 min (0 = off) |
+| `5 - Phantom spawner` | `CreatureSpawner` allowlist | `Spawner_imp_respawn` |
+| | `SpawnArea` support | On |
+| `6 - Despawn protection` | Despawn protection | On |
+| `7 - Pieces` | Build cost | 10 stone, no station |
+| `8 - Map (client)` | Show observers on the map (admins only) | Off |
+| `9 - Logging` | Log detail | Info (Info, Debug or Trace) |
+| | Write a daily log file | Off |
+| | Days of daily files to keep | 14 |
+
+`9 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
 
 - **Admin placement.** Each observer stores its builder and an admin flag, set when it's built and checked against the server's admin list. Admin-placed observers count towards neither limit, and losing admin status later changes nothing.
 - **Refusal messages** say which limit was hit:
