@@ -68,6 +68,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZoneSystem.GetZone` | Zone of a position. |
 | `ZoneSystem.IsZoneLoaded` | Boat fix: is a water sample's zone loaded. Diagnostic: the same check. |
 | `ZDOVars.s_tamed` | Skipping tames in forced zones. |
+| `Character` | *Planned:* a prefab with a `Character` that isn't tamed or a player is a wild creature, not loaded in forced zones. |
 | `ZDOVars.s_picked` | Plant state. |
 | `ZDOVars.s_pickedTime` | Plant regrow timing. |
 | `ZDOVars.s_state` | Old loader on/off (diagnostic). |
@@ -96,6 +97,8 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Plant` | Crops grow on the owner from world time. |
 | `PrivateArea.CheckAccess` | Wards decide who may switch an observer. |
 | `Piece.m_targetNonPlayerBuilt` | Monsters target player-built pieces (raid behaviour in loaded zones). |
+| `Growup.GrowUpdate` | Young grow up once enough world time has passed since spawn, so they catch up when loaded. |
+| `Procreation.Procreate` | Love points only build while the tame is running (every 10 s, partner near, not hungry): breeding doesn't catch up. |
 | `Character.GetAllCharacters` | Tame mods act on this client-side list; clients must never hold distant tames. |
 
 ## Prefabs and assets

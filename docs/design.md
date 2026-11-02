@@ -98,6 +98,15 @@ All of this runs on the server. Clients load nothing extra.
      - **Other players** get only their own observers and the server-wide total, which is enough for the limit pre-check. They never receive anyone else's positions.
    - If a player's admin status changes while they're online, the server sends the right set on their next snapshot request or reconnect.
 
+## Wild creatures
+
+**Decision (2 Nov 2026): wild creatures in forced zones aren't loaded.** As with tames, the server doesn't create
+saved wild creatures in forced zones: no monsters wandering or attacking an empty base, and less work for the server.
+They stay exactly where they were and load normally when a player comes near.
+- The check reads the ZDO's prefab: anything with a `Character` that isn't tamed and isn't a player.
+- **Exception:** creatures spawned while the zone is loaded by a spawner the phantom keeps running (the phantom's
+  allowlist, default surtlings) run as normal, so surtling farms work. They usually die in the farm's water at once.
+
 ## Tames
 
 **Decision (2026-11-01): the loader ignores tames.** A tamed creature in a forced zone is left exactly as vanilla leaves it in an unloaded zone. The server doesn't instantiate it, doesn't run its AI and never claims it. It's paused until a player comes near, and then vanilla instantiates it and hands it to that player as usual.
@@ -113,7 +122,7 @@ All of this runs on the server. Clients load nothing extra.
 - Only the server's own creation decisions change. Players' vanilla active areas are untouched, so a player in the base sees and owns their tames normally.
 - Players' clients never load forced zones (see [How loading and ownership work](#how-loading-and-ownership-work)). That's the other half of the protection: no client ever holds distant tames.
 
-**What players will notice.** Tames in a loaded base don't eat, breed, grow up or regain health while nobody is near. That's the same as vanilla without a loader. The README says so under Known limits.
+**What players will notice.** Tames in a loaded base don't eat, breed or regain health while nobody is near, the same as vanilla without a loader. **Growing up is different: it catches up.** A young tame grows up once enough world time has passed since it was born (`Growup.GrowUpdate` checks time since spawn on the world clock), so young left in an empty base grow up as soon as anyone comes near, including time from the empty-server hour. **Breeding doesn't catch up:** love points only build while a tame is running, every 10 s, with a partner near and not hungry (`Procreation.Procreate`). Offline breeding therefore needs the setting below. The README says so under Known limits.
 
 **Config:** "Simulate tames in loaded zones", **off** by default, server-synced and admin-only. Turning it on restores server-run tames under the normal ownership rule, for servers that really want unattended breeding. The README warns about the risks above.
 
@@ -381,7 +390,7 @@ The checks below are done on the live server as each feature is switched on.
   - **One anomaly:** three server-owned, loaded thistles beside Haudr's loader (zone 7,-7) stayed overdue for at least 1 h 45 min on 31 Oct, while the server regrew 14 other plants in the same 5-minute window. The cause is unknown and probably separate from ownership. Check them in game (are they PlantEverything plantings?) and watch for repeats under the new mod.
   - **Offline regrowth can't show up in these logs**, because the world clock stops with nobody online. Regrowth during the empty-server hour is tested with the new mod.
 - **Real conversion station values and empty-server wind:** v3 logs both.
-- **Wild creatures in forced zones:** the server runs their AI (as the old loaders do), so monsters can wander or attack an empty base. Decide whether to treat them like tames and leave them unloaded, keeping only phantom-spawned surtlings. Spawners would still need to run for the phantom.
+- **Tames on our server (to confirm):** offline breeding needs "Simulate tames in loaded zones" on. The 1 Nov danger (a distant player's PC holding tames) can't happen with this design, so turning it on is far safer than it was with the old loader. What remains: other mods' tame code runs on the server, and an unattended pen breeds up to its crowd limit. Decide whether Quanheim runs with it on, and whether the shipped default changes.
 - **Who may switch an observer:** wards already decide this. Consider an option to limit switching to the builder (and admins), so nobody switches on a loader at someone else's base without asking. With the ownership rule this is no longer dangerous, so it's a courtesy setting, not a safety one.
 - **The diagnostic retires at 1.0.** Its logs up to the swap stay in `research/logs` as the reference for what the old loader did. Anything we still need to see after the swap is logged by the mod itself.
 - **Game version: checked, nothing blocks the build.** The 1.0.20 to 1.0.21 diff (in the `.decompiles` repo) changes none of `ZNetScene`, `ZDOMan`, `ZNet`, `ZoneSystem`, `Pickable`, `CreatureSpawner`, `SpawnArea`, `Smelter` or `Fermenter`, nor `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange` or `WearNTear.RPC_Damage`. Changes that touch us:
