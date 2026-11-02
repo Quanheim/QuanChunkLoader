@@ -72,6 +72,11 @@ server's settings are authoritative wherever they affect other players.
 - Each design doc's config table has an Enforced/Personal column.
 - **Data that isn't a setting** (a YAML list, for instance) doesn't sync by itself. Register an extra config file
   with Jotunn's `SynchronizationManager.RegisterCustomConfig`, or send it with a Jotunn custom RPC.
+  Nothing is lost against ServerSync's synced values: Jotunn's custom RPCs compress and split large packages and send
+  them in a coroutine. What ServerSync adds is ready-made plumbing (send on connect, resend when the file changes); we
+  write that once as a small shared helper when a mod first needs it, and add it to the template.
+- **Timing:** data that changes how prefabs are set up (which creatures are tameable, say) must be applied before the
+  world's objects load, or objects that load first behave as vanilla. Design for that whichever way the data travels.
 
 ## 1. Install the tools (once per machine)
 
