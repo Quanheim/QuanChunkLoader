@@ -57,13 +57,16 @@ Both pieces go in the **QuanPieces** hammer tab. Each costs 10 stone (configurab
 ### Quan's Chunk Observer (`Quan_ChunkObserver`)
 
 - **Loads the 3×3 block of zones around itself** (or 1×1, set in config) while it's switched on.
-- **No fuel.** It runs until switched off from its hover menu. Switching respects wards (`PrivateArea.CheckAccess`).
+- **No fuel.** It runs until switched off from its hover menu.
+- **Only its builder or an admin can switch it** (server setting, on by default). Other players see who built it and can't change it. With the setting off, switching falls back to wards (`PrivateArea.CheckAccess`).
 - **Its glow updates immediately for everyone nearby** when switched. The old mod took 2-3 s.
 - **Hover text** shows on/off and the builder's name. **Admins only** also see "Admin-placed" on observers an admin built. Other players never see it. The flag is stored on the observer (it has to survive restarts); it isn't secret data, just not displayed to non-admins.
 - **It can't be destroyed and monsters ignore it.** It isn't a target for AI (`StaticTarget`, `Piece.m_targetNonPlayerBuilt`), and a prefix on `WearNTear.RPC_Damage` blocks damage. Removing it with the hammer still works.
 - **Overlap is allowed.** Loaded zones form a set, so overlapping observers cost nothing extra. That lets a player add one at a dock on the edge of a base.
 
 ### Quan's Phantom Spawner (`Quan_PhantomSpawner`)
+
+- **Look (placeholder, 2 Nov 2026):** the vanilla ward model scaled to 25%, with a glowing red overlay to match the surtlings it serves. Visible on the ground without being large. Built from the ward's mesh and materials only: the ward's `PrivateArea` (and anything else it carries) must not come across, or it would act as a ward.
 
 - **Makes nearby spawners behave as if a player were standing there.** Surtling spawners are `CreatureSpawner`s (`Spawner_imp_respawn`: 60 m trigger, 5-minute respawn on world time). Support is limited to a config allowlist, default `Spawner_imp_respawn`. `SpawnArea` support is also included, on by default.
 - **Active only inside a zone that an active observer keeps loaded.** Outside one, its hover text says "Dormant: no active chunk observer" so players know why. The server decides this, because non-admins don't receive the observer list. When a player hovers over a phantom, their client asks the server once with a small RPC and caches the answer for a few seconds.
@@ -246,7 +249,7 @@ Server config, synced, admin-only:
 | Only admins can build observers and phantoms | Off |
 | Area size | 3×3 (or 1×1; changing it recalculates live) |
 | Expire after N hours without a refresh | Never |
-| Switching respects wards | On |
+| Only the builder or an admin can switch an observer | On (off: wards decide) |
 | Empty-server window | 60 min (0 = off) |
 | Phantom `CreatureSpawner` allowlist | `Spawner_imp_respawn` |
 | Phantom `SpawnArea` support | On |
@@ -276,6 +279,7 @@ Client config:
 - **Known interactions, none needing code:**
   - **AzuAutoStore and OttoFuel** start working inside loaded bases again, because players get ownership.
   - **PlantEverything** hover timers become accurate.
+  - **Seed Totem** plants and harvests normally while a player is near, because that player owns the totem. With nobody near it doesn't plant, the same as auto-fuel and auto-store (see Still open for why).
   - **Conversion Size & Speed** and similar mods complement the empty-server hour.
   - **TargetPortal's** map selection is no longer blocked.
   - **BetterTames and TeleportCreatures** only ever see tames near a player, because neither the server nor a distant client keeps tames loaded (see [Tames](#tames)).
@@ -375,9 +379,10 @@ The checks below are done on the live server as each feature is switched on.
    - The world clock should never run faster than real time.
 8. **Limits.** Test the per-player and server-total caps and their messages, admin placement, the server's over-limit safety net, and expiry turned on later.
 9. **Map.** Toggle default off and visible only to admins. A non-admin has no toggle and receives no other players' observers (check the RPC traffic). An admin sees "Admin-placed" on hover; a non-admin doesn't. Pins should match the server list after offline changes. Open the map through a TargetPortal portal: portals should be clickable immediately.
-10. **Toggle feedback.** The glow should change at once for every nearby player.
+10. **Toggle feedback.** The glow should change at once for every nearby player. Only the builder or an admin can switch it; another player's attempt is refused with a message.
 11. **Old mod present.** Our mod should refuse clearly.
-12. **Tames (the 1 Nov scenario).** At a base with tames in pens, with BetterTames installed.
+12. **Seed Totem.** In a loaded base with a player near, a totem with seeds queued plants them, and hitting it harvests ripe crops. Nobody near: nothing planted, no errors.
+13. **Tames (the 1 Nov scenario).** At a base with tames in pens, with BetterTames installed.
     - Switch on an observer at a base with tames. The server log should show no tames instantiated or owned by the server in its zones.
     - A player switches it on, walks 1 km or more away, then dies and respawns. No tame at the base should move, change owner or change `follow`.
     - Do the same with Alt+H and a portal trip. Neither should touch the base's tames.
@@ -387,7 +392,20 @@ The checks below are done on the live server as each feature is switched on.
 
 ## Still open
 
-- **Seed Totem 4.3.13:** confirm by decompiling that its failures belong to the same "owner expected to be a local player" class. They are probably fixed by the ownership rule.
+- **Seed Totem 4.3.13: checked (2 Nov 2026), no extra testing needed beyond the rollout check.** Decompiled into
+  `research/`. Its failures are the same "owner expected to be a local player" class, and the ownership rule fixes
+  them:
+  - **Planting** (`SeedTotem.DisperseSeeds`) only runs when the totem's owner is a PC with a local player
+    (`m_nview.IsOwner() && Player.m_localPlayer != null`). Under the old loader the server kept ownership, so a totem
+    in a loaded base never planted even with players standing next to it. With our rule a nearby player owns it and it
+    plants. With nobody near, the server owns it and it doesn't plant: a limitation, like auto-fuel, not a bug. Making
+    it plant on the server would mean patching Seed Totem, which is out of scope.
+  - **Harvest on hit** runs on the hitting player's PC and calls `Pickable.Interact` on each crop, which sends
+    `RPC_Pick` to the crop's owner. A server-owned crop then fails exactly as vanilla picking does; the ownership rule
+    and our `Pickable.RPC_Pick` defensive patch cover it.
+  - **Adding seeds, restricting and resizing** are RPCs handled by whoever owns the totem, with no local-player check,
+    so they work whoever owns it.
+
 - **Plant ownership on the live server: settled enough to build.** The v3 logs (25–31 Oct) show:
   - **The server regrows plants it owns and has loaded.** Batches of 17 to 64 regrew on time, none overdue.
   - **The old loader's plant bug is the walked-away case:** a player picks, walks away but stays online, and keeps ownership. It was seen only twice, owners 134–208 m away. The ownership rule fixes it.
@@ -396,11 +414,9 @@ The checks below are done on the live server as each feature is switched on.
   - **One anomaly:** three server-owned, loaded thistles beside Haudr's loader (zone 7,-7) stayed overdue for at least 1 h 45 min on 31 Oct, while the server regrew 14 other plants in the same 5-minute window. The cause is unknown and probably separate from ownership. Check them in game (are they PlantEverything plantings?) and watch for repeats under the new mod.
   - **Offline regrowth can't show up in these logs**, because the world clock stops with nobody online. Regrowth during the empty-server hour is tested with the new mod.
 - **Real conversion station values and empty-server wind:** v3 logs both.
-- **Who may switch an observer:** wards already decide this. Consider an option to limit switching to the builder (and admins), so nobody switches on a loader at someone else's base without asking. With the ownership rule this is no longer dangerous, so it's a courtesy setting, not a safety one.
 - **The diagnostic retires at 1.0.** Its logs up to the swap stay in `research/logs` as the reference for what the old loader did. Anything we still need to see after the swap is logged by the mod itself.
 - **Game version: checked, nothing blocks the build.** The 1.0.20 to 1.0.21 diff (in the `.decompiles` repo) changes none of `ZNetScene`, `ZDOMan`, `ZNet`, `ZoneSystem`, `Pickable`, `CreatureSpawner`, `SpawnArea`, `Smelter` or `Fermenter`, nor `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange` or `WearNTear.RPC_Damage`. Changes that touch us:
   - `Ship.UpdateSailSize` gained a parameter and now skips the local player when nobody steers. Our patch stays, smaller, on the new signature (see [Defensive patches](#defensive-patches)).
   - `WearNTear` caches its supporting pieces differently. Support isn't something we patch, and the edge rule in [Safety rules](#safety-rules) keeps edge pieces at full support.
   - `CookingStation` now records who put each item on, and credits them as crafter when it's taken off. It falls back to `Player.m_localPlayer` only for items put on before 1.0.21, which throws when the server owns the station. That's the same bug class as `Pickable.RPC_Pick`, already handled by the ownership rule (a player nearby takes ownership), so no new patch. Test: take cooked food off a station in a loaded zone, both with a player present and after the empty-server hour.
   - The earlier note that 1.0.21 moved saves to chunk files was wrong: chunked saves were already in 1.0.20. 1.0.21 only changed how the save list reloads, and the world version is unchanged.
-- **Phantom Spawner look:** to be chosen in game by the user. The fallback is a recoloured or kitbashed vanilla piece. Map icons: vanilla pin icons for now.

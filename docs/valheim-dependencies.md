@@ -95,7 +95,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Beehive` | As above. |
 | `CookingStation` | As above. Since 1.0.21 it credits the cook by stored player ID; older slots fall back to `Player.m_localPlayer`. |
 | `Plant` | Crops grow on the owner from world time. |
-| `PrivateArea.CheckAccess` | Wards decide who may switch an observer. |
+| `PrivateArea.CheckAccess` | Wards decide who may switch an observer when the builder-or-admin setting is off. |
 | `Piece.m_targetNonPlayerBuilt` | Monsters target player-built pieces (raid behaviour in loaded zones). |
 | `Growup.GrowUpdate` | Young grow up once enough world time has passed since spawn, so they catch up when loaded. |
 | `Procreation.Procreate` | Love points only build while the tame is running (every 10 s, partner near, not hungry): breeding doesn't catch up. |
@@ -107,4 +107,5 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 |---|---|---|
 | Old loader prefab (`StartupReport.OldLoaderPrefab`) | Diagnostic and migration: finding old loaders in the world. | The old mod renames it. |
 | Observer and phantom models | *planned*, chosen in game (see design "Still open"). | Depends on the pieces chosen. |
+| `guard_stone` (vanilla ward, check the prefab name in game) | *Planned:* Phantom Spawner placeholder look: mesh and materials at 25%, red glow. `PrivateArea` must not be copied. | Renamed or re-modelled. |
 | Surtling prefab names | Diagnostic counts surtlings in forced zones by name. | Renamed. |
