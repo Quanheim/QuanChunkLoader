@@ -240,28 +240,28 @@ Normally the ownership rule means these situations don't arise. The patches cove
 ## Limits and admin controls
 
 Config file layout (`quandru.QuanChunkLoader.cfg`), following the numbered-section convention in
-`docs/DEVELOPMENT.md`. Sections 1–7 and 9 are server settings, synced and admin-only; section 8 is each player's own.
+`docs/DEVELOPMENT.md`. Enforced settings sync from the server through Jotunn and only admins can change them; personal ones are each player's own. Sections 1–7 and 9 are enforced; section 8 is personal and named so.
 Settings are listed in the order they're bound.
 
-| Section | Setting | Default |
-|---|---|---|
-| `1 - General` | Only admins can build observers and phantoms | Off |
-| | Only the builder or an admin can switch an observer | On (off: wards decide) |
-| `2 - Limits` | Observers per player | 2 |
-| | Observers in total | 12 (108 zones at 3×3) |
-| | Admins ignore limits | On |
-| | Expire after N hours without a refresh | Never |
-| `3 - Loading` | Area size | 3×3 (or 1×1; changing it recalculates live) |
-| | Simulate tames in loaded zones | Off (Quanheim runs it on) |
-| `4 - Empty server` | Empty-server window | 60 min (0 = off) |
-| `5 - Phantom spawner` | `CreatureSpawner` allowlist | `Spawner_imp_respawn` |
-| | `SpawnArea` support | On |
-| `6 - Despawn protection` | Despawn protection | On |
-| `7 - Pieces` | Build cost | 10 stone, no station |
-| `8 - Map (client)` | Show observers on the map (admins only) | Off |
-| `9 - Logging` | Log detail | Info (Info, Debug or Trace) |
-| | Write a daily log file | Off |
-| | Days of daily files to keep | 14 |
+| Section | Setting | Default | Enforced or personal |
+|---|---|---|---|
+| `1 - General` | Only admins can build observers and phantoms | Off | Enforced |
+| | Only the builder or an admin can switch an observer | On (off: wards decide) | Enforced |
+| `2 - Limits` | Observers per player | 2 | Enforced |
+| | Observers in total | 12 (108 zones at 3×3) | Enforced |
+| | Admins ignore limits | On | Enforced |
+| | Expire after N hours without a refresh | Never | Enforced |
+| `3 - Loading` | Area size | 3×3 (or 1×1; changing it recalculates live) | Enforced |
+| | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
+| `4 - Empty server` | Empty-server window | 60 min (0 = off) | Enforced |
+| `5 - Phantom spawner` | `CreatureSpawner` allowlist | `Spawner_imp_respawn` | Enforced |
+| | `SpawnArea` support | On | Enforced |
+| `6 - Despawn protection` | Despawn protection | On | Enforced |
+| `7 - Pieces` | Build cost | 10 stone, no station | Enforced |
+| `8 - Map (personal)` | Show observers on the map (admins only) | Off | Personal |
+| `9 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |
+| | Write a daily log file | Off | Enforced |
+| | Days of daily files to keep | 14 | Enforced |
 
 `9 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
 
@@ -280,7 +280,7 @@ Client config:
 
 ## Compatibility
 
-- **Hard dependency:** Jotunn (in the manifest too). ServerSync is embedded.
+- **Hard dependency:** Jotunn (in the manifest too). Settings sync through Jotunn's config sync (`IsAdminOnly`), not ServerSync (see `docs/DEVELOPMENT.md`).
 - **Incompatible:** the three old chunk loaders, declared with `BepInIncompatibility`. Two GUIDs cover all three: `com.Frogger.ChunkLoader` (Frogger's original, and NerdLounge's ChunkLoader Continued 1.8.0, which kept that GUID) and `com.zeecamelsnake.ChunkLoaderFix` (zeeCamelSnake 1.0.4; checked from the Thunderstore DLLs on 2026-10-25). Running alongside one would bring back the ownership bug. If BepInEx doesn't show the refusal clearly, the mod detects the old loader itself, logs a clear error and stays inactive.
 - **No soft dependencies.** Nothing needs a particular load order. The hammer tab name is a fixed constant, `QuanPieces`, matching the QuanPieces mod, so if both are installed their pieces share one tab. That needs only the same name, not a dependency.
 - **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are `ZNetScene` object creation (including the tame skip), `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `ZDOMan` ownership, `ZNetScene` object creation, `CreatureSpawner`/`SpawnArea` updates, `Pickable.RPC_Pick`, `Ship.UpdateSailSize`, `Ship.CustomFixedUpdate` with `Floating.GetWaterLevel`, `ZNetScene.OutsideActiveArea`, `ZNetScene.CreateObjectsSorted` (unknown-prefab guard) and `WearNTear.RPC_Damage`. The full list, with what each relies on, belongs in the mod's Valheim Code Dependency doc.
