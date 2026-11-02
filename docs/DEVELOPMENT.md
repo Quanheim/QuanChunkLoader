@@ -89,6 +89,8 @@ develop against `Default`**: your server's `BepInEx` folder is a junction into i
    - In `Package\`, write `README.md` (the Thunderstore page), start `CHANGELOG.md`, and replace `icon.png`
      with a PNG of exactly 256×256.
    - Replace the template's root `README.md` with one about the mod. That's the GitHub page.
+   - Keep `docs/valheim-dependencies.md`, and add a row to it whenever the mod starts relying on game code or a
+     vanilla prefab (see section 10).
 4. Copy `Local.props.example` to `Local.props`, which is gitignored, and set:
    - `GaleProfileDir`: this mod's Gale profile from step 2.
    - `ValheimDir`, only if Valheim isn't in the default Steam location.
@@ -214,8 +216,37 @@ difference found between a mod and the template is a learning to share, not some
    organisation (`gh repo list Quanheim`) for mod repos that aren't cloned yet.
 
 Template-derived files to compare: `.gitignore`, `Directory.Build.props`, `Directory.Build.targets`,
-`Local.props.example`, `docs/DEVELOPMENT.md`, and the shape of `.vscode/` (which the template no longer tracks).
+`Local.props.example`, `docs/DEVELOPMENT.md`, the section layout of `docs/valheim-dependencies.md`, and the shape of
+`.vscode/` (which the template no longer tracks).
 
 Expected differences, which are **not** drift: the mod's name, GUID, version and description in its `.csproj` and
-plugin class, its `Package/` files, its root `README.md`, and machine- or mod-specific paths in
-`Local.props.example`.
+plugin class, its `Package/` files, its root `README.md`, the entries in `docs/valheim-dependencies.md`, and machine-
+or mod-specific paths in `Local.props.example`.
+
+## 10. Valheim updates
+
+Mod updates that say only "updated for Valheim x.y.z" are the result of this check. Every mod keeps
+`docs/valheim-dependencies.md`, listing the game code it patches, reaches by reflection, calls or relies on, plus
+the vanilla prefabs and assets it uses. The private `.decompiles` repo (cloned beside the mods) holds an unaltered
+decompile of every game version, so each update can be read as a plain diff.
+
+**Keeping the doc current.** Add a row in the same commit as any code that patches, reflects into, calls or relies
+on something new in the game. A mod that only adds Jotunn pieces still lists the vanilla prefabs it clones.
+
+**When Valheim updates** (`.decompiles\check-version.ps1` exits 1, or Steam has patched the game):
+
+1. **Record the new version.** In `.decompiles`, run `.\decompile.ps1 -Version <x.y.z>`, then commit, tag and push
+   as its README says.
+2. **First pass across all mods.** Run `.\check-mods.ps1`. Each mod's entries come back as `MISSING` (will break),
+   `CHANGED`, `CLASS CHANGED` or nothing.
+3. **Read what it flags.** `git diff v<old> v<new> -- <file>` in `.decompiles` for each flagged entry. Decide per
+   mod: no change, a fix, or a rethink. Name matching is coarse, so also skim the whole diff's file list for
+   anything a mod relies on indirectly.
+4. **Look for opportunities.** Read the whole diff once more against what each mod does. Iron Gate sometimes fixes
+   a bug a mod patches around (1.0.21 partly fixed the sail crash QuanChunkLoader works around), or adds something
+   a mod could use instead of its own code.
+5. **Test in game** for every mod, flagged or not: load it in its Gale profile on the new version, check the log
+   for errors and exercise each item in the **Prefabs and assets** table. Asset changes never show in a code diff.
+6. **Record the result.** Update "Checked against Valheim" in each mod's dependency doc. A mod that needed no code
+   change still gets a release if Thunderstore users need a sign it works, usually as a patch version with a
+   changelog line "Checked against Valheim x.y.z".
