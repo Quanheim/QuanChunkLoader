@@ -36,6 +36,25 @@ during `OnVanillaPrefabsAvailable`, remove the `JVLmock_` prefix from each name 
 `RequirementConfig` and `CraftingStation`, or the copy points at names that never resolve. Jotunn's own constant
 for the prefix (`MockManager.JVLMockPrefix`) is internal, so declare your own. Vanilla pieces aren't affected.
 
+**Config files: numbered sections in a deliberate order.** Gale's config editor shows each `[Section]` of a
+mod's `.cfg` as its own group, so a well-sectioned file is far easier to manage than one long list. Two facts about
+how BepInEx writes the file (`ConfigFile.Save`) decide the layout:
+- **Sections are sorted alphabetically.** That's why a section called "Main" can end up below "Fuelling". So number
+  every section, Azumatt-style: `1 - General`, `2 - Limits`, and so on, with general and admin settings first and
+  logging last. The sort is by text, not number, so `10 - X` would land before `2 - Y`: keep to nine sections, or
+  number them all with two digits (`01 - General`).
+- **Settings inside a section keep the order the code binds them in.** Bind them in the order a reader needs them,
+  most important first.
+
+Also:
+- One topic per section; no catch-all "Main".
+- Every setting has a description, and says when it's synced from the server or admin-only.
+- Use an enum, an `AcceptableValueList` or an `AcceptableValueRange` wherever a setting has a fixed set of values or
+  a range. Gale and Configuration Manager then show a dropdown or a slider instead of a free text box, and the value
+  can't be mistyped.
+- Never rename a section or setting after release: players' saved values sit under the old name and would be lost.
+  If a rename is unavoidable, migrate the old value in code and say so in the changelog.
+
 ## 1. Install the tools (once per machine)
 
 1. **Git for Windows**: <https://git-scm.com/download/win>. The default install options are fine.
