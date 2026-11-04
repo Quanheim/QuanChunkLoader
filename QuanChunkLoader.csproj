@@ -17,6 +17,19 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);Diagnostics/**;Upstream Previous Mods/**;research/**</DefaultItemExcludes>
   </PropertyGroup>
 
+  <!-- Zone coordinates (Vector2s) live in assembly_utils, Localization in assembly_guiutils; the observer
+       model's sparks need the particle module. -->
+  <ItemGroup>
+    <Reference Include="assembly_utils"><HintPath>$(ManagedDir)\assembly_utils.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="assembly_guiutils"><HintPath>$(ManagedDir)\assembly_guiutils.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(ManagedDir)\UnityEngine.ParticleSystemModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- Frogger's original chunk loader model (MIT, see THIRD-PARTY-NOTICES.md), loaded with Jotunn's AssetUtils. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\chunkloader" LogicalName="QuanChunkLoader.Assets.chunkloader" />
+  </ItemGroup>
+
   <!-- Extra Thunderstore dependencies beyond BepInExPack and Jotunn (both added automatically), e.g.
   <ItemGroup>
     <ThunderstoreDependency Include="Author-ModName-1.2.3" />

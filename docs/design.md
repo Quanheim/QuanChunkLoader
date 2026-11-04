@@ -1,6 +1,8 @@
 # Quan's Chunk Loader: design
 
-Status: design agreed on 2026-10-25, not yet built. Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
+Status: design agreed on 2026-10-25. **Core built on 2026-11-04** (observer piece, forced zones, ownership rule,
+safety rules, logging), awaiting its single-player check; the phantom, boat fix, despawn protection, empty-server
+hour, limits, map and defensive patches come next. Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
 
 Quan's Chunk Loader (`QuanChunkLoader`) is a new chunk loader for dedicated servers. It replaces Frogger's original ChunkLoader and two later forks of it, NerdLounge "ChunkLoader Continued" and zeeCamelSnake "ChunkLoaderFix". It's a rewrite rather than a fork. The old mods share one core mechanism, and that mechanism causes their main bugs (see [Why the old approach fails](#why-the-old-approach-fails)).
 
@@ -46,7 +48,8 @@ Two more facts limit what any chunk loader can do:
 
 **Observer model (decided 2026-10-25):** Frogger's original `ChunkLoader_stone` model, as a tribute. It comes from the `chunkloader` asset bundle in [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader) (`src/assets/chunkloader`, MIT).
 - Scale the model to 75% of its original size (the original is very big). Review the look when we build.
-- Ship the bundle as an embedded resource. Build `Quan_ChunkObserver` from its mesh, materials, light and particles, not from its prefab: the prefab references the old mod's `ChunkLoaderMono` script, which would log missing-script warnings.
+- Ship the bundle as an embedded resource. **Found when building (4 Nov 2026):** the bundle's `ChunkLoader_stone` prefab carries only vanilla scripts (`ZNetView`, `Piece`, `WearNTear`, `LightLod`); the old mod adds its `ChunkLoaderMono` in code. So `Quan_ChunkObserver` is a clone of that prefab, renamed and set up by our code, with no missing-script warnings. Built with Unity 6000.0.72; the game runs 6000.0.75.
+- **Dedication on the build card (Quandru, 4 Nov 2026):** the piece's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute."
 - MIT requires the copyright and licence notice in copies, so add `THIRD-PARTY-NOTICES.md` to the repo root and to `Package/` (which ships in the Thunderstore zip).
 - Check the shaders on the bundle's materials in game. If they don't render correctly, remap them to Valheim's own shaders.
 - The bundle can't be loaded twice, so it would clash with the old mod if both were installed. The incompatibility check already prevents that.
@@ -94,6 +97,7 @@ All of this runs on the server. Clients load nothing extra.
    - **Who switched an observer on doesn't matter.** Switching only changes the forced set. It never gives the switcher ownership of anything.
    - **Distant claims don't stick.** Some mods take ownership of a creature or object directly (`ZNetView.ClaimOwnership`). If a player far from a forced zone does that, the server's 2 s pass sees the new owner out of their vanilla range and takes the object back. So a stray claim lasts at most one pass and can't turn into a base run from far away.
    - **Clients never load forced zones.** A client only creates and simulates objects in its own vanilla active area. Forced zones exist only on the server (see goal 7).
+   - **Paused creatures held from afar are released (decided while building, 4 Nov 2026).** The server never claims a tame or wild creature it doesn't run. But if one in a forced zone is owned by a player who isn't near it (they teleported away, or a mod claimed it), the server sets its owner to nobody, as vanilla does when a player walks away. No distant client keeps a base's tames, and nobody runs them until a player comes near.
 5. **Observer list.**
    - The server holds the authoritative observer list: position, on/off, builder, admin flag. Clients don't receive observers' data from across the world.
    - **Who gets what.** The server knows who is an admin (the world's admin list); clients don't, so it tells each client.
@@ -142,6 +146,7 @@ The diagnostic plugin retires at 1.0, so everything below is built into the mod.
 - **Forced set changes:** zones added and removed, with the total.
 - **Ownership summaries for forced zones,** every 5 minutes: object counts by owner (server or player), as the diagnostic's beat line does.
 - **Large changes at once:** a warning when 20 or more objects leave forced zones, or change owner, within one 2 s pass, with counts by category (tames, containers and so on) and the players involved. That is exactly what 1 Nov looked like.
+  - **As built (4 Nov 2026):** ordinary hand-overs aren't warnings, because a player walking into a base takes hundreds of objects at once. The warning covers objects *leaving* the loaded zones while the zones themselves didn't change, and 20 or more objects taken back from players far from them. Hand-overs to nearby players and objects players walked away from are Debug lines, and show in the 5-minute summary's owner counts.
 - **Distant claims taken back** (see the ownership rule), counted per player, so a misbehaving mod shows up.
 - **Log detail is a server setting**, default **Info**, so the log stays small and respectful of disk space:
   - **Info:** only the lines above: switches, forced set changes, 5-minute summaries, warnings for large changes,
@@ -257,7 +262,7 @@ Settings are listed in the order they're bound.
 | `4 - Phantom spawner` | `CreatureSpawner` allowlist | `Spawner_imp_respawn` | Enforced |
 | | `SpawnArea` support | On | Enforced |
 | `5 - Despawn protection` | Despawn protection | On | Enforced |
-| `6 - Pieces` | Build cost | 10 stone, no station | Enforced |
+| `6 - Pieces` | Stone cost | 10 (no station; takes effect after a restart) | Enforced |
 | `7 - Map (personal)` | Show observers on the map (admins only) | Off | Personal |
 | `8 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |
 | | Write a daily log file | Off | Enforced |
