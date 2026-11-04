@@ -240,30 +240,30 @@ Normally the ownership rule means these situations don't arise. The patches cove
 ## Limits and admin controls
 
 Config file layout (`quandru.QuanChunkLoader.cfg`), following the numbered-section convention in
-`docs/DEVELOPMENT.md`. Enforced settings sync from the server through Jotunn and only admins can change them; personal ones are each player's own. Sections 1–7 and 9 are enforced; section 8 is personal and named so.
+`docs/DEVELOPMENT.md`. Enforced settings sync from the server through Jotunn and only admins can change them; personal ones are each player's own. Sections 0–6 and 8 are enforced; section 7 is personal and named so.
 Settings are listed in the order they're bound.
 
 | Section | Setting | Default | Enforced or personal |
 |---|---|---|---|
-| `1 - General` | Only admins can build observers and phantoms | Off | Enforced |
+| `0 - General` | Only admins can build observers and phantoms | Off | Enforced |
 | | Only the builder or an admin can switch an observer | On (off: wards decide) | Enforced |
-| `2 - Limits` | Observers per player | 2 | Enforced |
+| `1 - Limits` | Observers per player | 2 | Enforced |
 | | Observers in total | 12 (108 zones at 3×3) | Enforced |
 | | Admins ignore limits | On | Enforced |
 | | Expire after N hours without a refresh | Never | Enforced |
-| `3 - Loading` | Area size | 3×3 (or 1×1; changing it recalculates live) | Enforced |
+| `2 - Loading` | Area size | 3×3 (or 1×1; changing it recalculates live) | Enforced |
 | | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
-| `4 - Empty server` | Empty-server window | 60 min (0 = off) | Enforced |
-| `5 - Phantom spawner` | `CreatureSpawner` allowlist | `Spawner_imp_respawn` | Enforced |
+| `3 - Empty server` | Empty-server window | 60 min (0 = off) | Enforced |
+| `4 - Phantom spawner` | `CreatureSpawner` allowlist | `Spawner_imp_respawn` | Enforced |
 | | `SpawnArea` support | On | Enforced |
-| `6 - Despawn protection` | Despawn protection | On | Enforced |
-| `7 - Pieces` | Build cost | 10 stone, no station | Enforced |
-| `8 - Map (personal)` | Show observers on the map (admins only) | Off | Personal |
-| `9 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |
+| `5 - Despawn protection` | Despawn protection | On | Enforced |
+| `6 - Pieces` | Build cost | 10 stone, no station | Enforced |
+| `7 - Map (personal)` | Show observers on the map (admins only) | Off | Personal |
+| `8 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |
 | | Write a daily log file | Off | Enforced |
 | | Days of daily files to keep | 14 | Enforced |
 
-`9 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
+`8 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
 
 - **Admin placement.** Each observer stores its builder and an admin flag, set when it's built and checked against the server's admin list. Admin-placed observers count towards neither limit, and losing admin status later changes nothing.
 - **Refusal messages** say which limit was hit:

@@ -40,9 +40,10 @@ for the prefix (`MockManager.JVLMockPrefix`) is internal, so declare your own. V
 mod's `.cfg` as its own group, so a well-sectioned file is far easier to manage than one long list. Two facts about
 how BepInEx writes the file (`ConfigFile.Save`) decide the layout:
 - **Sections are sorted alphabetically.** That's why a section called "Main" can end up below "Fuelling". So number
-  every section, Azumatt-style: `1 - General`, `2 - Limits`, and so on, with general and admin settings first and
-  logging last. The sort is by text, not number, so `10 - X` would land before `2 - Y`: keep to nine sections, or
-  number them all with two digits (`01 - General`).
+  every section, Azumatt-style, **starting at `0 - General`**: mod-wide settings, such as a master **Enabled**
+  switch where the mod has one. Then `1 - Limits`, `2 - ...` and so on, with admin settings early and logging last.
+  The sort is by text, not number, so `10 - X` would land before `2 - Y`: keep to ten sections (0–9), or number them
+  all with two digits (`00 - General`).
 - **Settings inside a section keep the order the code binds them in.** Bind them in the order a reader needs them,
   most important first.
 
