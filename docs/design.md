@@ -400,6 +400,16 @@ The checks below are done on the live server as each feature is switched on.
 
 ## Still open
 
+- **Two observer pieces instead of an area-size setting (raised 4 Nov 2026, to come back to).** Quandru would
+  like two chunk observers rather than the "Area size" server setting: a **single** model that loads 1×1 (its own
+  zone) and a **clustered** model that loads 3×3. Players then choose per observer, by what they build. To decide
+  when we come back to it:
+  - the clustered model's look (for example several of Frogger's columns grouped together), and each one's cost;
+  - how the limits count them: one each, or by zones loaded (a 3×3 counts as 9);
+  - whether "Area size" goes entirely, or stays as an admin cap (for example "1×1 only" hides the clustered one).
+  The core is built with the area as a per-observer value read from its prefab, so the setting can be dropped
+  without reworking loading.
+
 - **Seed Totem 4.3.13: checked (2 Nov 2026), no extra testing needed beyond the rollout check.** Decompiled into
   `research/`. Its failures are the same "owner expected to be a local player" class, and the ownership rule fixes
   them:
