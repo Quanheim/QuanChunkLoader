@@ -93,7 +93,9 @@ Two more facts limit what any chunk loader can do:
 **Observer model (decided 2026-10-25):** Frogger's original `ChunkLoader_stone` model, as a tribute. It comes from the `chunkloader` asset bundle in [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader) (`src/assets/chunkloader`, MIT).
 - Scale the model to 75% of its original size (the original is very big). Review the look when we build.
 - Ship the bundle as an embedded resource. **Found when building (4 Nov 2026):** the bundle's `ChunkLoader_stone` prefab carries only vanilla scripts (`ZNetView`, `Piece`, `WearNTear`, `LightLod`); the old mod adds its `ChunkLoaderMono` in code. So `Quan_ChunkObserver` is a clone of that prefab, renamed and set up by our code, with no missing-script warnings. Built with Unity 6000.0.72; the game runs 6000.0.75.
-- **Dedication on the build card (Quandru, 4 Nov 2026):** the piece's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute."
+- **Dedication on the build card (Quandru, 4 Nov 2026):** the piece's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute." Seen in game on 5 Nov 2026 ([docs/images/observer-card.png](images/observer-card.png)):
+
+  <img src="images/observer-card.png" alt="The Chunk Observer's build card in game, with the dedication to Frogger and a cost of 10 Stone" width="480">
 - MIT requires the copyright and licence notice in copies, so add `THIRD-PARTY-NOTICES.md` to the repo root and to `Package/` (which ships in the Thunderstore zip).
 - Check the shaders on the bundle's materials in game. If they don't render correctly, remap them to Valheim's own shaders.
 - The bundle can't be loaded twice, so it would clash with the old mod if both were installed. The incompatibility check already prevents that.

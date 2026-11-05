@@ -38,6 +38,8 @@ base (they don't stop monsters spawning nearby).
 
 ### Chunk Observer
 
+<p><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observer-card.png" alt="The Chunk Observer's build card: a carved stone column. Keeps the zones around it loaded while switched on, so your base keeps working while you're elsewhere. Nearby players still own everything as usual. Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute. Costs 10 Stone." width="480"></p>
+
 | Cost | Crafting station | Loads |
 |---|---|---|
 | 10 Stone | None | The 3 × 3 zones around it (192 × 192 m), or only its own zone if the server is set to 1 × 1 |
