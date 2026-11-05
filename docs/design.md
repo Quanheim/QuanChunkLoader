@@ -1,7 +1,8 @@
 # Quan's Chunk Loader: design
 
-Status: design agreed on 2026-10-25. **Core built on 2026-11-04**, awaiting its single-player check; the rest of
-1.0 comes next. See [Build status](#build-status). Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
+Status: design agreed on 2026-10-25. Core built on 2026-11-04 and checked in single player on 2026-11-05.
+**The rest of 1.0 built on 2026-11-05**, awaiting its single-player check. See [Build status](#build-status).
+Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
 
 Quan's Chunk Loader (`QuanChunkLoader`) is a new chunk loader for dedicated servers. It replaces Frogger's original ChunkLoader and two later forks of it, NerdLounge "ChunkLoader Continued" and zeeCamelSnake "ChunkLoaderFix". It's a rewrite rather than a fork. The old mods share one core mechanism, and that mechanism causes their main bugs (see [Why the old approach fails](#why-the-old-approach-fails)).
 
@@ -9,8 +10,22 @@ Every claim below was checked against the 1.0.20 decompile, re-checked against 1
 
 ## Build status
 
-Updated 5 Nov 2026. **The core passed its single-player check on 5 Nov 2026** (local world, "Chunkloader test"
-Gale profile, 71 mods, Log detail Trace):
+Updated 5 Nov 2026. **Everything planned for 1.0 is built.** The core passed its single-player check on 5 Nov;
+the rest hasn't run in game yet.
+
+**Pieces: three**, all in the QuanPieces hammer tab, none needing a crafting station:
+
+| Piece | Prefab | Loads | Cost |
+|---|---|---|---|
+| Chunk Observer | `Quan_ChunkObserver` | 1 zone: its own (64 × 64 m) | 10 Stone |
+| Chunk Observer Cluster | `Quan_ChunkObserverCluster` | 9 zones: its own and the 8 around it (192 × 192 m) | 30 Stone |
+| Phantom Spawner | `Quan_PhantomSpawner` | Nothing; runs nearby spawners inside loaded zones | 10 Stone |
+
+The two observers replace the "Area size" setting (Quandru, 5 Nov 2026): players choose per observer by what they
+build. Costs are fixed; the "Stone cost" setting is gone (Quandru: a slider for it is pointless).
+
+**Core: passed its single-player check on 5 Nov 2026** (local world, "Chunkloader test" Gale profile, 71 mods,
+Log detail Trace), on the single observer when it still loaded 3×3:
 - Built, switched, hit (no damage) and removed as designed; red runes off, blue on, the hammer's remove highlight
   clears back to the right colour.
 - **Stayed loaded with the player away:** three 5-minute summaries (22:29–22:39) with the player far off showed
@@ -18,52 +33,34 @@ Gale profile, 71 mods, Log detail Trace):
 - **Survived a reload:** "Found 1 chunk observer(s) in the world, 1 switched on" and the 9 zones loaded again.
 - No errors from the mod.
 - **Found:** passes that write ~1,000 Trace lines took up to about 1 s (loading the world, flying away, coming
-  back), because every line is written and flushed one at a time. Info, the default, logs none of those lines.
-  Don't leave Debug or Trace on for the live server; making per-object lines cheaper is a possible improvement.
+  back), because every line was written and flushed one at a time. The daily file now flushes once a second;
+  BepInEx's own log still writes each line. Info, the default, logs none of those lines. Don't leave Debug or Trace
+  on for the live server.
 - **Local game only:** the host and the server share one owner ID, so while the host passes the edge of their own
   area vanilla `ReleaseNearbyZDOS` drops objects to no owner and our pass claims them back, two or three times each.
   On a dedicated server the server's ID differs, so this can't happen.
 
-**Pieces today: one.** The only piece is the Chunk Observer (`Quan_ChunkObserver`). How much it loads comes from
-the server setting "Area size", which applies to every observer on the server at once:
-
-| "Area size" | Zones each active observer loads | Ground covered |
+| Part | What it means | Status |
 |---|---|---|
-| `ThreeByThree` (default) | 9: its own zone and the 8 around it | 192 × 192 m |
-| `OneByOne` | 1: its own zone | 64 × 64 m |
+| Chunk Observer and Cluster | Frogger's model at 50%: one column, or three on round plinths. Dedication on both build cards. Can't be damaged; the hammer removes them. | Single checked; cluster built 5 Nov |
+| Switching | E switches it on or off. Only its builder or an admin can, by default; the hover shows the size, who built it, and "Admin-placed" to admins. | Checked |
+| Server loading | The server keeps every zone of every active observer generated and its objects running. No wild creatures (except phantom spawns), no tames unless "Simulate tames" is on. Clients load nothing extra. | Checked |
+| Ownership rule | Every 2 s the server takes objects in loaded zones that no player is near; vanilla hands them to nearby players. Objects owned by a far player are taken back; paused creatures held from afar are released. | Checked in single player; needs the dedi |
+| Edge-support rule | Wear and support (and `StaticPhysics`, `SpawnArea`) only run where all 8 neighbouring zones are loaded. | Built |
+| Unknown-prefab guard | Objects whose prefab the server doesn't know are skipped and logged, not deleted. | Built |
+| Logging | Switches, zone changes, 5-minute summaries, warnings, distant claims, unknown prefabs, phantoms, the empty-server clock. | Checked |
+| Phantom Spawner | Allowlisted creature spawners (default surtlings) and spawner areas act as if a player stood at an active phantom. | Built 5 Nov |
+| Boat fix | Water readings from unloaded zones are replaced with the ship's centre reading while it runs on the server. | Built 5 Nov |
+| Despawn protection | Items within 8 m of a server-run station or 40 m of an active phantom in loaded zones don't time out. | Built 5 Nov |
+| Empty-server hour | With an observer on, the world clock keeps running in real time for up to 60 min after the last logout. | Built 5 Nov; dedicated server only |
+| Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Built 5 Nov |
+| Map | Admins can show every observer on the map (personal setting); nobody else receives them. | Built 5 Nov |
+| Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
+| Release | Regenerate "Tested with" in `Package/README.md` from the live profile after the rollout; replace `docs/images/observer-card.png` with new build-card screenshots (the single observer's description changed, and the cluster has its own); date the changelog; publish 1.0.0. | To do |
 
-Quandru's two-piece idea (a single 1×1 observer and a clustered 3×3 one, chosen by what you build) is **not built**:
-it's an open point in [Still open](#still-open). The groundwork is there: each observer works out its own radius
-(`Observers.Info.Radius`), which today just reads the setting, so a second prefab only has to supply its own value.
-
-**Built (commit d82abf1, in the test zip):**
-
-| Part | What it means |
-|---|---|
-| Chunk Observer | The piece players build: Frogger's model at 50%, 10 stone, QuanPieces tab, dedication on the build card. Can't be damaged; the hammer removes it. |
-| Switching | E switches it on or off. Only its builder or an admin can, by default; the hover shows who built it, and "Admin-placed" to admins. The glow follows the switch at once. |
-| Server loading | The server keeps every zone of every active observer generated and its objects running, so stations progress with nobody near. It loads no wild creatures, and no tames unless "Simulate tames" is on. Clients load nothing extra. |
-| Ownership rule | Every 2 s the server takes objects in loaded zones that no player is near, and leaves the rest to vanilla, which hands them to nearby players. It takes back objects owned by a player far away, and releases paused creatures held from afar. This is the fix for the 1 Nov incident. |
-| Edge-support rule | On the server, a point in a loaded zone only counts as "active" for building wear and support (and `StaticPhysics`, `SpawnArea`) when all 8 neighbouring zones are loaded too, as vanilla does around players. Edge pieces don't weather or collapse. |
-| Unknown-prefab guard | Objects whose prefab the server doesn't know (a mod missing on the server) are skipped and logged, not deleted. |
-| Logging | Switches, zone changes, a 5-minute owner summary, warnings for mass changes, distant claims, unknown prefabs; Info/Debug/Trace and an optional daily file. |
-
-**Not built yet (the rest of 1.0, in one pass after the check):**
-
-| Part | What it means |
-|---|---|
-| Phantom Spawner | Second piece. Makes nearby allowlisted spawners (default surtlings, plus `SpawnArea`) act as if a player stood there, so farms run; only inside an active observer's zones. |
-| Boat fix | Water readings from unloaded zones are ignored while a ship runs on the server, so boats at the edge float instead of sinking. |
-| Despawn protection | Drops near station outputs and near active phantoms in loaded zones don't time out after an hour. |
-| Empty-server hour | With an observer on, the world clock keeps running in real time for up to an hour after the last logout. |
-| Limits and admin-only building | Per-player (2) and server (12) observer limits, admin exemption, expiry, and the option to hide the pieces from non-admins. |
-| Map | Admins can show every observer on the map; others only learn their own. |
-| Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` stop failing when the server owns the object, for the ~2 s before ownership moves. |
-| Release | Regenerate "Tested with" in `Package/README.md` from the live profile after the rollout, check its config table against `Settings.cs` (names of settings not built yet were written from this design), date the changelog, and publish 1.0.0. |
-
-**Docs:** `Package/README.md` (the Thunderstore page) and `Package/CHANGELOG.md` already describe the finished 1.0,
-including the unbuilt parts. If a decision changes what 1.0 does (for example the two-piece open point), update them
-in the same commit.
+**Next:** a short single-player check of the new parts (see [Test plan](#test-plan-for-the-real-mod)), then
+publish and roll out. Several parts only show on a dedicated server (ownership between players, the empty-server
+hour, the defensive patches); those are checked during the rollout.
 
 ## Goals
 
@@ -111,38 +108,56 @@ Two more facts limit what any chunk loader can do:
   mod set `_EmissionColor` to `Color.red * 6` when off and back to the material's own (2, 2, 2) when on; ours does
   the same on each observer's own material copy. The light comes on only while on. The bundle's `sparcs` particles
   don't visibly show; Quandru doesn't need them.
-- Ship the bundle as an embedded resource. **Found when building (4 Nov 2026):** the bundle's `ChunkLoader_stone` prefab carries only vanilla scripts (`ZNetView`, `Piece`, `WearNTear`, `LightLod`); the old mod adds its `ChunkLoaderMono` in code. So `Quan_ChunkObserver` is a clone of that prefab, renamed and set up by our code, with no missing-script warnings. Built with Unity 6000.0.72; the game runs 6000.0.75.
-- **Dedication on the build card (Quandru, 4 Nov 2026):** the piece's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute." Seen in game on 5 Nov 2026 ([docs/images/observer-card.png](images/observer-card.png)):
+- Ship the bundle as an embedded resource. **Found when building (4 Nov 2026):** the bundle's `ChunkLoader_stone` prefab carries only vanilla scripts (`ZNetView`, `Piece`, `WearNTear`, `LightLod`); the old mod adds its `ChunkLoaderMono` in code. So both observers are clones of that prefab, renamed and set up by our code, with no missing-script warnings. Built with Unity 6000.0.72; the game runs 6000.0.75.
+- **Dedication on the build card (Quandru, 4 Nov 2026):** each observer's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute." Seen in game on 5 Nov 2026 ([docs/images/observer-card.png](images/observer-card.png); the description above it has since changed to "Keeps its own zone loaded"):
 
   <img src="images/observer-card.png" alt="The Chunk Observer's build card in game, with the dedication to Frogger and a cost of 10 Stone" width="480">
-- MIT requires the copyright and licence notice in copies, so add `THIRD-PARTY-NOTICES.md` to the repo root and to `Package/` (which ships in the Thunderstore zip).
-- Check the shaders on the bundle's materials in game. If they don't render correctly, remap them to Valheim's own shaders.
+- MIT requires the copyright and licence notice in copies, so `THIRD-PARTY-NOTICES.md` is in the repo root and in `Package/` (which ships in the Thunderstore zip).
 - The bundle can't be loaded twice, so it would clash with the old mod if both were installed. The incompatibility check already prevents that.
 
+All three pieces go in the **QuanPieces** hammer tab and need no crafting station. Costs are fixed (no setting). None
+carries a PlayerBase `EffectArea`, so none suppresses spawners or counts as a base.
 
-Both pieces go in the **QuanPieces** hammer tab. Each costs 10 stone (configurable) and needs no crafting station. Neither carries a PlayerBase `EffectArea`, so neither suppresses spawners or counts as a base.
+### Quan's Chunk Observer (`Quan_ChunkObserver`) and Chunk Observer Cluster (`Quan_ChunkObserverCluster`)
 
-### Quan's Chunk Observer (`Quan_ChunkObserver`)
+**Two pieces instead of an "Area size" setting (Quandru, 5 Nov 2026).** Players choose per observer by what they
+build:
+- **Chunk Observer:** the single column. Loads its own zone (1×1, 64 × 64 m). 10 Stone.
+- **Chunk Observer Cluster:** three columns. Loads its own zone and the 8 around it (3×3, 192 × 192 m). 30 Stone.
+  - **Look (Quandru):** three of the columns, each turned 120 degrees from the next and offset so a corner of each
+    points outwards, like a squared three-pointed star, on a shared round two-step base under a shared round
+    capital, instead of three square bases and capitals.
+  - **How it's built** (`ClusterModel`): the column mesh is readable, so the shaft alone is cut out of it at load
+    (triangles between 0.30 and 2.20 m of the 2.47 m column; the base and capital are dropped). Three copies stand
+    0.30 m (model units, before the 50% scale) from the centre, turned 0, 120 and 240 degrees plus 45 so a corner
+    points out; their inner corners meet in the middle. The round base steps and capital are cylinders generated in
+    code, textured with the plain stone patch of the column's own texture (the capital's top face), so they match.
+    Each column keeps its runes on its two opposite faces; one faces out between the star's points.
+  - **Icon:** rendered from the model with Jotunn's `RenderManager` (skipped on a dedicated server, which has no
+    graphics); the single column's icon is the fallback.
 
-- **Loads the 3×3 block of zones around itself** (or 1×1, set in config) while it's switched on.
+Both observers:
 - **No fuel.** It runs until switched off from its hover menu.
 - **Only its builder or an admin can switch it** (server setting, on by default). Other players see who built it and can't change it. With the setting off, switching falls back to wards (`PrivateArea.CheckAccess`).
 - **Its glow updates immediately for everyone nearby** when switched. The old mod took 2-3 s.
-- **Hover text** shows on/off and the builder's name. **Admins only** also see "Admin-placed" on observers an admin built. Other players never see it. The flag is stored on the observer (it has to survive restarts); it isn't secret data, just not displayed to non-admins.
+- **Hover text** shows on/off, the size it loads, and the builder's name. **Admins only** also see "Admin-placed" on observers an admin built. Other players never see it. The flag is stored on the observer (it has to survive restarts); it isn't secret data, just not displayed to non-admins.
 - **It can't be destroyed and monsters ignore it.** It isn't a target for AI (`StaticTarget`, `Piece.m_targetNonPlayerBuilt`), and a prefix on `WearNTear.RPC_Damage` blocks damage. Removing it with the hammer still works.
-- **Overlap is allowed.** Loaded zones form a set, so overlapping observers cost nothing extra. That lets a player add one at a dock on the edge of a base.
+- **Overlap is allowed.** Loaded zones form a set, so overlapping observers cost nothing extra. That lets a player add a single observer at a dock on the edge of a cluster's area.
+- **Edge rule and the two sizes:** wear, support and spawner areas only run where all 8 neighbours are loaded, so a
+  cluster's centre zone gets full vanilla wear and a single observer's zone never does. That's safe (edge pieces
+  just don't weather); it also means spawner areas only run in a cluster's centre zone.
 
 ### Quan's Phantom Spawner (`Quan_PhantomSpawner`)
 
-- **Look (placeholder, 2 Nov 2026):** the vanilla ward model scaled to 25%, with a glowing red overlay to match the surtlings it serves. Visible on the ground without being large. Built from the ward's mesh and materials only: the ward's `PrivateArea` (and anything else it carries) must not come across, or it would act as a ward.
-
+- **Look (placeholder, 2 Nov 2026):** the vanilla ward (`guard_stone`) model scaled to 25%, with red glowing copies of its materials and a small red light. Built from the ward's look only: its particle effects, lights, sounds, trigger volumes and every script other than `ZNetView`, `Piece` and `WearNTear` are removed (`PrivateArea`, its area marker and any `EffectArea` among them), and loading stops with an error if a `PrivateArea` or `EffectArea` were still there. What was removed is logged at Debug.
 - **Makes nearby spawners behave as if a player were standing there.** Surtling spawners are `CreatureSpawner`s (`Spawner_imp_respawn`: 60 m trigger, 5-minute respawn on world time). Support is limited to a config allowlist, default `Spawner_imp_respawn`. `SpawnArea` support is also included, on by default.
-- **Active only inside a zone that an active observer keeps loaded.** Outside one, its hover text says "Dormant: no active chunk observer" so players know why. The server decides this, because non-admins don't receive the observer list. When a player hovers over a phantom, their client asks the server once with a small RPC and caches the answer for a few seconds.
-- **No fuel or timer, no map pin, can't be destroyed** (same as the observer). There's no per-zone limit.
-- **Shows its effect radius while being placed**, using the dotted ring the workbench uses.
+- **Active only inside a zone that an active observer keeps loaded,** and only if it wasn't built while only admins could build. Outside one, its hover text says "Dormant: no active chunk observer" so players know why. The server decides this, because non-admins don't receive the observer list. **As built (5 Nov 2026):** the server writes "active" onto the phantom whenever the loaded zones change, instead of answering a hover RPC; every player's hover reads it with no extra traffic.
+- **No fuel or timer, no map pin, can't be destroyed** (same as the observers). There's no per-zone limit.
+- **Not built: the placement ring.** The design wanted the workbench's dotted ring while placing; the ward's own area marker is removed with the rest of the ward. A possible later addition.
 - **How it works:**
-  - A prefix and finalizer on the spawner update sets a scoped "spawner context" flag. While the flag is set, a postfix on `Player.IsPlayerInRange` treats the phantom as a player at its own position, within the caller's own `range`. That covers both the plain and the noise overloads.
+  - A prefix and finalizer on the spawner update (`CreatureSpawner.UpdateSpawner`, `SpawnArea.UpdateSpawn`) sets a scoped "phantom context" flag on the server, for allowed spawners only. While it's set, a postfix on `Player.IsPlayerInRange` treats an active phantom as a player at its own position, within the caller's own `range`. That covers both the plain and the noise overloads.
   - Nothing global changes and no transpilers are involved. `IsPlayerInRange` contains a `foreach`, so it won't be inlined.
+  - **Phantom spawns run as normal:** a creature made while the phantom passed the check is marked on its ZDO (`QCL_phantom`, from a postfix on `Character.Awake` inside the context). Marked wild creatures load and run on the server in loaded zones; other wild creatures stay paused.
 - **Respawning follows world time,** because the `CreatureSpawner` respawn delay uses it. A farm spawns while anyone is online and during the empty-server hour, and stops after that.
 - **Farm behaviour:** surtlings that spawn into water die at once, so the spawner's caps never bind. Collecting the drops still needs a player nearby, because auto-store runs on players' machines. Despawn protection (below) keeps the drops in the meantime.
 
@@ -236,7 +251,7 @@ Timestamps include the UTC offset, as the diagnostic does, so they can be matche
 - **No window after a restart** with nobody online. The daily restart ends any open window.
 - **It's world-wide,** like a player idling online: the day counter advances and objects anywhere catch up when they next load.
 
-**Implementation:** a server-side component adds the real elapsed time (`Time.unscaledDeltaTime`) to the network time while the player count is 0 and the window is open. That avoids patching the small, inlinable `UpdateNetTime`.
+**Implementation:** a server-side component adds the real elapsed time (`Time.unscaledDeltaTime`) to the network time while the player count is 0 and the window is open. That avoids patching the small, inlinable `UpdateNetTime`. **As built (5 Nov 2026):** `EmptyServer`, dedicated servers only (a local game ends when its host leaves). The window opens when the player count drops to 0 with at least one zone loaded, and closes when it runs out, a player joins, or the last observer is switched off. Opening and closing are logged with the world time added.
 
 **Limits to explain in the README:**
 - Only what's already loaded gets processed, because auto-fuel and auto-store need a player. A smelter holding 10 ore at 30 s per bar runs dry after 5 minutes, so higher-capacity stations get far more from the hour.
@@ -317,43 +332,50 @@ Settings are listed in the order they're bound.
 |---|---|---|---|
 | `0 - General` | Only admins can build observers and phantoms | Off | Enforced |
 | | Only the builder or an admin can switch an observer | On (off: wards decide) | Enforced |
-| `1 - Limits` | Observers per player | 2 | Enforced |
-| | Observers in total | 12 (108 zones at 3×3) | Enforced |
+| `1 - Limits` | Zones per player | 18 (two clusters) | Enforced |
+| | Zones in total | 108 (twelve clusters) | Enforced |
 | | Admins ignore limits | On | Enforced |
-| | Expire after N hours without a refresh | Never | Enforced |
-| `2 - Loading` | Area size | 3×3 (or 1×1; changing it recalculates live) | Enforced |
-| | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
-| `3 - Empty server` | Empty-server window | 60 min (0 = off) | Enforced |
-| `4 - Phantom spawner` | `CreatureSpawner` allowlist | `Spawner_imp_respawn` | Enforced |
-| | `SpawnArea` support | On | Enforced |
+| | Expire after hours without a refresh | 0 (never) | Enforced |
+| `2 - Loading` | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
+| `3 - Empty server` | Empty-server window in minutes | 60 (0 = off) | Enforced |
+| `4 - Phantom spawner` | Creature spawners | `Spawner_imp_respawn` | Enforced |
+| | Spawner areas | On | Enforced |
 | `5 - Despawn protection` | Despawn protection | On | Enforced |
-| `6 - Pieces` | Stone cost | 10 (no station; takes effect after a restart) | Enforced |
-| `7 - Map (personal)` | Show observers on the map (admins only) | Off | Personal |
-| `8 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |
+| `6 - Map (personal)` | Show observers on the map | Off (admins only) | Personal |
+| `7 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |
 | | Write a daily log file | Off | Enforced |
 | | Days of daily files to keep | 14 | Enforced |
 
-`8 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
+`7 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
+**Gone (5 Nov 2026):** "Area size" (replaced by the two observer pieces) and the whole `6 - Pieces` section with
+"Stone cost" (costs are fixed: 10 Stone, 30 for the cluster, 10 for the phantom). The sections were renumbered to
+close the gap; nothing was released under the old names.
 
-- **Admin placement.** Each observer stores its builder and an admin flag, set when it's built and checked against the server's admin list. Admin-placed observers count towards neither limit, and losing admin status later changes nothing.
-- **Refusal messages** say which limit was hit:
-  - Per player: "You've reached your limit of N observers. Remove one of yours to place another."
-  - Server total: "This server's observer limit (N) has been reached. Ask an admin to raise it or remove unused observers."
-  - Admins: "Admin placement: doesn't count towards observer limits."
-- **Admin-only building (off by default).** When on, both pieces are hidden from non-admins' hammer menus. If a non-admin's piece gets through anyway (a race, or a modified client), the server switches it off and messages the builder, as it does for limits. Pieces that already exist are untouched. Useful for a controlled trial on a live server.
-- **Enforcement.** The client checks first, using its own observers and the server-wide total sent by the server. The server is the safety net for races: it switches an over-limit observer **off**, never deletes it, and messages the builder.
-- **Expiry** counts real hours, because the world clock stops on an empty server. Switching an observer on or interacting with it restarts its countdown. Turning expiry on later starts every existing observer's countdown from that moment, so nothing expires instantly.
+- **Limits count zones, not observers (decided while building, 5 Nov 2026).** With two sizes, "observers per
+  player" no longer measures load: a cluster loads nine times what a single one does. So each switched-on observer
+  counts the zones it loads (1 or 9), per builder and in total. Overlap isn't subtracted, so the count is simple and
+  predictable. The defaults keep the old numbers' meaning: 18 per player is two clusters, 108 in total is twelve.
+- **Checked when switching on, not when building (decided while building).** Observers are built switched off and
+  load nothing until switched on, so the server checks the limits in the switch request, where it's authoritative
+  and there's no race to recover from. Building is never refused for limits. Lowering a limit later doesn't switch
+  anything off.
+- **Admin placement.** Each observer stores its builder and an admin flag, set when it's built and checked against the server's admin list. With "Admins ignore limits" on, admin-placed observers count towards neither limit, and admins can switch any observer on regardless; losing admin status later changes nothing.
+- **Refusal messages** say which limit was hit and by how much:
+  - Per player: "That would load N zones for <builder>; the limit is M per player. Switch off or remove another of their observers first."
+  - Server total: "This server's observers would load N zones; the limit is M. Ask an admin to raise it or switch off unused observers."
+- **Admin-only building (off by default).** When on, all three pieces are hidden from non-admins' hammer menus (`Piece.m_enabled`). If a non-admin's piece gets through anyway (a race, or a modified client), the server marks it blocked and messages the builder: a blocked observer can only be switched on by an admin, and a blocked phantom stays dormant. Pieces that already exist are untouched. Useful for a controlled trial on a live server.
+- **Expiry** counts real hours, because the world clock stops on an empty server. Switching an observer on restarts its countdown (stored on the observer as real UTC time). Turning expiry on later (or at a server start with it on) starts every switched-on observer's countdown from that moment, so nothing expires instantly. An expired observer is switched off, never deleted, and the server checks once a minute.
 
 Client config:
-- **Show observers on the map (admins only):** off by default, also toggleable from the large map. When on, every observer in the world is shown, with separate active and inactive icons. The toggle doesn't appear for non-admins, and they have no data to show anyway.
-- **Pins persist.** Only the pins that changed are updated. There are no timers while the map is open and no client-side ZDO scans.
+- **Show observers on the map (admins only, personal):** off by default. When on, every observer in the world is shown, with Frogger's active and inactive icons and a label of its size and builder. **As built:** a config setting only; the toggle on the large map wasn't built. An admin's game asks the server once per session, and the server sends the full list again whenever an observer is built, switched or removed; non-admins are refused and never receive it.
+- **Pins persist.** Pins are rebuilt only when a list arrives. There are no timers while the map is open and no client-side ZDO scans.
 
 ## Compatibility
 
 - **Hard dependency:** Jotunn (in the manifest too). Settings sync through Jotunn's config sync (`IsAdminOnly`), not ServerSync (see `docs/DEVELOPMENT.md`).
 - **Incompatible:** the three old chunk loaders, declared with `BepInIncompatibility`. Two GUIDs cover all three: `com.Frogger.ChunkLoader` (Frogger's original, and NerdLounge's ChunkLoader Continued 1.8.0, which kept that GUID) and `com.zeecamelsnake.ChunkLoaderFix` (zeeCamelSnake 1.0.4; checked from the Thunderstore DLLs on 2026-10-25). Running alongside one would bring back the ownership bug. If BepInEx doesn't show the refusal clearly, the mod detects the old loader itself, logs a clear error and stays inactive.
 - **No soft dependencies.** Nothing needs a particular load order. The hammer tab name is a fixed constant, `QuanPieces`, matching the QuanPieces mod, so if both are installed their pieces share one tab. That needs only the same name, not a dependency.
-- **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are `ZNetScene` object creation (including the tame skip), `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `ZDOMan` ownership, `ZNetScene` object creation, `CreatureSpawner`/`SpawnArea` updates, `Pickable.RPC_Pick`, `Ship.UpdateSailSize`, `Ship.CustomFixedUpdate` with `Floating.GetWaterLevel`, `ZNetScene.OutsideActiveArea`, `ZNetScene.CreateObjectsSorted` (unknown-prefab guard) and `WearNTear.RPC_Damage`. The full list, with what each relies on, belongs in the mod's Valheim Code Dependency doc.
+- **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are listed in `docs/valheim-dependencies.md` ("Harmony patches"): `ZNetScene` object removal and creation, `ZNetScene.PointInsideActiveArea` with its three callers, `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `CreatureSpawner.UpdateSpawner`, `SpawnArea.UpdateSpawn`, `Character.Awake`, `Pickable.RPC_Pick`, `Ship.UpdateSailSize`, `Ship.CustomFixedUpdate` with `Floating.GetWaterLevel`, `WearNTear.RPC_Damage` and `Game.Start`. The full list, with what each relies on, belongs in the mod's Valheim Code Dependency doc.
 - **Known interactions, none needing code:**
   - **AzuAutoStore and OttoFuel** start working inside loaded bases again, because players get ownership.
   - **PlantEverything** hover timers become accurate.
@@ -388,7 +410,7 @@ Client config:
    - The world clock stops when nobody is online, so nothing runs all night.
    - Auto-fuel and auto-store need a player nearby, so offline production only uses what's already loaded.
    - What this mod does instead: up to an hour of real-time production after the last logout.
-5. **Features:** the two pieces with costs and how to use them; ownership handback; boats; the phantom spawner; the empty-server hour; despawn protection; map and admin controls; the defensive fixes.
+5. **Features:** the three pieces with costs and how to use them; ownership handback; boats; the phantom spawner; the empty-server hour; despawn protection; map and admin controls; the defensive fixes.
 6. **Dedication and credit (highlighted):**
    - Frogger had the original idea of a Valheim chunk loader.
    - As a tribute, the Chunk Observer uses Frogger's original chunk loader model, under the MIT licence (Copyright (c) 2023 Vyacheslav, [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader)).
@@ -404,6 +426,24 @@ Client config:
 The first release is 1.0.0. Builds stay at 1.0.0 through development and testing. The tagged commit that goes to Thunderstore fixes what 1.0.0 is; later changes bump the version. It has to be on Thunderstore so every player gets it through the shared Gale profile.
 
 ## Test plan for the real mod
+
+**Single-player check of the full build (before publishing).** In the "Chunkloader test" Gale profile, in a local
+world, with Log detail on Info. What can only be seen on a dedicated server is left to the rollout below.
+
+| # | Check | Expected |
+|---|---|---|
+| 1 | The hammer's QuanPieces tab | Chunk Observer (10 Stone), Chunk Observer Cluster (30 Stone, its own icon), Phantom Spawner (10 Stone). |
+| 2 | Build a cluster | Three columns turned 120° apart, a corner of each pointing out, on one round base under one round capital; stone matches; no gaps. Red runes off, blue and lit on, on all three. |
+| 3 | Switch the cluster on, then a single observer elsewhere | Log: "now 9 zone(s)", then 10. Hover shows "3x3" and "1x1". |
+| 4 | Go far away, wait for a Summary, come back | Summary shows the zones and objects running on the server. |
+| 5 | Limits: set "Zones per player" to 9 and "Admins ignore limits" off, then switch both on | The second is refused with the per-player message. Put the settings back. |
+| 6 | Build a Phantom Spawner outside any loaded zone | Small red-glowing ward; hover "Dormant: no active chunk observer". It isn't a ward: no area ring, no access list. |
+| 7 | Move it inside a switched-on observer's zone (or switch one on near it) | Hover changes to "Active"; log "Phantom spawner … is now active". |
+| 8 | Surtling farm, if one is handy | With a phantom in a cluster's zone and you far away, surtlings keep spawning (log at Debug: "Phantom-run spawner made …"). |
+| 9 | "Show observers on the map" on | Pins for every observer, lit or unlit, labelled with size and builder. Off removes them. |
+| 10 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |
+| 11 | The log | No errors from the mod; Debug lines list what was stripped from the ward clone. |
+
 
 **Tested on the live server.** There's no separate test server: this is a hobby, and the mod is a luxury the server
 can run without. That's acceptable because of the risk assessment (2 Nov 2026):
@@ -470,16 +510,12 @@ The checks below are done on the live server as each feature is switched on.
 
 ## Still open
 
-- **Two observer pieces instead of an area-size setting (raised 4 Nov 2026, to come back to).** Quandru would
-  like two chunk observers rather than the "Area size" server setting: a **single** model that loads 1×1 (its own
-  zone) and a **clustered** model that loads 3×3. Players then choose per observer, by what they build. To decide
-  when we come back to it:
-  - the clustered model's look (for example several of Frogger's columns grouped together), and each one's cost;
-  - how the limits count them: one each, or by zones loaded (a 3×3 counts as 9);
-  - whether "Area size" goes entirely, or stays as an admin cap (for example "1×1 only" hides the clustered one).
-  The core works out the area per observer (`Observers.Info.Radius`). Today that reads the setting; with two pieces
-  it would come from the observer's prefab, so the setting can be dropped without reworking loading. If this is
-  decided, update the Thunderstore page and changelog too (see [Build status](#build-status)).
+- **Two observer pieces instead of an area-size setting: decided and built (5 Nov 2026).** A single 1×1 observer
+  and a 3×3 cluster of three columns; "Area size" is gone, and limits count zones (see [Pieces](#pieces) and
+  [Limits and admin controls](#limits-and-admin-controls)).
+
+- **Phantom Spawner placement ring:** not built (see [Pieces](#pieces)). Add later if wanted.
+- **Map toggle on the large map:** not built; the map is a personal config setting. Add later if wanted.
 
 - **Seed Totem 4.3.13: checked (2 Nov 2026), no extra testing needed beyond the rollout check.** Decompiled into
   `research/`. Its failures are the same "owner expected to be a local player" class, and the ownership rule fixes

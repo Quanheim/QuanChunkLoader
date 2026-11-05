@@ -1,15 +1,15 @@
 # Quan's Chunk Loader
 
 Keeps your bases running while you're elsewhere in the world: smelters smelt, kilns burn, fermenters ferment and
-plants regrow, even when nobody is near them. Build a **Chunk Observer** in your base, switch it on, and the server
-keeps that part of the world loaded.
+plants regrow, even when nobody is near them. Build a **Chunk Observer** in your base (or a **Chunk Observer
+Cluster** for a big one), switch it on, and the server keeps that part of the world loaded.
 
 It's a ground-up rewrite that fixes the side effects of earlier chunk loaders: auto-fuel and auto-store mods that
 stop working, plants that never regrow, boats that sink, tames that ignore you, and bases run by a player on the
 other side of the map.
 
-> **Dedicated to Frogger**, who first brought chunk loading to Valheim. As a tribute, the Chunk Observer uses
-> Frogger's original chunk loader model, and its build card says so. The model is the only thing reused: no code
+> **Dedicated to Frogger**, who first brought chunk loading to Valheim. As a tribute, the Chunk Observers use
+> Frogger's original chunk loader model, and their build cards say so. The model is the only thing reused: no code
 > comes from Frogger's mod or any other chunk loader. See [Credits and licence](#credits-and-licence).
 
 **Install it on the server and on every client.** Players without it can't connect. It needs
@@ -33,29 +33,34 @@ If you've run a chunk loader before, these may look familiar. Each one has the s
 
 ## The pieces
 
-Both pieces are in the **QuanPieces** tab of the hammer. Neither needs a crafting station, and neither counts as a
+All three pieces are in the **QuanPieces** tab of the hammer. None needs a crafting station, and none counts as a
 base (they don't stop monsters spawning nearby).
 
-### Chunk Observer
+### Chunk Observer and Chunk Observer Cluster
 
-<p><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observer-card.png" alt="The Chunk Observer's build card: a carved stone column. Keeps the zones around it loaded while switched on, so your base keeps working while you're elsewhere. Nearby players still own everything as usual. Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute. Costs 10 Stone." width="480"></p>
+<p><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observer-card.png" alt="The Chunk Observer's build card: a carved stone column, with the dedication: Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute. Costs 10 Stone." width="480"></p>
 
-| Cost | Crafting station | Loads |
+The world is divided into zones 64 m square. While an observer is switched on, the server keeps its zones loaded,
+so everything there keeps working with nobody nearby. There are two, so you can match the observer to the base:
+
+| Piece | Cost | Loads |
 |---|---|---|
-| 10 Stone | None | The 3 × 3 zones around it (192 × 192 m), or only its own zone if the server is set to 1 × 1 |
+| **Chunk Observer**: one rune column | 10 Stone | Its own zone (64 × 64 m) |
+| **Chunk Observer Cluster**: three columns on a round plinth | 30 Stone | Its own zone and the eight around it (192 × 192 m) |
 
-The world is divided into zones 64 m square. While an observer is switched on, the server keeps the zone it stands
-in and the eight zones around it loaded, so everything there keeps working with nobody nearby.
-
-- **Switch it on or off** with E. The glow changes at once for everyone nearby.
-- **Only the player who built it, or an admin, can switch it.** Hover over it to see who built it. Servers can
-  change this so that anyone with access through the wards around it can switch it.
+- **Switch it on or off** with E. The runes glow blue and it lights up while it's on, and turn red when it's off,
+  at once for everyone nearby.
+- **Only the player who built it, or an admin, can switch it.** Hover over it to see what it loads and who built
+  it. Servers can change this so that anyone with access through the wards around it can switch it.
 - **No fuel.** It stays on until someone switches it off.
 - **It can't be damaged, and monsters ignore it.** Remove it with the hammer as usual.
 - **Observers can overlap.** Loaded zones are a set, so two observers covering the same zone cost nothing extra.
-  Put a second one at your dock if your base is near the edge of the first one's area.
-- **Limits:** by default each player can build 2, and the server allows 12 in total. Admins' observers don't count
-  towards either limit. If you hit a limit, the message tells you which one.
+  Put a single observer at your dock if it's just outside a cluster's area.
+- **Limits count zones:** by default each player's switched-on observers can load 18 zones (two clusters, or any
+  mix), and the whole server 108. A single observer counts 1, a cluster 9. Admins' observers don't count. The limits
+  are checked when you switch an observer on, and the message says which one you hit.
+- **Which zone am I in?** An observer loads the zone it stands in, wherever in that zone you put it. Put a cluster
+  near the middle of your base and its 3 × 3 block covers the zones all around.
 
 ### Phantom Spawner
 
@@ -66,10 +71,12 @@ in and the eight zones around it loaded, so everything there keeps working with 
 Creature spawners only spawn when a player is near. A Phantom Spawner makes the spawners around it act as if a
 player were standing where the phantom is, so a surtling farm keeps producing while you're away.
 
-- **It only works inside a zone an active Chunk Observer keeps loaded.** Anywhere else its hover text says
-  "Dormant: no active chunk observer".
-- **Which spawners it affects is set by the server.** By default that's surtling spawners and spawner areas.
-- **It shows its range** with a dotted ring while you place it.
+- **It only works inside a zone a switched-on Chunk Observer keeps loaded.** Its hover text says "Active" there,
+  and "Dormant: no active chunk observer" anywhere else.
+- **Which spawners it affects is set by the server.** By default that's surtling spawners, and spawner areas (the
+  kind that keeps a number of creatures around it). Spawner areas only run in the middle zone of a Chunk Observer
+  Cluster, where every neighbouring zone is loaded too.
+- It looks like a small ward glowing red, but it isn't one: it doesn't protect anything or control access.
 - No fuel, no map pin, and it can't be damaged.
 - Surtlings that spawn into water die at once, so a farm built over water keeps producing coal. You still need to
   come and collect it; despawn protection keeps the drops waiting for you.
@@ -138,12 +145,12 @@ names them in the log instead, so a mod missing from the server can't wipe out w
 
 ### Map and admin tools
 
-- **Admins can see every observer on the map**, with separate icons for on and off. It's off by default; turn it
-  on in the config or from the large map. Other players never receive anyone else's observer positions.
+- **Admins can see every observer on the map**, lit when it's on, labelled with its size and builder. It's off by
+  default; turn on "Show observers on the map" in the config. Other players never receive anyone else's observers.
 - **Admins see "Admin-placed"** when hovering over an observer an admin built.
-- **Admin-only building** can be switched on, which hides both pieces from other players' hammers. Useful for
+- **Admin-only building** can be switched on, which hides all three pieces from other players' hammers. Useful for
   trying the mod out on a live server.
-- **The map stays fast:** pins are only updated when an observer changes.
+- **The map stays fast:** pins are only updated when an observer is built, switched or removed.
 
 ### Fixes for server-owned objects
 
@@ -196,21 +203,19 @@ themselves.
 
 | Section | Setting | Default | What it does |
 |---|---|---|---|
-| 0 - General | Only admins can build observers and phantoms | Off | Hides both pieces from non-admins' hammers. Pieces already built are untouched. |
+| 0 - General | Only admins can build observers and phantoms | Off | Hides all three pieces from non-admins' hammers. Any a non-admin builds anyway stay off. Pieces already built are untouched. |
 | | Only the builder or an admin can switch an observer | On | Off: anyone with access through the wards around it can switch it. |
-| 1 - Limits | Observers per player | 2 | Builds past the limit are refused. Admin-placed observers don't count. |
-| | Observers in total | 12 | Across the whole server. |
-| | Admins ignore limits | On | |
-| | Expire after N hours without a refresh | Never | An observer nobody has switched on or used for this many real hours switches off. It's never deleted. |
-| 2 - Loading | Area size | 3 × 3 | 3 × 3 zones around each observer, or 1 × 1 (its own zone only). Changing it applies at once. |
-| | Simulate tames in loaded zones | Off | On: the server runs tames in loaded bases while nobody is near, so pens keep breeding. See the risks below. |
-| 3 - Empty server | Empty-server window | 60 minutes | How long the world clock keeps running after the last logout. 0 turns it off. |
-| 4 - Phantom spawner | Spawner list | Surtling spawners | Which creature spawners a Phantom Spawner keeps running, by prefab name. |
-| | Spawner areas | On | Whether it also runs spawner areas (the kind that keep a number of creatures around them). |
+| 1 - Limits | Zones per player | 18 | How many zones one player's switched-on observers may load (a single observer is 1, a cluster 9). |
+| | Zones in total | 108 | Across the whole server. |
+| | Admins ignore limits | On | Admin-placed observers don't count, and admins can switch any observer on. |
+| | Expire after hours without a refresh | 0 (never) | An observer nobody has switched on for this many real hours switches off. It's never deleted. |
+| 2 - Loading | Simulate tames in loaded zones | Off | On: the server runs tames in loaded bases while nobody is near, so pens keep breeding. See the risks below. |
+| 3 - Empty server | Empty-server window in minutes | 60 | How long the world clock keeps running after the last logout. 0 turns it off. |
+| 4 - Phantom spawner | Creature spawners | Spawner_imp_respawn | Which creature spawners a Phantom Spawner keeps running, by prefab name, comma-separated. |
+| | Spawner areas | On | Whether it also runs spawner areas. |
 | 5 - Despawn protection | Despawn protection | On | Keeps drops near production stations and phantoms in loaded zones. |
-| 6 - Pieces | Stone cost | 10 | Stone needed to build each piece. Takes effect after a restart. |
-| 7 - Map (personal) | Show observers on the map | Off | Admins only. Also toggled from the large map. |
-| 8 - Logging | Log detail | Info | Info, Debug (a line per object) or Trace (every decision, for chasing a bug). |
+| 6 - Map (personal) | Show observers on the map | Off | Admins only. Each admin's own choice. |
+| 7 - Logging | Log detail | Info | Info, Debug (a line per object) or Trace (every decision, for chasing a bug). Don't leave Debug or Trace on. |
 | | Write a daily log file | Off | Also writes to `BepInEx/QuanChunkLoader/logs`, one file per day. |
 | | Days of daily files to keep | 14 | Older daily files are deleted. |
 
@@ -236,11 +241,12 @@ them: if one is installed it stays switched off and says so in the log.
 1. **Before the swap**, remove your old chunk loaders with the hammer. Once the old mod is gone its pieces can't
    load, and whatever they cost is lost.
 2. **Swap the mods on the server and every client at the same time.**
-3. Build new Chunk Observers where you want them.
+3. Build new Chunk Observers (or clusters) where you want them.
 
 ## Known limits
 
-- **One hour at most** of offline production after the last logout, and only while an observer is on.
+- **One hour at most** of offline production after the last logout, and only while an observer is on. Dedicated
+  servers only: a local game ends when its host leaves.
 - **Windmills vary offline.** With nobody online, the server works out the wind at one fixed spot rather than at
   each windmill, so offline output can be higher or lower than you'd see in person.
 - **Tames pause while nobody is near**, unless the server turns on "Simulate tames in loaded zones". They don't
@@ -334,7 +340,7 @@ The Quanheim server's mod list, all running together on a dedicated server with 
 
 ## Credits and licence
 
-**Frogger** had the original idea of a Valheim chunk loader. The Chunk Observer uses Frogger's original chunk loader
+**Frogger** had the original idea of a Valheim chunk loader. The Chunk Observers use Frogger's original chunk loader
 model from [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader), under the MIT licence (Copyright (c) 2023
 Vyacheslav). The full notice is in `THIRD-PARTY-NOTICES.md` in this package. Thank you, Frogger.
 

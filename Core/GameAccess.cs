@@ -17,6 +17,10 @@ namespace QuanChunkLoader.Core
         internal static readonly AccessTools.FieldRef<ZDOMan, Dictionary<ZDOID, ZDO>> ObjectsById =
             AccessTools.FieldRefAccess<ZDOMan, Dictionary<ZDOID, ZDO>>("m_objectsByID");
 
+        /// <summary>The world clock in seconds; vanilla only advances it with a player online (empty-server hour).</summary>
+        internal static readonly AccessTools.FieldRef<ZNet, double> NetTime =
+            AccessTools.FieldRefAccess<ZNet, double>("m_netTime");
+
         private static readonly Func<ZNetScene, ZDO, GameObject> CreateObjectCall =
             AccessTools.MethodDelegate<Func<ZNetScene, ZDO, GameObject>>(
                 AccessTools.Method(typeof(ZNetScene), "CreateObject", new[] { typeof(ZDO) }));

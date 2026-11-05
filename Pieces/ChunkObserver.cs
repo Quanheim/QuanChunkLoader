@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Jotunn.Managers;
 using QuanChunkLoader.Core;
 using UnityEngine;
@@ -5,15 +6,15 @@ using UnityEngine;
 namespace QuanChunkLoader
 {
     /// <summary>
-    /// The observer in the world, on every machine that has it loaded: hover text, the switch, and the glow. The
-    /// switch is only a request; the server checks who may switch it and keeps the authoritative list.
+    /// A Chunk Observer in the world, on every machine that has it loaded: hover text, the switch, and the glow.
+    /// The switch is only a request; the server checks who may switch it and the limits, and keeps the
+    /// authoritative list.
     /// </summary>
     internal sealed class ChunkObserver : MonoBehaviour, Hoverable, Interactable
     {
         private ZNetView _nview;
         private Piece _piece;
         private GameObject _effect;
-        private Renderer _column;
         private Material _columnMaterial; // this observer's own copy, so its runes can change colour
         private Color _onGlow;
         private bool _shownOn;
@@ -29,23 +30,39 @@ namespace QuanChunkLoader
             _piece = GetComponent<Piece>();
             var effect = transform.Find(ObserverPiece.EffectChild);
             _effect = effect != null ? effect.gameObject : null;
-            var column = transform.Find(ObserverPiece.ColumnChild);
-            _column = column != null ? column.GetComponent<Renderer>() : null;
-            if (_column != null && _column.sharedMaterial != null && _column.sharedMaterial.HasProperty(EmissionColor))
-            {
-                // Changing the material itself, not a property block: the hammer's hover highlight writes and then
-                // clears the glow through property blocks (WearNTear.Highlight), which would undo a block of ours.
-                _columnMaterial = _column.material;
-                _onGlow = _columnMaterial.GetColor(EmissionColor);
-            }
+            TakeOwnMaterial();
             if (_nview == null || _nview.GetZDO() == null)
             {
                 ShowState(false); // the placement ghost: shown as a new, switched-off observer
                 return;
             }
             _nview.Register<string, bool>(Observers.SetBoolRpc, RPC_SetBool);
+            _nview.Register<string, long>(Observers.SetLongRpc, RPC_SetLong);
             _shownOn = IsOn;
             ShowState(_shownOn);
+        }
+
+        /// <summary>
+        /// Gives every part drawn with the column material (the columns and the cluster's plinths) one copy of it.
+        /// The copy is changed, not a property block: the hammer's hover highlight writes and then clears the glow
+        /// through property blocks (WearNTear.Highlight), which would undo a block of ours.
+        /// </summary>
+        private void TakeOwnMaterial()
+        {
+            var shared = ObserverPiece.ColumnMaterial;
+            if (shared == null || !shared.HasProperty(EmissionColor))
+            {
+                return;
+            }
+            _columnMaterial = new Material(shared);
+            _onGlow = shared.GetColor(EmissionColor);
+            foreach (var r in GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.sharedMaterial == shared)
+                {
+                    r.sharedMaterial = _columnMaterial;
+                }
+            }
         }
 
         private void Start()
@@ -99,16 +116,32 @@ namespace QuanChunkLoader
         /// <summary>Owner: the server asks it to set a flag (see Observers.WriteBool).</summary>
         private void RPC_SetBool(long sender, string key, bool value)
         {
-            if (!_nview.IsOwner() || (key != Observers.OnKey && key != Observers.AdminKey))
+            if (FromServerToOwner(sender) && (key == Observers.OnKey || key == Observers.AdminKey || key == Observers.BlockedKey))
             {
-                return;
+                _nview.GetZDO().Set(key, value);
+            }
+        }
+
+        private void RPC_SetLong(long sender, string key, long value)
+        {
+            if (FromServerToOwner(sender) && key == Observers.RefreshedKey)
+            {
+                _nview.GetZDO().Set(key, value);
+            }
+        }
+
+        private bool FromServerToOwner(long sender)
+        {
+            if (!_nview.IsOwner())
+            {
+                return false;
+            }
+            if (ZNet.instance.IsServer())
+            {
+                return true;
             }
             var server = ZNet.instance.GetServerPeer();
-            if (!ZNet.instance.IsServer() && (server == null || sender != server.m_uid))
-            {
-                return;
-            }
-            _nview.GetZDO().Set(key, value);
+            return server != null && sender == server.m_uid;
         }
 
         private string BuilderName
@@ -152,11 +185,17 @@ namespace QuanChunkLoader
             {
                 return "";
             }
+            var zdo = _nview.GetZDO();
             var on = IsOn;
+            var size = ObserverPiece.SizeLabel(zdo.GetPrefab());
             var text = GetHoverName() +
-                       (on ? "\n<color=#7fffd4>On</color>: keeping this area loaded" : "\n<color=#a0a0a0>Off</color>") +
+                       (on ? $"\n<color=#7fffd4>On</color>: keeping {size} zones loaded" : $"\n<color=#a0a0a0>Off</color> (loads {size} zones)") +
                        $"\nBuilt by {BuilderName}";
-            if (LocalIsAdmin && _nview.GetZDO().GetBool(Observers.AdminKey))
+            if (zdo.GetBool(Observers.BlockedKey))
+            {
+                text += "\n<color=#ff8080>Built while only admins could build these: it stays off</color>";
+            }
+            if (LocalIsAdmin && zdo.GetBool(Observers.AdminKey))
             {
                 text += "\n<color=orange>Admin-placed</color>";
             }

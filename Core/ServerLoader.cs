@@ -52,6 +52,10 @@ namespace QuanChunkLoader.Core
 
         private readonly List<PlayerArea> _players = new List<PlayerArea>();
 
+        /// <summary>Production stations running on the server in loaded zones, refreshed each pass (despawn protection).</summary>
+        internal static readonly List<Vector3> Stations = new List<Vector3>();
+        private readonly List<Vector3> _stationsThisPass = new List<Vector3>();
+
         private static bool ServerReady =>
             ZNet.instance != null && ZNet.instance.IsServer() && ZDOMan.instance != null &&
             ZNetScene.instance != null && ZoneSystem.instance != null &&
@@ -73,10 +77,12 @@ namespace QuanChunkLoader.Core
             }
 
             var dt = Time.unscaledDeltaTime;
+            EmptyServer.Update(dt);
             if ((_secondTimer += dt) >= 1f)
             {
                 _secondTimer = 0f;
                 Observers.ServerTick();
+                Log.Flush();
             }
             if (Observers.Forced.Count == 0 && _lastPass.Count == 0)
             {
@@ -108,6 +114,8 @@ namespace QuanChunkLoader.Core
         {
             Running = true;
             _lastPass.Clear();
+            Stations.Clear();
+            EmptyServer.Reset();
             _unknownLogged.Clear();
             _summaryTimer = SummaryInterval - 30f; // first summary half a minute after start
             Observers.ServerStart();
@@ -117,6 +125,7 @@ namespace QuanChunkLoader.Core
         {
             Running = false;
             _lastPass.Clear();
+            Stations.Clear();
             Observers.ServerStop();
         }
 
@@ -283,6 +292,7 @@ namespace QuanChunkLoader.Core
             int objects = 0, instantiated = 0, tamesPaused = 0, wildPaused = 0;
 
             _thisPass.Clear();
+            _stationsThisPass.Clear();
             foreach (var zone in Observers.Forced)
             {
                 FindZoneObjects(zone);
@@ -348,6 +358,11 @@ namespace QuanChunkLoader.Core
                         }
                     }
 
+                    if (kind == Kind.Station && owner == session)
+                    {
+                        _stationsThisPass.Add(pos);
+                    }
+
                     _thisPass[id] = new Seen { Owner = owner, Category = hadBefore ? before.Category : ObjectKinds.Category(zdo) };
 
                     if (summary)
@@ -367,6 +382,8 @@ namespace QuanChunkLoader.Core
                 }
             }
 
+            Stations.Clear();
+            Stations.AddRange(_stationsThisPass);
             ReportMovedOut();
 
             if (distantClaims.Total > 0)

@@ -30,8 +30,12 @@ namespace QuanChunkLoader
         // Shared with the QuanPieces mod by name only, so both mods' pieces land in one hammer tab when both are installed.
         internal const string HammerCategory = "QuanPieces";
 
+        /// <summary>The plugin's own object, for coroutines.</summary>
+        internal static QuanChunkLoaderPlugin Instance { get; private set; }
+
         private void Awake()
         {
+            Instance = this;
             Log.Source = Logger;
             Settings.Bind(Config);
 
@@ -53,13 +57,9 @@ namespace QuanChunkLoader
                 return;
             }
             PrefabManager.OnVanillaPrefabsAvailable += AddPieces;
-            Settings.Area.SettingChanged += (_, __) =>
-            {
-                if (ServerLoader.Running)
-                {
-                    Observers.Rebuild("area size changed");
-                }
-            };
+            Settings.ExpireAfterHours.SettingChanged += (_, __) => Observers.ExpiryChanged();
+            BuildPermission.Hook();
+            ObserverMap.Hook();
             gameObject.AddComponent<ServerLoader>();
 
             Logger.LogInfo($"{PluginName} {PluginVersion} loaded.");
@@ -101,8 +101,18 @@ namespace QuanChunkLoader
             }
             catch (System.Exception e)
             {
-                Log.Error($"Couldn't add the Chunk Observer: {e}");
+                Log.Error($"Couldn't add the Chunk Observers: {e}");
+            }
+            try
+            {
+                PhantomPiece.Register();
+            }
+            catch (System.Exception e)
+            {
+                Log.Error($"Couldn't add the Phantom Spawner: {e}");
             }
         }
+
+        private void Update() => ObserverMap.ClientUpdate();
     }
 }

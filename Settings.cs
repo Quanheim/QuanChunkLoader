@@ -2,12 +2,6 @@ using BepInEx.Configuration;
 
 namespace QuanChunkLoader
 {
-    internal enum AreaSize
-    {
-        ThreeByThree,
-        OneByOne
-    }
-
     internal enum LogDetail
     {
         Info,
@@ -16,15 +10,38 @@ namespace QuanChunkLoader
     }
 
     /// <summary>
-    /// The config file, in the numbered sections of docs/design.md ("Limits and admin controls"). This first build
-    /// binds the settings the core uses; the rest are added with the features they control.
+    /// The config file, in the numbered sections of docs/design.md ("Limits and admin controls"). Every setting is
+    /// the server's (synced, admins only) except the map section, which is each admin's own.
     /// </summary>
     internal static class Settings
     {
+        // 0 - General
+        internal static ConfigEntry<bool> AdminOnlyBuilding;
         internal static ConfigEntry<bool> BuilderOrAdminSwitches;
-        internal static ConfigEntry<AreaSize> Area;
+
+        // 1 - Limits
+        internal static ConfigEntry<int> ZonesPerPlayer;
+        internal static ConfigEntry<int> ZonesInTotal;
+        internal static ConfigEntry<bool> AdminsIgnoreLimits;
+        internal static ConfigEntry<int> ExpireAfterHours;
+
+        // 2 - Loading
         internal static ConfigEntry<bool> SimulateTames;
-        internal static ConfigEntry<int> StoneCost;
+
+        // 3 - Empty server
+        internal static ConfigEntry<int> EmptyServerMinutes;
+
+        // 4 - Phantom spawner
+        internal static ConfigEntry<string> PhantomCreatureSpawners;
+        internal static ConfigEntry<bool> PhantomSpawnAreas;
+
+        // 5 - Despawn protection
+        internal static ConfigEntry<bool> DespawnProtection;
+
+        // 6 - Map (personal)
+        internal static ConfigEntry<bool> ShowOnMap;
+
+        // 7 - Logging
         internal static ConfigEntry<LogDetail> Detail;
         internal static ConfigEntry<bool> DailyFile;
         internal static ConfigEntry<int> DaysToKeep;
@@ -36,30 +53,68 @@ namespace QuanChunkLoader
         internal static void Bind(ConfigFile config)
         {
             const string general = "0 - General";
+            AdminOnlyBuilding = config.Bind(general, "Only admins can build observers and phantoms", false,
+                Enforced("On: the Chunk Observers and the Phantom Spawner are hidden from other players' hammers, and " +
+                         "any a non-admin still manages to build stay switched off. Pieces already built are " +
+                         "untouched. Useful for trying the mod out on a live server."));
             BuilderOrAdminSwitches = config.Bind(general, "Only the builder or an admin can switch an observer", true,
                 Enforced("On: only the player who built an observer, or an admin, can switch it on or off. Off: " +
                          "anyone with access through the wards around it can."));
 
+            const string limits = "1 - Limits";
+            ZonesPerPlayer = config.Bind(limits, "Zones per player", 18,
+                Enforced("How many zones one player's switched-on observers may load. A Chunk Observer loads 1 zone, " +
+                         "a Chunk Observer Cluster 9. Checked when an observer is switched on; observers already on " +
+                         "stay on if you lower it.", new AcceptableValueRange<int>(0, 1000)));
+            ZonesInTotal = config.Bind(limits, "Zones in total", 108,
+                Enforced("How many zones all switched-on observers on the server may load together.",
+                         new AcceptableValueRange<int>(0, 10000)));
+            AdminsIgnoreLimits = config.Bind(limits, "Admins ignore limits", true,
+                Enforced("On: observers an admin built don't count towards either limit, and admins can switch any " +
+                         "observer on regardless of the limits."));
+            ExpireAfterHours = config.Bind(limits, "Expire after hours without a refresh", 0,
+                Enforced("Switches an observer off after this many real hours since it was last switched on. It's " +
+                         "never deleted; switching it on again restarts the count. 0 means never. Turning this on " +
+                         "later starts every observer's count from that moment.", new AcceptableValueRange<int>(0, 8760)));
+
             const string loading = "2 - Loading";
-            Area = config.Bind(loading, "Area size", AreaSize.ThreeByThree,
-                Enforced("How many zones (64 x 64 m each) an active observer keeps loaded: the 3 x 3 block around " +
-                         "it, or only its own zone. Changing it applies at once to every observer."));
             SimulateTames = config.Bind(loading, "Simulate tames in loaded zones", false,
                 Enforced("Off: tamed creatures in a loaded base pause while nobody is near, as they would without " +
                          "a chunk loader, and load normally when a player arrives. On: the server runs them, so " +
                          "pens keep breeding with nobody there. Risks: unattended pens can grow past their limits, " +
                          "and tame mods' feeding and breeding code runs on the server. See the README."));
 
-            const string pieces = "6 - Pieces";
-            StoneCost = config.Bind(pieces, "Stone cost", 10,
-                Enforced("Stone needed to build a Chunk Observer. Needs no crafting station. Takes effect after a " +
-                         "restart.", new AcceptableValueRange<int>(1, 100)));
+            const string empty = "3 - Empty server";
+            EmptyServerMinutes = config.Bind(empty, "Empty-server window in minutes", 60,
+                Enforced("After the last player logs off, the world clock keeps running for up to this many real " +
+                         "minutes while at least one observer is on, so loaded bases finish their work. 0 turns it " +
+                         "off.", new AcceptableValueRange<int>(0, 60)));
 
-            const string logging = "8 - Logging";
+            const string phantom = "4 - Phantom spawner";
+            PhantomCreatureSpawners = config.Bind(phantom, "Creature spawners", "Spawner_imp_respawn",
+                Enforced("Comma-separated prefab names of the creature spawners a Phantom Spawner keeps running. " +
+                         "Spawner_imp_respawn is the surtling spawner."));
+            PhantomSpawnAreas = config.Bind(phantom, "Spawner areas", true,
+                Enforced("Also keep spawner areas running (the kind that keeps a number of creatures around it). " +
+                         "They only run in the middle zone of a Chunk Observer Cluster, where every neighbouring " +
+                         "zone is loaded too."));
+
+            const string despawn = "5 - Despawn protection";
+            DespawnProtection = config.Bind(despawn, "Despawn protection", true,
+                Enforced("In loaded zones, items on the ground near a production station or an active Phantom " +
+                         "Spawner don't vanish after an hour, so offline output waits for you."));
+
+            const string map = "6 - Map (personal)";
+            ShowOnMap = config.Bind(map, "Show observers on the map", false,
+                new ConfigDescription("Admins only: shows every chunk observer in the world on your map, lit when " +
+                                      "it's on. Personal."));
+
+            const string logging = "7 - Logging";
             Detail = config.Bind(logging, "Log detail", LogDetail.Info,
                 Enforced("How much the server logs. Info: switches, loaded-zone changes, a summary every 5 " +
                          "minutes and warnings; a handful of lines a minute at most. Debug: adds a line per object " +
-                         "for ownership changes and loads. Trace: adds every ownership decision, for chasing a bug."));
+                         "for ownership changes and loads. Trace: adds every ownership decision, for chasing a bug. " +
+                         "Debug and Trace write thousands of lines when players come and go; don't leave them on."));
             DailyFile = config.Bind(logging, "Write a daily log file", false,
                 Enforced("Also write this mod's log lines to BepInEx/QuanChunkLoader/logs, one file per day."));
             DaysToKeep = config.Bind(logging, "Days of daily files to keep", 14,

@@ -18,11 +18,13 @@
   </PropertyGroup>
 
   <!-- Zone coordinates (Vector2s) live in assembly_utils, Localization in assembly_guiutils; the observer
-       model's sparks need the particle module. -->
+       model's sparks need the particle module, the phantom's clean-up the audio module, and map pins Splatform. -->
   <ItemGroup>
     <Reference Include="assembly_utils"><HintPath>$(ManagedDir)\assembly_utils.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="assembly_guiutils"><HintPath>$(ManagedDir)\assembly_guiutils.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(ManagedDir)\UnityEngine.ParticleSystemModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AudioModule"><HintPath>$(ManagedDir)\UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Splatform"><HintPath>$(ManagedDir)\Splatform.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
   <!-- Frogger's original chunk loader model (MIT, see THIRD-PARTY-NOTICES.md), loaded with Jotunn's AssetUtils. -->

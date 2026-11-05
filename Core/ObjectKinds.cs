@@ -24,6 +24,9 @@ namespace QuanChunkLoader.Core
     {
         private static readonly Dictionary<int, Kind> Cache = new Dictionary<int, Kind>();
 
+        /// <summary>Set on a creature the server spawned in a loaded zone (a phantom-run spawner): it runs as normal.</summary>
+        internal const string PhantomSpawnedKey = "QCL_phantom";
+
         internal static Kind Of(ZDO zdo) => Of(zdo.GetPrefab());
 
         internal static Kind Of(int prefabHash)
@@ -93,7 +96,8 @@ namespace QuanChunkLoader.Core
                 case Kind.UnknownPrefab:
                     return false;
                 case Kind.Creature:
-                    return Settings.SimulateTames.Value && IsTame(zdo);
+                    // Tames only when the setting asks; wild creatures only if a phantom-run spawner made them here.
+                    return IsTame(zdo) ? Settings.SimulateTames.Value : zdo.GetBool(PhantomSpawnedKey);
                 default:
                     return true;
             }

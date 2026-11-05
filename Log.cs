@@ -61,17 +61,37 @@ namespace QuanChunkLoader
                 {
                     _file?.Dispose();
                     Directory.CreateDirectory(Folder);
-                    _file = new StreamWriter(Path.Combine(Folder, $"QuanChunkLoader-{day}.log"), true) { AutoFlush = true };
+                    _file = new StreamWriter(Path.Combine(Folder, $"QuanChunkLoader-{day}.log"), true);
                     _fileDay = day;
                     PruneOldFiles(now);
                 }
                 _file.WriteLine(now.ToString("yyyy-MM-dd ") + (level == LogLevel.Info ? "" : $"[{level}] ") + line);
+                if (level != LogLevel.Info)
+                {
+                    _file.Flush(); // warnings and errors reach the disk at once
+                }
             }
             catch (Exception e)
             {
                 // A log file that can't be written mustn't stop the mod; say so once and stop trying.
                 Settings.DailyFile.Value = false;
                 Source.LogWarning($"Couldn't write the daily log file, so it's switched off: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Writes buffered lines to the daily file. Called about once a second by the server loop, so a burst of
+        /// Debug or Trace lines isn't a disk write per line.
+        /// </summary>
+        internal static void Flush()
+        {
+            try
+            {
+                _file?.Flush();
+            }
+            catch (Exception)
+            {
+                // Reported by the next write, which switches the file off.
             }
         }
 
