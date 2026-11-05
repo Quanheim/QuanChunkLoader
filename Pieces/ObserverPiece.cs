@@ -9,7 +9,7 @@ namespace QuanChunkLoader
 {
     /// <summary>
     /// Quan's Chunk Observer (docs/design.md, "Pieces"). The model is Frogger's original ChunkLoader_stone, from the
-    /// chunkloader asset bundle in JFHeim/ChunkLoader (MIT; see THIRD-PARTY-NOTICES.md), scaled to 75%. The bundle's
+    /// chunkloader asset bundle in JFHeim/ChunkLoader (MIT; see THIRD-PARTY-NOTICES.md), scaled to 50%. The bundle's
     /// prefab carries only vanilla scripts (ZNetView, Piece, WearNTear, LightLod), so it's cloned and set up here.
     /// </summary>
     internal static class ObserverPiece
@@ -20,7 +20,7 @@ namespace QuanChunkLoader
         private const string BundleResource = "chunkloader";
         private const string ModelPrefab = "ChunkLoader_stone";
         private const string EffectsFrom = "stone_wall_1x1"; // vanilla stone piece: place, hit and destroy effects
-        private const float ModelScale = 0.75f;
+        private const float ModelScale = 0.5f; // the 2.47 m column becomes about 1.25 m
 
         internal const string EffectChild = "WayEffect"; // the light and particles: shown while switched on
         internal const string ColumnChild = "new/SM_cloumn"; // the column mesh (sic); its runes glow red off, blue on

@@ -27,7 +27,7 @@ it's an open point in [Still open](#still-open). The groundwork is there: each o
 
 | Part | What it means |
 |---|---|
-| Chunk Observer | The piece players build: Frogger's model at 75%, 10 stone, QuanPieces tab, dedication on the build card. Can't be damaged; the hammer removes it. |
+| Chunk Observer | The piece players build: Frogger's model at 50%, 10 stone, QuanPieces tab, dedication on the build card. Can't be damaged; the hammer removes it. |
 | Switching | E switches it on or off. Only its builder or an admin can, by default; the hover shows who built it, and "Admin-placed" to admins. The glow follows the switch at once. |
 | Server loading | The server keeps every zone of every active observer generated and its objects running, so stations progress with nobody near. It loads no wild creatures, and no tames unless "Simulate tames" is on. Clients load nothing extra. |
 | Ownership rule | Every 2 s the server takes objects in loaded zones that no player is near, and leaves the rest to vanilla, which hands them to nearby players. It takes back objects owned by a player far away, and releases paused creatures held from afar. This is the fix for the 1 Nov incident. |
@@ -91,10 +91,9 @@ Two more facts limit what any chunk loader can do:
 ## Pieces
 
 **Observer model (decided 2026-10-25):** Frogger's original `ChunkLoader_stone` model, as a tribute. It comes from the `chunkloader` asset bundle in [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader) (`src/assets/chunkloader`, MIT).
-- Scale the model to 75% of its original size (the original is very big). Review the look when we build.
-  **Measured (5 Nov 2026):** the column mesh is 2.47 m tall at full size, so at 75% it's about 1.85 m, roughly
-  player height. Frogger's mod never rescales it, so old loaders on the server are 2.47 m. **Settled:** Quandru
-  compared it with the old mod in game and confirmed the old one is much larger; 75% stays.
+- **Scale: 50% of the original size (Quandru, 5 Nov 2026),** about 1.25 m tall, chest height. The column mesh is
+  2.47 m tall at full size; Frogger's mod never rescales it, so old loaders on the server are 2.47 m. The design
+  first said 75% (about 1.85 m, player height); Quandru saw that in game next to the old mod and chose 50%.
 - **Rune colour (Quandru, 5 Nov 2026):** red runes while off, blue and glowing while on, as Frogger's original. His
   mod set `_EmissionColor` to `Color.red * 6` when off and back to the material's own (2, 2, 2) when on; ours does
   the same on each observer's own material copy. The light comes on only while on. The bundle's `sparcs` particles
