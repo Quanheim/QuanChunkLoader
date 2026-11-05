@@ -23,6 +23,7 @@ namespace QuanChunkLoader
         private const float ModelScale = 0.75f;
 
         internal const string EffectChild = "WayEffect"; // the light and particles: shown while switched on
+        internal const string ColumnChild = "new/SM_cloumn"; // the column mesh (sic); its runes glow red off, blue on
 
         private const string Description =
             "Keeps the zones around it loaded while switched on, so your base keeps working while you're elsewhere. " +

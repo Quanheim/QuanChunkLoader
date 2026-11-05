@@ -92,6 +92,13 @@ Two more facts limit what any chunk loader can do:
 
 **Observer model (decided 2026-10-25):** Frogger's original `ChunkLoader_stone` model, as a tribute. It comes from the `chunkloader` asset bundle in [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader) (`src/assets/chunkloader`, MIT).
 - Scale the model to 75% of its original size (the original is very big). Review the look when we build.
+  **Measured (5 Nov 2026):** the column mesh is 2.47 m tall at full size, so at 75% it's about 1.85 m, roughly
+  player height. Frogger's mod never rescales it, so old loaders on the server are 2.47 m. Quandru's first look in
+  game: it doesn't look scaled. Size to settle after the single-player check.
+- **Rune colour (Quandru, 5 Nov 2026):** red runes while off, blue and glowing while on, as Frogger's original. His
+  mod set `_EmissionColor` to `Color.red * 6` when off and back to the material's own (2, 2, 2) when on; ours does
+  the same on each observer's own material copy. The light comes on only while on. The bundle's `sparcs` particles
+  don't visibly show; Quandru doesn't need them.
 - Ship the bundle as an embedded resource. **Found when building (4 Nov 2026):** the bundle's `ChunkLoader_stone` prefab carries only vanilla scripts (`ZNetView`, `Piece`, `WearNTear`, `LightLod`); the old mod adds its `ChunkLoaderMono` in code. So `Quan_ChunkObserver` is a clone of that prefab, renamed and set up by our code, with no missing-script warnings. Built with Unity 6000.0.72; the game runs 6000.0.75.
 - **Dedication on the build card (Quandru, 4 Nov 2026):** the piece's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute." Seen in game on 5 Nov 2026 ([docs/images/observer-card.png](images/observer-card.png)):
 

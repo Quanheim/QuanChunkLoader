@@ -13,7 +13,15 @@ namespace QuanChunkLoader
         private ZNetView _nview;
         private Piece _piece;
         private GameObject _effect;
+        private Renderer _column;
+        private Material _columnMaterial; // this observer's own copy, so its runes can change colour
+        private Color _onGlow;
         private bool _shownOn;
+
+        private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
+
+        // Frogger's original look: red runes while off (Color.red * 6, as his mod used), the model's own blue while on.
+        private static readonly Color OffGlow = new Color(6f, 0f, 0f, 1f);
 
         private void Awake()
         {
@@ -21,8 +29,18 @@ namespace QuanChunkLoader
             _piece = GetComponent<Piece>();
             var effect = transform.Find(ObserverPiece.EffectChild);
             _effect = effect != null ? effect.gameObject : null;
+            var column = transform.Find(ObserverPiece.ColumnChild);
+            _column = column != null ? column.GetComponent<Renderer>() : null;
+            if (_column != null && _column.sharedMaterial != null && _column.sharedMaterial.HasProperty(EmissionColor))
+            {
+                // Changing the material itself, not a property block: the hammer's hover highlight writes and then
+                // clears the glow through property blocks (WearNTear.Highlight), which would undo a block of ours.
+                _columnMaterial = _column.material;
+                _onGlow = _columnMaterial.GetColor(EmissionColor);
+            }
             if (_nview == null || _nview.GetZDO() == null)
             {
+                ShowState(false); // the placement ghost: shown as a new, switched-off observer
                 return;
             }
             _nview.Register<string, bool>(Observers.SetBoolRpc, RPC_SetBool);
@@ -63,6 +81,18 @@ namespace QuanChunkLoader
             if (_effect != null)
             {
                 _effect.SetActive(on);
+            }
+            if (_columnMaterial != null)
+            {
+                _columnMaterial.SetColor(EmissionColor, on ? _onGlow : OffGlow);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_columnMaterial != null)
+            {
+                Destroy(_columnMaterial);
             }
         }
 

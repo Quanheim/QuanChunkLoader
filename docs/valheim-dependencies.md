@@ -136,6 +136,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Growup.GrowUpdate` | Young grow up once enough world time has passed since spawn, so they catch up when loaded. |
 | `Procreation.Procreate` | Love points only build while the tame is running (every 10 s, partner near, not hungry): breeding doesn't catch up. |
 | `Character.GetAllCharacters` | Tame mods act on this client-side list; clients must never hold distant tames. |
+| `WearNTear.Highlight` | The hammer's hover highlight writes `_EmissionColor` through `MaterialMan` property blocks and then clears it. So the observer changes its rune colour on its own material copy, which the highlight's reset doesn't undo. |
 
 ## Prefabs and assets
 
@@ -143,7 +144,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 |---|---|---|
 | `Stone` | Observer build cost. | Renamed. |
 | `stone_wall_1x1` | Observer place, hit and destroy effects (copied from its `Piece` and `WearNTear`). | Renamed; the observer then has no effects and logs a warning. |
-| `chunkloader` asset bundle (embedded, from JFHeim/ChunkLoader) | Observer model: `ChunkLoader_stone` (children `new` and `WayEffect`), sprite `icon_active`. Built with Unity 6000.0.72; the game runs 6000.0.75. Its prefab carries vanilla `ZNetView`, `Piece`, `WearNTear` and `LightLod`. | A Unity upgrade the bundle can't load in; vanilla scripts it references renamed. Shaders: `Standard`, `Particles/Standard Unlit`, `Legacy Shaders/Particles/Alpha Blended`, swapped for the game's copies when found. |
+| `chunkloader` asset bundle (embedded, from JFHeim/ChunkLoader) | Observer model: `ChunkLoader_stone` (children `new`, `new/SM_cloumn` and `WayEffect`), sprite `icon_active`. The column's `Standard` material has an `_EmissionColor` (blue runes at (2, 2, 2)); the observer sets it to red (6, 0, 0) while off, as Frogger's mod did. Built with Unity 6000.0.72; the game runs 6000.0.75. Its prefab carries vanilla `ZNetView`, `Piece`, `WearNTear` and `LightLod`. | A Unity upgrade the bundle can't load in; vanilla scripts it references renamed. Shaders: `Standard`, `Particles/Standard Unlit`, `Legacy Shaders/Particles/Alpha Blended`, swapped for the game's copies when found. |
 | `guard_stone` (vanilla ward, check the prefab name in game) | *Planned:* Phantom Spawner placeholder look: mesh and materials at 25%, red glow. `PrivateArea` must not be copied. | Renamed or re-modelled. |
 | Old loader prefab (`StartupReport.OldLoaderPrefab`) | *Diagnostic:* finding old loaders in the world. | The old mod renames it. |
 | Surtling prefab names | *Diagnostic:* counts surtlings in forced zones by name. | Renamed. |
