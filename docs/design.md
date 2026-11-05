@@ -1,12 +1,56 @@
 # Quan's Chunk Loader: design
 
-Status: design agreed on 2026-10-25. **Core built on 2026-11-04** (observer piece, forced zones, ownership rule,
-safety rules, logging), awaiting its single-player check; the phantom, boat fix, despawn protection, empty-server
-hour, limits, map and defensive patches come next. Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
+Status: design agreed on 2026-10-25. **Core built on 2026-11-04**, awaiting its single-player check; the rest of
+1.0 comes next. See [Build status](#build-status). Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
 
 Quan's Chunk Loader (`QuanChunkLoader`) is a new chunk loader for dedicated servers. It replaces Frogger's original ChunkLoader and two later forks of it, NerdLounge "ChunkLoader Continued" and zeeCamelSnake "ChunkLoaderFix". It's a rewrite rather than a fork. The old mods share one core mechanism, and that mechanism causes their main bugs (see [Why the old approach fails](#why-the-old-approach-fails)).
 
 Every claim below was checked against the 1.0.20 decompile, re-checked against 1.0.21 on 2026-11-01, and, where possible, against logs from a read-only diagnostic plugin. The diagnostic ran for two weeks on a live 5-player, 69-mod server (see `diagnostic-test-plan.md`).
+
+## Build status
+
+Updated 5 Nov 2026. Nothing has run in game yet.
+
+**Pieces today: one.** The only piece is the Chunk Observer (`Quan_ChunkObserver`). How much it loads comes from
+the server setting "Area size", which applies to every observer on the server at once:
+
+| "Area size" | Zones each active observer loads | Ground covered |
+|---|---|---|
+| `ThreeByThree` (default) | 9: its own zone and the 8 around it | 192 × 192 m |
+| `OneByOne` | 1: its own zone | 64 × 64 m |
+
+Quandru's two-piece idea (a single 1×1 observer and a clustered 3×3 one, chosen by what you build) is **not built**:
+it's an open point in [Still open](#still-open). The groundwork is there: each observer works out its own radius
+(`Observers.Info.Radius`), which today just reads the setting, so a second prefab only has to supply its own value.
+
+**Built (commit d82abf1, in the test zip):**
+
+| Part | What it means |
+|---|---|
+| Chunk Observer | The piece players build: Frogger's model at 75%, 10 stone, QuanPieces tab, dedication on the build card. Can't be damaged; the hammer removes it. |
+| Switching | E switches it on or off. Only its builder or an admin can, by default; the hover shows who built it, and "Admin-placed" to admins. The glow follows the switch at once. |
+| Server loading | The server keeps every zone of every active observer generated and its objects running, so stations progress with nobody near. It loads no wild creatures, and no tames unless "Simulate tames" is on. Clients load nothing extra. |
+| Ownership rule | Every 2 s the server takes objects in loaded zones that no player is near, and leaves the rest to vanilla, which hands them to nearby players. It takes back objects owned by a player far away, and releases paused creatures held from afar. This is the fix for the 1 Nov incident. |
+| Edge-support rule | On the server, a point in a loaded zone only counts as "active" for building wear and support (and `StaticPhysics`, `SpawnArea`) when all 8 neighbouring zones are loaded too, as vanilla does around players. Edge pieces don't weather or collapse. |
+| Unknown-prefab guard | Objects whose prefab the server doesn't know (a mod missing on the server) are skipped and logged, not deleted. |
+| Logging | Switches, zone changes, a 5-minute owner summary, warnings for mass changes, distant claims, unknown prefabs; Info/Debug/Trace and an optional daily file. |
+
+**Not built yet (the rest of 1.0, in one pass after the check):**
+
+| Part | What it means |
+|---|---|
+| Phantom Spawner | Second piece. Makes nearby allowlisted spawners (default surtlings, plus `SpawnArea`) act as if a player stood there, so farms run; only inside an active observer's zones. |
+| Boat fix | Water readings from unloaded zones are ignored while a ship runs on the server, so boats at the edge float instead of sinking. |
+| Despawn protection | Drops near station outputs and near active phantoms in loaded zones don't time out after an hour. |
+| Empty-server hour | With an observer on, the world clock keeps running in real time for up to an hour after the last logout. |
+| Limits and admin-only building | Per-player (2) and server (12) observer limits, admin exemption, expiry, and the option to hide the pieces from non-admins. |
+| Map | Admins can show every observer on the map; others only learn their own. |
+| Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` stop failing when the server owns the object, for the ~2 s before ownership moves. |
+| Release | Regenerate "Tested with" in `Package/README.md` from the live profile after the rollout, check its config table against `Settings.cs` (names of settings not built yet were written from this design), date the changelog, and publish 1.0.0. |
+
+**Docs:** `Package/README.md` (the Thunderstore page) and `Package/CHANGELOG.md` already describe the finished 1.0,
+including the unbuilt parts. If a decision changes what 1.0 does (for example the two-piece open point), update them
+in the same commit.
 
 ## Goals
 
@@ -412,8 +456,9 @@ The checks below are done on the live server as each feature is switched on.
   - the clustered model's look (for example several of Frogger's columns grouped together), and each one's cost;
   - how the limits count them: one each, or by zones loaded (a 3×3 counts as 9);
   - whether "Area size" goes entirely, or stays as an admin cap (for example "1×1 only" hides the clustered one).
-  The core is built with the area as a per-observer value read from its prefab, so the setting can be dropped
-  without reworking loading.
+  The core works out the area per observer (`Observers.Info.Radius`). Today that reads the setting; with two pieces
+  it would come from the observer's prefab, so the setting can be dropped without reworking loading. If this is
+  decided, update the Thunderstore page and changelog too (see [Build status](#build-status)).
 
 - **Seed Totem 4.3.13: checked (2 Nov 2026), no extra testing needed beyond the rollout check.** Decompiled into
   `research/`. Its failures are the same "owner expected to be a local player" class, and the ownership rule fixes
