@@ -9,7 +9,20 @@ Every claim below was checked against the 1.0.20 decompile, re-checked against 1
 
 ## Build status
 
-Updated 5 Nov 2026. Nothing has run in game yet.
+Updated 5 Nov 2026. **The core passed its single-player check on 5 Nov 2026** (local world, "Chunkloader test"
+Gale profile, 71 mods, Log detail Trace):
+- Built, switched, hit (no damage) and removed as designed; red runes off, blue on, the hammer's remove highlight
+  clears back to the right colour.
+- **Stayed loaded with the player away:** three 5-minute summaries (22:29–22:39) with the player far off showed
+  9 zones, 1,178 of 1,188 objects running, 3 tames and 7 wild creatures paused with no owner. Passes took 0.4 ms.
+- **Survived a reload:** "Found 1 chunk observer(s) in the world, 1 switched on" and the 9 zones loaded again.
+- No errors from the mod.
+- **Found:** passes that write ~1,000 Trace lines took up to about 1 s (loading the world, flying away, coming
+  back), because every line is written and flushed one at a time. Info, the default, logs none of those lines.
+  Don't leave Debug or Trace on for the live server; making per-object lines cheaper is a possible improvement.
+- **Local game only:** the host and the server share one owner ID, so while the host passes the edge of their own
+  area vanilla `ReleaseNearbyZDOS` drops objects to no owner and our pass claims them back, two or three times each.
+  On a dedicated server the server's ID differs, so this can't happen.
 
 **Pieces today: one.** The only piece is the Chunk Observer (`Quan_ChunkObserver`). How much it loads comes from
 the server setting "Area size", which applies to every observer on the server at once:
