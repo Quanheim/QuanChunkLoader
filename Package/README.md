@@ -52,6 +52,9 @@ so everything there keeps working with nobody nearby. There are two, so you can 
   at once for everyone nearby.
 - **Only the player who built it, or an admin, can switch it.** Hover over it to see what it loads and who built
   it. Servers can change this so that anyone with access through the wards around it can switch it.
+- **See what it covers.** Look at an observer and tap your alternative-placement key (shown on its hover text;
+  Left Shift by default), or hold it and press E. Thin white lines mark the borders of the zones it loads, with a
+  white post at every zone corner, for 15 seconds.
 - **No fuel.** It stays on until someone switches it off.
 - **It can't be damaged, and monsters ignore it.** Remove it with the hammer as usual.
 - **Observers can overlap.** Loaded zones are a set, so two observers covering the same zone cost nothing extra.

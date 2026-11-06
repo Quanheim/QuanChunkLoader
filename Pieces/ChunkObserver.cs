@@ -85,6 +85,10 @@ namespace QuanChunkLoader
         // Reads the synced state every frame, so the glow changes for everyone nearby as soon as the data arrives.
         private void Update()
         {
+            if (ZInput.GetButtonDown("AltPlace") && LookedAtByLocalPlayer())
+            {
+                ShowZones();
+            }
             var on = IsOn;
             if (on != _shownOn)
             {
@@ -103,6 +107,23 @@ namespace QuanChunkLoader
             {
                 _columnMaterial.SetColor(EmissionColor, on ? _onGlow : OffGlow);
             }
+        }
+
+        private bool LookedAtByLocalPlayer()
+        {
+            var player = Player.m_localPlayer;
+            var hover = player != null ? player.GetHoverObject() : null;
+            return hover != null && hover.GetComponentInParent<ChunkObserver>() == this;
+        }
+
+        /// <summary>Draws the zones this observer loads, on this player's machine (Frogger's mod had this too).</summary>
+        private void ShowZones()
+        {
+            if (_nview == null || !_nview.IsValid())
+            {
+                return;
+            }
+            ZoneGrid.Show(ZoneSystem.GetZone(transform.position), ObserverPiece.RadiusOf(_nview.GetZDO().GetPrefab()));
         }
 
         private void OnDestroy()
@@ -204,6 +225,7 @@ namespace QuanChunkLoader
                 text += Localization.instance.Localize(
                     $"\n[<color=yellow><b>$KEY_Use</b></color>] {(on ? "Switch off" : "Switch on")}");
             }
+            text += Localization.instance.Localize("\n[<color=yellow><b>$KEY_AltPlace</b></color>] Show its zones");
             return text;
         }
 
@@ -212,6 +234,11 @@ namespace QuanChunkLoader
             if (hold || _nview == null || !_nview.IsValid())
             {
                 return false;
+            }
+            if (alt)
+            {
+                ShowZones(); // AltPlace held while pressing Use, as Frogger's mod did
+                return true;
             }
             if (!MaySwitch(out var refusal))
             {

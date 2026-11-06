@@ -147,6 +147,11 @@ Both observers:
 - **No fuel.** It runs until switched off from its hover menu.
 - **Only its builder or an admin can switch it** (server setting, on by default). Other players see who built it and can't change it. With the setting off, switching falls back to wards (`PrivateArea.CheckAccess`).
 - **Its glow updates immediately for everyone nearby** when switched. The old mod took 2-3 s.
+- **Show its zones (Quandru, 6 Nov 2026):** looking at an observer and tapping the AltPlace key, or holding it and
+  pressing Use (as Frogger's mod did), draws the zones it loads for 15 s: thin white lines along the zone borders,
+  following the ground, and thin white posts at every zone corner (QuanTerraforming's zone grid, in white). Drawn on
+  the player's own machine from the observer's position and size, so it works for anyone, on or off. Frogger's
+  mod tinted the terrain dark blue instead.
 - **Hover text** shows on/off, the size it loads, and the builder's name. **Admins only** also see "Admin-placed" on observers an admin built. Other players never see it. The flag is stored on the observer (it has to survive restarts); it isn't secret data, just not displayed to non-admins.
 - **It can't be destroyed and monsters ignore it.** It isn't a target for AI (`StaticTarget`, `Piece.m_targetNonPlayerBuilt`), and a prefix on `WearNTear.RPC_Damage` blocks damage. Removing it with the hammer still works.
 - **Overlap is allowed.** Loaded zones form a set, so overlapping observers cost nothing extra. That lets a player add a single observer at a dock on the edge of a cluster's area.
@@ -465,6 +470,7 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 | 7 | Phantom inside a switched-on single observer's zone | Hover "Active"; log "Phantom spawner … is now active". |
 | 8 | Surtling farm, if one is handy | With a phantom in the loaded zone and you far away, surtlings keep spawning. |
 | 9 | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt` | Lists creature spawners only, with what each spawns; `Spawner_imp_respawn` marked `[in use]`. |
+| 9b | Look at each observer and tap your AltPlace key (shown on the hover; Left Shift by default), then hold it and press E | White lines along the borders of the zones it loads (1 for the single, 9 for the cluster) and white corner posts, for 15 s. |
 | 10 | "Show observers on the map" on | Pins for every observer, lit or unlit, labelled with size and builder. Off removes them. |
 | 11 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |
 | 12 | The log | No errors from the mod. |

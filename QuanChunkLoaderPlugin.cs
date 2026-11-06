@@ -60,6 +60,7 @@ namespace QuanChunkLoader
             Settings.ExpireAfterHours.SettingChanged += (_, __) => Observers.ExpiryChanged();
             BuildPermission.Hook();
             ObserverMap.Hook();
+            ZoneGrid.Hook(gameObject);
             gameObject.AddComponent<ServerLoader>();
 
             Logger.LogInfo($"{PluginName} {PluginVersion} loaded.");

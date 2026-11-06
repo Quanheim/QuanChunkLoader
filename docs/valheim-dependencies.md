@@ -107,6 +107,9 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `EnvMan.GetWindIntensity` | *Diagnostic:* wind on an empty server. |
 | `Utils.GetPrefabName` | Prefab names in logs; matching creature spawners against the phantom allowlist. |
 | `Pickable.GetPicked` | The pick fix only acts on unpicked plants. |
+| `ZInput.GetButtonDown` | Tapping `AltPlace` while looking at an observer shows its zones. |
+| `Player.GetHoverObject` | Whether the local player is looking at this observer. |
+| `Heightmap.GetHeight` | The zone grid's lines and posts follow the ground. |
 | `ZNetScene.m_prefabs` | The spawner reference list: every prefab with a `CreatureSpawner`. *Diagnostic* too: startup report. |
 | `CreatureSpawner` | The reference list reads `m_creaturePrefab`, `m_respawnTimeMinuts` and `m_triggerDistance`. |
 | `Piece.m_enabled` | Admin-only building hides this mod's pieces from non-admins' hammers. |
@@ -144,6 +147,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Growup.GrowUpdate` | Young grow up once enough world time has passed since spawn, so they catch up when loaded. |
 | `Procreation.Procreate` | Love points only build while the tame is running (every 10 s, partner near, not hungry): breeding doesn't catch up. |
 | `Character.GetAllCharacters` | Tame mods act on this client-side list; clients must never hold distant tames. |
+| `Player.Interact` | Passes `alt` when `AltPlace` is held while pressing Use; the observer shows its zones then. |
 | `PieceTable.UpdateAvailable` | Leaves pieces with `Piece.m_enabled` false out of the hammer (admin-only building). |
 | `CreatureSpawner.Spawn` | Instantiates the creature inside `UpdateSpawner`, so its `Character.Awake` runs in the phantom context. |
 | `SpawnArea.SpawnOne` | As above, inside `UpdateSpawn`. |

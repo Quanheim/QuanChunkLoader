@@ -44,6 +44,7 @@ rest is waiting for one. What's been checked so far is in [docs/design.md](docs/
 | [Pieces/PhantomSpawner.cs](Pieces/PhantomSpawner.cs) | The phantom's hover text and placement. |
 | [Pieces/BuildPermission.cs](Pieces/BuildPermission.cs) | Hides the pieces from non-admins when only admins can build. |
 | [Pieces/ChunkObserver.cs](Pieces/ChunkObserver.cs) | An observer's hover text, switching and rune colour. |
+| [Pieces/ZoneGrid.cs](Pieces/ZoneGrid.cs) | Draws the zones an observer loads: white border lines and corner posts. |
 | [tools/render_package_icon.py](tools/render_package_icon.py) | Draws the Thunderstore icon. |
 | [Assets/chunkloader](Assets/chunkloader) | Frogger's asset bundle, embedded in the DLL. |
 | [Diagnostics/](Diagnostics/) | The read-only diagnostic plugin that ran on the live server before the build. Not part of the mod. |
