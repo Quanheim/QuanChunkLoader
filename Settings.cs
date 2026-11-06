@@ -93,10 +93,12 @@ namespace QuanChunkLoader
             const string phantom = "4 - Phantom spawner";
             PhantomCreatureSpawners = config.Bind(phantom, "Creature spawners", "Spawner_imp_respawn",
                 Enforced("Comma-separated prefab names of the creature spawners a Phantom Spawner keeps running. " +
-                         "Spawner_imp_respawn is the surtling spawner."));
-            PhantomSpawnAreas = config.Bind(phantom, "Spawner areas", true,
-                Enforced("Also keep spawner areas running (the kind that keeps a number of creatures around it), " +
-                         "anywhere in a loaded zone."));
+                         "Spawner_imp_respawn is the surtling spawner. Anything added here runs its monsters on " +
+                         "the server while nobody is near, and they can attack the base."));
+            PhantomSpawnAreas = config.Bind(phantom, "Spawner areas", false,
+                Enforced("Also keep spawner areas running (nests and bone piles: the kind that keeps a number of " +
+                         "creatures around it), anywhere in a loaded zone. Their monsters run on the server while " +
+                         "nobody is near and can attack the base."));
 
             const string despawn = "5 - Despawn protection";
             DespawnProtection = config.Bind(despawn, "Despawn protection", true,

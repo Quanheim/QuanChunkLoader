@@ -49,7 +49,7 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Edge-support rule | Wear and support (and `StaticPhysics`, `SpawnArea`) only run where all 8 neighbouring zones are loaded. | Built |
 | Unknown-prefab guard | Objects whose prefab the server doesn't know are skipped and logged, not deleted. | Built |
 | Logging | Switches, zone changes, 5-minute summaries, warnings, distant claims, unknown prefabs, phantoms, the empty-server clock. | Checked |
-| Phantom Spawner | Allowlisted creature spawners (default surtlings) and spawner areas act as if a player stood at an active phantom. | Built 5 Nov |
+| Phantom Spawner | Allowlisted creature spawners (default surtlings; spawner areas only if admins turn them on) act as if a player stood at an active phantom. | Built 5 Nov |
 | Boat fix | Water readings from unloaded zones are replaced with the ship's centre reading while it runs on the server. | Built 5 Nov |
 | Despawn protection | Items within 8 m of a server-run station or 40 m of an active phantom in loaded zones don't time out. | Built 5 Nov |
 | Empty-server hour | With an observer on, the world clock keeps running in real time for up to 60 min after the last logout (admins can set 0–240). | Built 5 Nov; dedicated server only |
@@ -158,7 +158,7 @@ Both observers:
 ### Quan's Phantom Spawner (`Quan_PhantomSpawner`)
 
 - **Look (placeholder, 2 Nov 2026):** the vanilla ward (`guard_stone`) model scaled to 25%, with red glowing copies of its materials and a small red light. Built from the ward's look only: its particle effects, lights, sounds, trigger volumes and every script other than `ZNetView`, `Piece` and `WearNTear` are removed (`PrivateArea`, its area marker and any `EffectArea` among them), and loading stops with an error if a `PrivateArea` or `EffectArea` were still there. What was removed is logged at Debug.
-- **Makes nearby spawners behave as if a player were standing there.** Surtling spawners are `CreatureSpawner`s (`Spawner_imp_respawn`: 60 m trigger, 5-minute respawn on world time). Support is limited to a config allowlist, default `Spawner_imp_respawn`. `SpawnArea` support is also included, on by default.
+- **Makes nearby spawners behave as if a player were standing there.** Surtling spawners are `CreatureSpawner`s (`Spawner_imp_respawn`: 60 m trigger, 5-minute respawn on world time). Support is limited to a config allowlist, default `Spawner_imp_respawn`. `SpawnArea` support (nests, bone piles) is a separate setting, **off by default** (Quandru, 6 Nov 2026: no monster AI in loaded zones except surtlings unless admins choose otherwise).
 - **Active only inside a zone that an active observer keeps loaded,** and only if it wasn't built while only admins could build. Outside one, its hover text says "Dormant: no active chunk observer" so players know why. The server decides this, because non-admins don't receive the observer list. **As built (5 Nov 2026):** the server writes "active" onto the phantom whenever the loaded zones change, instead of answering a hover RPC; every player's hover reads it with no extra traffic.
 - **No fuel or timer, no map pin, can't be destroyed** (same as the observers). There's no per-zone limit.
 - **Not built: the placement ring.** The design wanted the workbench's dotted ring while placing; the ward's own area marker is removed with the rest of the ward. A possible later addition.
@@ -361,7 +361,7 @@ Settings are listed in the order they're bound.
 | `2 - Tamed Creatures` | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
 | `3 - Empty server` | Empty-server window in minutes | 60 (0 = off, up to 240) | Enforced |
 | `4 - Phantom spawner` | Creature spawners | `Spawner_imp_respawn` | Enforced |
-| | Spawner areas | On | Enforced |
+| | Spawner areas | Off | Enforced |
 | `5 - Despawn protection` | Despawn protection | On | Enforced |
 | `6 - Map (personal)` | Show observers on the map | Off (admins only) | Personal |
 | `7 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |

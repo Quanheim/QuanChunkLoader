@@ -73,8 +73,8 @@ player were standing where the phantom is, so a surtling farm keeps producing wh
 
 - **It only works inside a zone a switched-on Chunk Observer keeps loaded.** Its hover text says "Active" there,
   and "Dormant: no active chunk observer" anywhere else.
-- **Which spawners it affects is set by the server.** By default that's surtling spawners, and spawner areas (the
-  kind that keeps a number of creatures around it), anywhere in a loaded zone.
+- **It drives surtling spawners.** Admins can add other spawners, and nests and bone piles, in the config, but
+  then those monsters run on the server while nobody is there and can attack the base.
 - It looks like a small ward glowing red, but it isn't one: it doesn't protect anything or control access.
 - No fuel, no map pin, and it can't be damaged.
 - Surtlings that spawn into water die at once, so a farm built over water keeps producing coal. You still need to
@@ -212,7 +212,7 @@ themselves.
 | 2 - Tamed Creatures | Simulate tames in loaded zones | Off | On: the server runs tames in loaded bases while nobody is near, so pens keep breeding. See the risks below. |
 | 3 - Empty server | Empty-server window in minutes | 60 | How long the world clock keeps running after the last logout, up to 240. 0 turns it off. |
 | 4 - Phantom spawner | Creature spawners | Spawner_imp_respawn | Which creature spawners a Phantom Spawner keeps running, by prefab name, comma-separated. |
-| | Spawner areas | On | Whether it also runs spawner areas. |
+| | Spawner areas | Off | Whether it also runs spawner areas (nests, bone piles), anywhere in a loaded zone. |
 | 5 - Despawn protection | Despawn protection | On | Keeps drops near production stations and phantoms in loaded zones. |
 | 6 - Map (personal) | Show observers on the map | Off | Admins only. Each admin's own choice. |
 | 7 - Logging | Log detail | Info | Info, Debug (a line per object) or Trace (every decision, for chasing a bug). Don't leave Debug or Trace on. |
