@@ -71,6 +71,12 @@ namespace QuanChunkLoader
                 CraftingStation = "",
                 Requirements = new[] { new RequirementConfig("Stone", Cost, 0, true) }
             };
+            // The ward's own icon is gold; render ours from the red model (skipped on a dedicated server).
+            var icon = ObserverPiece.RenderIcon(prefab);
+            if (icon != null)
+            {
+                config.Icon = icon;
+            }
             PieceManager.Instance.AddPiece(new CustomPiece(prefab, false, config));
             BuildPermission.Track(piece);
         }

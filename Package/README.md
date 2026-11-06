@@ -8,8 +8,9 @@ It's a ground-up rewrite that fixes the side effects of earlier chunk loaders: a
 stop working, plants that never regrow, boats that sink, tames that ignore you, and bases run by a player on the
 other side of the map.
 
-> **Dedicated to Frogger**, who first brought chunk loading to Valheim. As a tribute, the Chunk Observers use
-> Frogger's original chunk loader model, and their build cards say so. The model is the only thing reused: no code
+> **Dedicated to Frogger**, who first brought chunk loading to Valheim. As a tribute, the Chunk Observer uses
+> Frogger's original chunk loader model, and the Cluster is our own adaptation of it in his style. Their build
+> cards say so. The model is the only thing reused: no code
 > comes from Frogger's mod or any other chunk loader. See [Credits and licence](#credits-and-licence).
 
 **Install it on the server and on every client.** Players without it can't connect. It needs
@@ -38,7 +39,7 @@ base (they don't stop monsters spawning nearby).
 
 ### Chunk Observer and Chunk Observer Cluster
 
-<p><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observer-card.png" alt="The Chunk Observer's build card: a carved stone column, with the dedication: Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute. Costs 10 Stone." width="480"></p>
+<p><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observer-card.png" alt="The Chunk Observer's build card: a carved stone column. Keeps its own zone loaded while switched on, so your base keeps working while you're elsewhere. Nearby players still own everything as usual. Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute. Costs 10 Stone." width="480"></p>
 
 The world is divided into zones 64 m square. While an observer is switched on, the server keeps its zones loaded,
 so everything there keeps working with nobody nearby. There are two, so you can match the observer to the base:
@@ -352,7 +353,7 @@ The Quanheim server's mod list, all running together on a dedicated server with 
 ## Credits and licence
 
 **Frogger** had the original idea of a Valheim chunk loader. The Chunk Observers use Frogger's original chunk loader
-model from [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader), under the MIT licence (Copyright (c) 2023
+model (the Cluster as our own adaptation of it) from [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader), under the MIT licence (Copyright (c) 2023
 Vyacheslav). The full notice is in `THIRD-PARTY-NOTICES.md` in this package. Thank you, Frogger.
 
 Bugs and suggestions: the Issues page of this mod's GitHub repository (linked from this page).

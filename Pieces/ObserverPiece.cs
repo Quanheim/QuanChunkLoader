@@ -38,13 +38,18 @@ namespace QuanChunkLoader
             "\n\n<i>Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk " +
             "loader model, used as a tribute.</i>";
 
+        // The cluster isn't Frogger's model as he made it, so its card says it's our adaptation (Quandru, 6 Nov 2026).
+        private const string ClusterDedication =
+            "\n\n<i>Dedicated to Frogger, who first brought chunk loading to Valheim. Our own adaptation of his " +
+            "original chunk loader model, in its style, as a tribute.</i>";
+
         private const string SingleDescription =
             "Keeps its own zone loaded while switched on, so your base keeps working while you're elsewhere. " +
             "Nearby players still own everything as usual." + Dedication;
 
         private const string ClusterDescription =
             "Keeps the 3x3 zones around it loaded while switched on, so a large base keeps working while you're " +
-            "elsewhere. Nearby players still own everything as usual." + Dedication;
+            "elsewhere. Nearby players still own everything as usual." + ClusterDedication;
 
         /// <summary>The bundle's column material, shared by every observer; each observer swaps in its own copy.</summary>
         internal static Material ColumnMaterial { get; private set; }
@@ -118,7 +123,7 @@ namespace QuanChunkLoader
             BuildPermission.Track(prefab.GetComponent<Piece>());
         }
 
-        private static Sprite RenderIcon(GameObject prefab)
+        internal static Sprite RenderIcon(GameObject prefab)
         {
             if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
             {
