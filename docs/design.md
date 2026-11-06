@@ -56,11 +56,22 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Built 5 Nov |
 | Map | Admins can show every observer on the map (personal setting); nobody else receives them. | Built 5 Nov |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
-| Release | Regenerate "Tested with" in `Package/README.md` from the live profile after the rollout;  date the changelog; publish 1.0.0. | To do |
+| Release | **First (Quandru, 6 Nov 2026): reorder, rewrite and add spoiler (collapsible) blocks to the Thunderstore page, `Package/README.md`; Quandru doesn't find the current one compelling.** Then regenerate "Tested with" from the live profile, date the changelog, publish 1.0.0. | To do |
 
-**Next:** a short single-player check of the new parts (see [Test plan](#test-plan-for-the-real-mod)), then
-publish and roll out. Several parts only show on a dedicated server (ownership between players, the empty-server
-hour, the defensive patches); those are checked during the rollout.
+**Single-player check of the full build: passed on 6 Nov 2026**, every step including a surtling farm run by a
+phantom while away (screenshots in `docs/images`). Found while answering a question afterwards: despawn protection
+only ran on the server, so a player arriving more than 25 m from an hour-old pile would have lost it; now fixed on
+players' games too (a rollout check, since single player can't show it).
+
+**Next, before publishing (to do, 7 Nov):**
+1. **Rework the Thunderstore page (`Package/README.md`) with Quandru:** reorder, rewrite and put sections in spoiler
+   (collapsible `<details>`) blocks, as QuanPieces' page does. Quandru doesn't find the current page compelling.
+2. Keep the GitHub page (`README.md`) in step where it overlaps (it's the developer page; it links to the
+   Thunderstore page rather than repeating it).
+3. Then the release steps in the table above, and the live rollout.
+
+Several parts only show on a dedicated server (ownership between players, the empty-server hour, the defensive
+patches, despawn protection on players' games); those are checked during the rollout.
 
 ## Goals
 
