@@ -42,6 +42,7 @@ namespace QuanChunkLoader
             Strip(prefab);
             Shrink(prefab);
             Redden(prefab);
+            AddPlinth(prefab);
 
             prefab.GetComponent<ZNetView>().m_persistent = true;
             var piece = prefab.GetComponent<Piece>();
@@ -121,6 +122,51 @@ namespace QuanChunkLoader
             {
                 throw new System.InvalidOperationException("the ward clone still has a PrivateArea or EffectArea");
             }
+        }
+
+        // A small round two-step stone plinth, the shape of the top of the cluster's capital (wide disc, narrower
+        // step on top), in metres: radius, bottom, top. The ward stands on it (Quandru, 6 Nov 2026).
+        private static readonly Vector3[] PlinthDiscs =
+        {
+            new Vector3(0.20f, 0.00f, 0.07f),
+            new Vector3(0.16f, 0.07f, 0.11f)
+        };
+
+        private const float PlinthHeight = 0.11f;
+
+        /// <summary>Lifts the ward onto a round stone plinth in the observers' stone.</summary>
+        private static void AddPlinth(GameObject prefab)
+        {
+            var material = ObserverPiece.ColumnMaterial;
+            if (material == null)
+            {
+                Log.Warning("Phantom Spawner: the observers' stone material isn't loaded, so it has no plinth.");
+                return;
+            }
+            foreach (Transform child in prefab.transform)
+            {
+                child.localPosition += Vector3.up * PlinthHeight;
+            }
+            foreach (var box in prefab.GetComponents<BoxCollider>())
+            {
+                box.center += Vector3.up * PlinthHeight;
+            }
+            foreach (var capsule in prefab.GetComponents<CapsuleCollider>())
+            {
+                capsule.center += Vector3.up * PlinthHeight;
+            }
+            foreach (var sphere in prefab.GetComponents<SphereCollider>())
+            {
+                sphere.center += Vector3.up * PlinthHeight;
+            }
+
+            var plinth = new GameObject("plinth");
+            plinth.layer = prefab.layer;
+            plinth.transform.SetParent(prefab.transform, false);
+            var mesh = ClusterModel.DiscStack(PlinthDiscs, "QuanPhantomSpawner_plinth");
+            plinth.AddComponent<MeshFilter>().sharedMesh = mesh;
+            plinth.AddComponent<MeshRenderer>().sharedMaterial = material;
+            plinth.AddComponent<MeshCollider>().sharedMesh = mesh;
         }
 
         /// <summary>Scales every part to 25%. The root stays at scale 1 for the network view; its own colliders shrink.</summary>

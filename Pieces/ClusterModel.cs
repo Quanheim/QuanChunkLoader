@@ -78,7 +78,7 @@ namespace QuanChunkLoader
             var plinths = new GameObject("plinths");
             plinths.layer = column.gameObject.layer;
             plinths.transform.SetParent(model, false);
-            var mesh = Plinths();
+            var mesh = DiscStack(Discs, "QuanChunkObserver_plinths");
             plinths.AddComponent<MeshFilter>().sharedMesh = mesh;
             plinths.AddComponent<MeshRenderer>().sharedMaterial = material;
             plinths.AddComponent<MeshCollider>().sharedMesh = mesh;
@@ -129,18 +129,21 @@ namespace QuanChunkLoader
             return mesh;
         }
 
-        /// <summary>The round base steps and capital as one mesh: each disc's side, top and bottom.</summary>
-        private static Mesh Plinths()
+        /// <summary>
+        /// Round stone discs as one mesh (radius, bottom, top each), textured with the column's plain stone patch:
+        /// the cluster's base and capital, and the Phantom Spawner's plinth.
+        /// </summary>
+        internal static Mesh DiscStack(Vector3[] discs, string name)
         {
             var v = new List<Vector3>();
             var n = new List<Vector3>();
             var uv = new List<Vector2>();
             var tri = new List<int>();
-            foreach (var d in Discs)
+            foreach (var d in discs)
             {
                 Disc(d.x, d.y, d.z, v, n, uv, tri);
             }
-            var mesh = new Mesh { name = "QuanChunkObserver_plinths" };
+            var mesh = new Mesh { name = name };
             mesh.SetVertices(v);
             mesh.SetNormals(n);
             mesh.SetUVs(0, uv);
