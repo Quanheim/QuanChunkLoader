@@ -12,6 +12,7 @@ more bugs than features: auto-fuel that stops, plants that never regrow, boats o
 works the way the game intended, whether you're there or not.
 
 - **Keep production going** with nobody nearby, in a single zone or a whole 3 × 3 block of them.
+- **Let your tames keep breeding and growing** while you're away, if you want them to.
 - **Keep it going after the last player logs off**, for up to an hour by default.
 - **Run surtling farms with nobody home**, and come back to every drop still waiting for you.
 - **Walk back in and everything just works:** your auto-fuel, auto-store, plant timers and creature commands.
@@ -139,6 +140,19 @@ farm over water and the coal piles up while you're away.
 
 ## What else it does
 
+- **Lets your tames keep breeding and growing while you're away**, if you choose. Turn on "Simulate tames in
+  loaded zones" and the server runs the tamed animals in a loaded base while nobody is near, just as if a
+  player were standing there:
+  - **They carry on as normal:** eating from their troughs, breeding, having young, healing and wandering their pens.
+  - **Their young grow up** on time.
+  - **It keeps going while anyone is online**, and through the time after the last logout; after that the world clock
+    stops for everything.
+  - **Taming new animals doesn't continue:** wild creatures in a loaded base stay paused until someone comes back.
+  - **Keep an eye on pen sizes.** With nobody watching, a pen can breed well past the numbers you'd normally see, and
+    any tame mod's feeding and breeding code runs on the server.
+
+  It's off by default. Then tames simply pause while nobody is near, as they would without a chunk loader, and carry
+  on when a player arrives; young ones still grow up on time, because growing up catches up.
 - **The nearest player always runs things.** Walk into a loaded base and your game takes over everything around you
   within about 2 seconds, exactly as without a chunk loader, so auto-fuel, auto-store, plant timers and creature
   commands all work. Leave, and the server takes over. Nobody runs a base from the other side of the map, and
@@ -153,9 +167,7 @@ farm over water and the coal piles up while you're away.
 - **Buildings at the edge stay up.** Pieces at the outer edge of a loaded area don't weather or re-check their
   support while nobody is near, so nothing collapses because its neighbour wasn't loaded.
 - **Your base stays quiet.** Wild creatures in a loaded base wait where they were until someone comes back, and nests
-  and spawners there don't run. Tames pause too by default, because tame mods expect a player nearby; young ones
-  still grow up on time. Servers can let tames keep breeding with nobody there, knowing pens can then grow
-  unchecked.
+  and spawners there don't run, so nothing wanders through or attacks an empty base.
 - **Nothing gets deleted by a missing mod.** If the server doesn't have a mod that something in a base came from,
   the game would delete it the moment the server loads it. This mod leaves those objects alone and names them in the
   log.
@@ -192,7 +204,6 @@ them: if one is installed it stays switched off and says so in the log.
   loader is on. Dedicated servers only: a local game ends when its host leaves.
 - **Windmills vary offline.** With nobody online, the server works out the wind at one fixed spot rather than at
   each windmill, so offline output can be higher or lower than you'd see in person.
-- **Tames pause while nobody is near**, unless the server lets them run. They don't eat, breed or heal while paused.
 - **Seed Totems** only plant while a player is near, like auto-fuel.
 - **Clients don't load anything extra.** The server keeps loaded bases running; your own game only loads what's
   around you, as normal.
