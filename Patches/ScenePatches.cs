@@ -100,8 +100,13 @@ namespace QuanChunkLoader.Patches
     {
         private static void Postfix(Vector3 point, ref bool __result)
         {
-            if (EdgeRuleContext.Depth > 0 && !__result && ServerLoader.Running && Observers.Forced.Count > 0 &&
-                Observers.IsInterior(ZoneSystem.GetZone(point)))
+            if (EdgeRuleContext.Depth == 0 || __result || !ServerLoader.Running || Observers.Forced.Count == 0)
+            {
+                return;
+            }
+            // Wear and support, falling crops and ordinary spawner areas: only the inner part of a loaded area.
+            // A spawner area a phantom runs: anywhere in a loaded zone (see PhantomContext.SpawnAreaActiveAt).
+            if (Observers.IsInterior(ZoneSystem.GetZone(point)) || PhantomContext.SpawnAreaActiveAt(point))
             {
                 __result = true;
             }

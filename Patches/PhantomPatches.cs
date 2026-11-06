@@ -15,6 +15,7 @@ namespace QuanChunkLoader.Patches
     {
         [ThreadStatic] internal static bool Allowed;   // this spawner may be run by a phantom
         [ThreadStatic] internal static bool Triggered; // a phantom made its range check pass this update
+        [ThreadStatic] internal static float SpawnAreaRange; // the spawner area being updated, else 0
 
         private static readonly char[] Comma = { ',' };
         private static string _listText;
@@ -31,7 +32,16 @@ namespace QuanChunkLoader.Patches
         {
             Allowed = false;
             Triggered = false;
+            SpawnAreaRange = 0f;
         }
+
+        /// <summary>
+        /// A spawner area a phantom runs counts its point as active anywhere in a loaded zone, not only where all
+        /// eight neighbours are loaded (Quandru, 6 Nov 2026), so phantoms work with a single observer too.
+        /// </summary>
+        internal static bool SpawnAreaActiveAt(Vector3 point) =>
+            Allowed && SpawnAreaRange > 0f && Observers.IsForced(ZoneSystem.GetZone(point)) &&
+            Phantoms.AnyWithin(point, SpawnAreaRange);
 
         internal static bool CreatureSpawnerAllowed(CreatureSpawner spawner)
         {
@@ -65,7 +75,13 @@ namespace QuanChunkLoader.Patches
     [HarmonyPatch(typeof(SpawnArea), "UpdateSpawn")]
     internal static class PhantomSpawnAreaContext
     {
-        private static void Prefix() => PhantomContext.Enter(Settings.PhantomSpawnAreas.Value);
+        private static void Prefix(SpawnArea __instance)
+        {
+            if (PhantomContext.Enter(Settings.PhantomSpawnAreas.Value))
+            {
+                PhantomContext.SpawnAreaRange = __instance.m_triggerDistance;
+            }
+        }
 
         private static Exception Finalizer(Exception __exception)
         {

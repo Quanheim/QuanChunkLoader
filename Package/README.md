@@ -74,8 +74,7 @@ player were standing where the phantom is, so a surtling farm keeps producing wh
 - **It only works inside a zone a switched-on Chunk Observer keeps loaded.** Its hover text says "Active" there,
   and "Dormant: no active chunk observer" anywhere else.
 - **Which spawners it affects is set by the server.** By default that's surtling spawners, and spawner areas (the
-  kind that keeps a number of creatures around it). Spawner areas only run in the middle zone of a Chunk Observer
-  Cluster, where every neighbouring zone is loaded too.
+  kind that keeps a number of creatures around it), anywhere in a loaded zone.
 - It looks like a small ward glowing red, but it isn't one: it doesn't protect anything or control access.
 - No fuel, no map pin, and it can't be damaged.
 - Surtlings that spawn into water die at once, so a farm built over water keeps producing coal. You still need to
@@ -110,10 +109,11 @@ whatever holds it up. This mod keeps that rule for loaded areas: pieces at the o
 don't weather or re-check their support while nobody is near, so nothing collapses because its neighbour wasn't
 loaded. With a 3 × 3 observer the centre zone gets normal wear.
 
-### Up to an hour of production after the last player logs off
+### Production after the last player logs off
 
 Normally the world clock stops the moment the last player logs off, so nothing makes progress overnight. With at
-least one observer switched on, the clock keeps running at normal speed for up to one real hour after the last
+least one observer switched on, the clock keeps running at normal speed for up to one real hour (the server can
+set anything up to four) after the last
 logout (the server can change or turn this off). Loaded smelters, kilns, furnaces, spinning wheels, windmills,
 fermenters, beehives, crops and regrowing plants carry on, and whoever logs in next finds the work done.
 
@@ -190,7 +190,7 @@ works exactly as vanilla does.
 
 - **Nothing runs all night.** The world clock only moves while someone is online, and every smelter, kiln, crop and
   fermenter measures progress against that clock. With nobody online, time stands still everywhere. This mod adds
-  up to an hour after the last logout; beyond that, nothing can progress.
+  up to an hour after the last logout by default (servers can allow up to four); beyond that, nothing can progress.
 - **Nothing refuels or empties itself.** Auto-fuel and auto-store mods run on players' computers and need a player
   nearby. With nobody near, a smelter only gets through what's already in it. Bigger stations get far more out of
   the empty-server hour (see [Pairs well with](#pairs-well-with)).
@@ -209,8 +209,8 @@ themselves.
 | | Zones in total | 108 | Across the whole server. |
 | | Admins ignore limits | On | Admin-placed observers don't count, and admins can switch any observer on. |
 | | Expire after hours without a refresh | 0 (never) | An observer nobody has switched on for this many real hours switches off. It's never deleted. |
-| 2 - Loading | Simulate tames in loaded zones | Off | On: the server runs tames in loaded bases while nobody is near, so pens keep breeding. See the risks below. |
-| 3 - Empty server | Empty-server window in minutes | 60 | How long the world clock keeps running after the last logout. 0 turns it off. |
+| 2 - Tamed Creatures | Simulate tames in loaded zones | Off | On: the server runs tames in loaded bases while nobody is near, so pens keep breeding. See the risks below. |
+| 3 - Empty server | Empty-server window in minutes | 60 | How long the world clock keeps running after the last logout, up to 240. 0 turns it off. |
 | 4 - Phantom spawner | Creature spawners | Spawner_imp_respawn | Which creature spawners a Phantom Spawner keeps running, by prefab name, comma-separated. |
 | | Spawner areas | On | Whether it also runs spawner areas. |
 | 5 - Despawn protection | Despawn protection | On | Keeps drops near production stations and phantoms in loaded zones. |
@@ -245,7 +245,8 @@ them: if one is installed it stays switched off and says so in the log.
 
 ## Known limits
 
-- **One hour at most** of offline production after the last logout, and only while an observer is on. Dedicated
+- **An hour at most by default** (up to four if the server sets it) of offline production after the last logout,
+  and only while an observer is on. Dedicated
   servers only: a local game ends when its host leaves.
 - **Windmills vary offline.** With nobody online, the server works out the wind at one fixed spot rather than at
   each windmill, so offline output can be higher or lower than you'd see in person.

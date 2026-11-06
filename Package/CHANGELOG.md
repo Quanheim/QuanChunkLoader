@@ -13,7 +13,7 @@ First release. A ground-up rewrite that replaces Frogger's ChunkLoader, ChunkLoa
   plant regrowth and creature commands work in loaded bases again, and nobody runs a base from far away.
 - **Boats at the edge of a loaded area stay afloat.**
 - **Buildings at the edge of a loaded area keep their support.**
-- **Up to an hour of production after the last player logs off**, in real time.
+- **Production after the last player logs off**, in real time: an hour by default, up to four.
 - **Despawn protection** for drops near production stations and phantoms.
 - **Wild creatures and tames wait** while nobody is near, by default.
 - **Objects from mods the server doesn't have are skipped, not deleted.**

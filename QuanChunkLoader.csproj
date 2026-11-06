@@ -8,7 +8,7 @@
     <Version>1.0.0</Version>
 
     <!-- Thunderstore manifest description: max 250 characters, no double quotes. -->
-    <ThunderstoreDescription>Chunk loader that keeps bases producing while you are away, hands ownership back to nearby players, keeps moored boats afloat, runs surtling farms and adds an hour of offline production. Replaces ChunkLoader and ChunkLoaderFix.</ThunderstoreDescription>
+    <ThunderstoreDescription>Chunk loader that keeps bases producing while you are away, even after the last logout, hands ownership back to nearby players, keeps moored boats afloat and runs surtling farms. Replaces ChunkLoader and ChunkLoaderFix.</ThunderstoreDescription>
     <!-- Becomes website_url in manifest.json: the Thunderstore page's link to the repo (and its Issues).
          Leave empty to use this repo's git remote automatically; set it only to point somewhere else. -->
     <RepoUrl></RepoUrl>

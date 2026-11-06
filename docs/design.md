@@ -52,7 +52,7 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Phantom Spawner | Allowlisted creature spawners (default surtlings) and spawner areas act as if a player stood at an active phantom. | Built 5 Nov |
 | Boat fix | Water readings from unloaded zones are replaced with the ship's centre reading while it runs on the server. | Built 5 Nov |
 | Despawn protection | Items within 8 m of a server-run station or 40 m of an active phantom in loaded zones don't time out. | Built 5 Nov |
-| Empty-server hour | With an observer on, the world clock keeps running in real time for up to 60 min after the last logout. | Built 5 Nov; dedicated server only |
+| Empty-server hour | With an observer on, the world clock keeps running in real time for up to 60 min after the last logout (admins can set 0–240). | Built 5 Nov; dedicated server only |
 | Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Built 5 Nov |
 | Map | Admins can show every observer on the map (personal setting); nobody else receives them. | Built 5 Nov |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
@@ -68,7 +68,8 @@ hour, the defensive patches); those are checked during the rollout.
 2. **Ownership always goes back to a player** who is near an object. The server holds an object only while no player is near it.
 3. **Boats stay afloat** in loaded areas.
 4. **Surtling farms keep spawning** without a player present.
-5. **Up to one real hour of offline production** after the last player logs off.
+5. **Up to one real hour of offline production** after the last player logs off (by default; admins can set up to
+   four hours, Quandru 6 Nov 2026).
 6. **Low overhead** and clean coexistence with large modpacks.
 7. **No player's game ever runs a loaded base it isn't near.** Only the server keeps a base running while nobody is there, so a player's client-side mods can never act on a base they've left.
 
@@ -149,9 +150,10 @@ Both observers:
 - **Hover text** shows on/off, the size it loads, and the builder's name. **Admins only** also see "Admin-placed" on observers an admin built. Other players never see it. The flag is stored on the observer (it has to survive restarts); it isn't secret data, just not displayed to non-admins.
 - **It can't be destroyed and monsters ignore it.** It isn't a target for AI (`StaticTarget`, `Piece.m_targetNonPlayerBuilt`), and a prefix on `WearNTear.RPC_Damage` blocks damage. Removing it with the hammer still works.
 - **Overlap is allowed.** Loaded zones form a set, so overlapping observers cost nothing extra. That lets a player add a single observer at a dock on the edge of a cluster's area.
-- **Edge rule and the two sizes:** wear, support and spawner areas only run where all 8 neighbours are loaded, so a
-  cluster's centre zone gets full vanilla wear and a single observer's zone never does. That's safe (edge pieces
-  just don't weather); it also means spawner areas only run in a cluster's centre zone.
+- **Edge rule and the two sizes:** wear and support only run where all 8 neighbours are loaded, so a cluster's
+  centre zone gets full vanilla wear and a single observer's zone never does. That's safe (edge pieces just don't
+  weather). **Spawner areas a phantom runs are the exception (Quandru, 6 Nov 2026):** they work anywhere in a loaded
+  zone, so phantoms work with a single observer and across a whole cluster, not only in its centre zone.
 
 ### Quan's Phantom Spawner (`Quan_PhantomSpawner`)
 
@@ -247,7 +249,7 @@ Timestamps include the UTC offset, as the diagnostic does, so they can be matche
 ## The empty-server hour
 
 **Behaviour:**
-- When the last player logs off and at least one observer is active, the world clock keeps advancing at normal speed for up to one real hour (configurable; 0 = off).
+- When the last player logs off and at least one observer is active, the world clock keeps advancing at normal speed for up to one real hour (configurable from 0 = off to 240 minutes, Quandru 6 Nov 2026).
 - Loaded smelters, kilns, blast furnaces, spinning wheels, windmills, fermenters, beehives, crops and regrowing plants then carry on as if a player were online.
 - After the hour the clock stops, as in vanilla. Anyone logging back in finds the work already done.
 
@@ -322,7 +324,9 @@ Nothing this mod does may permanently remove or damage anything. These rules hol
   eight neighbouring zones are forced too. Pieces at the edge of a loaded area then keep full support and don't
   weather, instead of checking their support without their neighbours and possibly collapsing. The same rule applies
   to crops dropping to the ground (`StaticPhysics`) and to `SpawnArea`, the other users of that check. With a 3x3
-  observer the centre zone gets full vanilla wear. The phantom's `SpawnArea` support must allow for this.
+  observer the centre zone gets full vanilla wear. **Exception:** a `SpawnArea` a phantom runs counts any point in a
+  forced zone as active (the phantom context records the spawner area's `m_triggerDistance`; the point must be in a
+  forced zone with an active phantom within that range), so phantoms aren't limited to a cluster's centre zone.
 - **Never claim an object that's in use** (an open chest, a station being used), and never claim near any player.
 - **Everything is logged by this mod.** The diagnostic plugin retires at 1.0, so all the logging needed to spot an
   ownership or loading problem lives in the mod itself (see [Logging](#logging)).
@@ -348,8 +352,8 @@ Settings are listed in the order they're bound.
 | | Zones in total | 108 (twelve clusters) | Enforced |
 | | Admins ignore limits | On | Enforced |
 | | Expire after hours without a refresh | 0 (never) | Enforced |
-| `2 - Loading` | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
-| `3 - Empty server` | Empty-server window in minutes | 60 (0 = off) | Enforced |
+| `2 - Tamed Creatures` | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
+| `3 - Empty server` | Empty-server window in minutes | 60 (0 = off, up to 240) | Enforced |
 | `4 - Phantom spawner` | Creature spawners | `Spawner_imp_respawn` | Enforced |
 | | Spawner areas | On | Enforced |
 | `5 - Despawn protection` | Despawn protection | On | Enforced |
@@ -361,7 +365,8 @@ Settings are listed in the order they're bound.
 `7 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
 **Gone (5 Nov 2026):** "Area size" (replaced by the two observer pieces) and the whole `6 - Pieces` section with
 "Stone cost" (costs are fixed: 10 Stone, 30 for the cluster, 10 for the phantom). The sections were renumbered to
-close the gap; nothing was released under the old names.
+close the gap, and `2 - Loading` became `2 - Tamed Creatures` (Quandru, 6 Nov 2026), since only the tame setting
+was left in it; nothing was released under the old names.
 
 - **Limits count zones, not observers (decided while building, 5 Nov 2026).** With two sizes, "observers per
   player" no longer measures load: a cluster loads nine times what a single one does. So each switched-on observer
@@ -421,7 +426,7 @@ Client config:
 4. **What no chunk loader can ever do:**
    - The world clock stops when nobody is online, so nothing runs all night.
    - Auto-fuel and auto-store need a player nearby, so offline production only uses what's already loaded.
-   - What this mod does instead: up to an hour of real-time production after the last logout.
+   - What this mod does instead: up to an hour (by default) of real-time production after the last logout.
 5. **Features:** the three pieces with costs and how to use them; ownership handback; boats; the phantom spawner; the empty-server hour; despawn protection; map and admin controls; the defensive fixes.
 6. **Dedication and credit (highlighted):**
    - Frogger had the original idea of a Valheim chunk loader.
@@ -431,7 +436,7 @@ Client config:
 8. **Recommended companions,** described by type only, not by name: conversion capacity and speed mods, auto-fuel, auto-store, with why each matters. Readers who want our picks can see them in "Tested with".
 9. **Tested with:** every mod and version from the live server's plugin list.
 10. **Migrating from an old chunk loader.**
-11. **Known limits:** windmill variability, one hour at most, and tames pause while nobody is near (with the config option to change that and its risks).
+11. **Known limits:** windmill variability, the empty-server window at most (an hour by default, up to four), and tames pause while nobody is near (with the config option to change that and its risks).
 
 ## Versioning
 

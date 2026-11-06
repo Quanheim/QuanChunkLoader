@@ -2,7 +2,7 @@
 
 A Valheim chunk loader for dedicated servers (BepInEx and Jotunn). It keeps bases loaded while players are
 elsewhere, hands object ownership back to whoever is nearby, keeps moored boats afloat at the edge of loaded
-areas, keeps surtling farms spawning, and gives up to an hour of production after the last player logs off.
+areas, keeps surtling farms spawning, and keeps production going for up to an hour (by default) after the last player logs off.
 
 - What it does and how to use it: [Package/README.md](Package/README.md) (the Thunderstore page).
 - **Where we are and what's next: [docs/design.md](docs/design.md#build-status)** ("Build status" at the top).

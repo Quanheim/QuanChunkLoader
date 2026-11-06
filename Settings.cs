@@ -25,7 +25,7 @@ namespace QuanChunkLoader
         internal static ConfigEntry<bool> AdminsIgnoreLimits;
         internal static ConfigEntry<int> ExpireAfterHours;
 
-        // 2 - Loading
+        // 2 - Tamed Creatures
         internal static ConfigEntry<bool> SimulateTames;
 
         // 3 - Empty server
@@ -77,8 +77,8 @@ namespace QuanChunkLoader
                          "never deleted; switching it on again restarts the count. 0 means never. Turning this on " +
                          "later starts every observer's count from that moment.", new AcceptableValueRange<int>(0, 8760)));
 
-            const string loading = "2 - Loading";
-            SimulateTames = config.Bind(loading, "Simulate tames in loaded zones", false,
+            const string tames = "2 - Tamed Creatures";
+            SimulateTames = config.Bind(tames, "Simulate tames in loaded zones", false,
                 Enforced("Off: tamed creatures in a loaded base pause while nobody is near, as they would without " +
                          "a chunk loader, and load normally when a player arrives. On: the server runs them, so " +
                          "pens keep breeding with nobody there. Risks: unattended pens can grow past their limits, " +
@@ -88,16 +88,15 @@ namespace QuanChunkLoader
             EmptyServerMinutes = config.Bind(empty, "Empty-server window in minutes", 60,
                 Enforced("After the last player logs off, the world clock keeps running for up to this many real " +
                          "minutes while at least one observer is on, so loaded bases finish their work. 0 turns it " +
-                         "off.", new AcceptableValueRange<int>(0, 60)));
+                         "off; at most 240 (4 hours).", new AcceptableValueRange<int>(0, 240)));
 
             const string phantom = "4 - Phantom spawner";
             PhantomCreatureSpawners = config.Bind(phantom, "Creature spawners", "Spawner_imp_respawn",
                 Enforced("Comma-separated prefab names of the creature spawners a Phantom Spawner keeps running. " +
                          "Spawner_imp_respawn is the surtling spawner."));
             PhantomSpawnAreas = config.Bind(phantom, "Spawner areas", true,
-                Enforced("Also keep spawner areas running (the kind that keeps a number of creatures around it). " +
-                         "They only run in the middle zone of a Chunk Observer Cluster, where every neighbouring " +
-                         "zone is loaded too."));
+                Enforced("Also keep spawner areas running (the kind that keeps a number of creatures around it), " +
+                         "anywhere in a loaded zone."));
 
             const string despawn = "5 - Despawn protection";
             DespawnProtection = config.Bind(despawn, "Despawn protection", true,
