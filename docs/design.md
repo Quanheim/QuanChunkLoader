@@ -125,17 +125,17 @@ build:
 - **Chunk Observer:** the single column. Loads its own zone (1×1, 64 × 64 m). 10 Stone.
 - **Chunk Observer Cluster:** three columns. Loads its own zone and the 8 around it (3×3, 192 × 192 m). 30 Stone.
   - **Look (Quandru, 6 Nov 2026):** three of the columns, 120 degrees apart, each with a flat (rune) face pointing
-    straight out, as close together as they can stand so only narrow V-seams show between them, on a shared round
-    two-step base under a shared round capital whose lips only just cover them. (The first build, 5 Nov, had a
-    corner of each pointing out; Quandru asked for flats.)
+    straight out, overlapping tightly around the middle (Quandru's sketch: the three squares share a triangle in the
+    centre), on a shared round two-step base under a shared round capital whose lips only just extend beyond the
+    corners. (The first builds had a corner of each pointing out, then a pinwheel of columns just touching; both
+    misread the request.)
   - **How it's built** (`ClusterModel`): the column mesh is readable, so the shaft alone is cut out of it at load
-    (triangles between 0.30 and 2.20 m of the 2.47 m column; the base and capital are dropped). Square columns
-    120 degrees apart with flats out can only close up as a pinwheel: each is shifted sideways by its half-width
-    (0.255 model units, before the 50% scale) and stands 0.255 out from the centre, so the three inner corners meet
-    in the middle and the seams between them are 30-degree Vs, the narrowest possible. Their outer corners reach
-    0.72; the lips above and below are 0.74. The round steps and capital are cylinders generated in code, textured
-    with the plain stone patch of the column's own texture (the capital's top face), so they match. Each column's
-    second rune face points into the middle.
+    (triangles between 0.30 and 2.20 m of the 2.47 m column; the base and capital are dropped). Each shaft stands
+    0.08 model units (before the 50% scale; about 15% of its width) out from the centre towards its outer rune face;
+    the shafts pass through each other in the middle, where nobody sees. Their outer corners reach 0.42; the lips
+    above and below are 0.44, the lower base step 0.56. The round steps and capital are cylinders generated in code,
+    textured with the plain stone patch of the column's own texture (the capital's top face), so they match. Each
+    column's second rune face is inside the cluster.
   - **Icon:** rendered from the model with Jotunn's `RenderManager` (skipped on a dedicated server, which has no
     graphics); the single column's icon is the fallback.
 
@@ -442,7 +442,7 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 | # | Check | Expected |
 |---|---|---|
 | 1 | The hammer's QuanPieces tab | Chunk Observer (10 Stone), Chunk Observer Cluster (30 Stone, its own icon), Phantom Spawner (10 Stone). |
-| 2 | Build a cluster | Three columns 120° apart, a flat rune face of each pointing out, close together with narrow V-seams between them, on one round base under one round capital whose lips just cover them; stone matches; no gaps. Red runes off, blue and lit on, on all three. |
+| 2 | Build a cluster | Three columns 120° apart, a flat rune face of each pointing out, overlapping in the middle, on one round base under one round capital whose lips only just extend beyond the corners; stone matches; no gaps. Red runes off, blue and lit on, on all three. |
 | 3 | Switch the cluster on, then a single observer elsewhere | Log: "now 9 zone(s)", then 10. Hover shows "3x3" and "1x1". |
 | 4 | Go far away, wait for a Summary, come back | Summary shows the zones and objects running on the server. |
 | 5 | Limits: set "Zones per player" to 9 and "Admins ignore limits" off, then switch both on | The second is refused with the per-player message. Put the settings back. |

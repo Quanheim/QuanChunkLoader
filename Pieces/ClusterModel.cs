@@ -5,10 +5,9 @@ namespace QuanChunkLoader
 {
     /// <summary>
     /// Builds the Chunk Observer Cluster's model from Frogger's column (docs/design.md, "Pieces"): three copies of
-    /// the column's shaft, 120 degrees apart with a rune face pointing straight out, packed as tightly as square
-    /// columns can be (a pinwheel: each is shifted sideways by its half-width, so the three inner corners meet in the
-    /// middle and only narrow V-seams show between them), on a shared round two-step base under a shared round
-    /// capital whose lips only just cover them. Measurements are in the model's own units, before the 50% scale on
+    /// the column's shaft, 120 degrees apart with a rune face pointing straight out, overlapping tightly around the
+    /// middle (Quandru's sketch, 6 Nov 2026), on a shared round two-step base under a shared round capital whose lips
+    /// only just extend beyond their corners. Measurements are in the model's own units, before the 50% scale on
     /// its parent (the original column is 2.47 m tall).
     /// </summary>
     internal static class ClusterModel
@@ -18,19 +17,19 @@ namespace QuanChunkLoader
         private const float ShaftBottom = 0.295f;
         private const float ShaftTop = 2.205f;
 
-        // Each shaft's centre, in its own direction's frame: out from the middle, and sideways by its half-width
-        // (0.255 including the stone's bumps). Worked out numerically (6 Nov 2026) as the closest the three can stand without overlapping.
-        private const float ColumnOut = 0.255f;
-        private const float ColumnSideways = 0.255f;
+        // Each shaft's centre stands this far out from the middle, towards its outer face: about 15% of its width,
+        // measured from Quandru's sketch. The shafts overlap in a triangle around the middle.
+        private const float ColumnOut = 0.08f;
+        private const float ColumnSideways = 0f;
 
-        // Round plinths: radius, bottom, top. The shafts' outer corners reach 0.72 from the centre, so the lips
-        // directly above and below them (0.74) only just cover them.
+        // Round plinths: radius, bottom, top. The shafts' half-width is 0.255 (with the stone's bumps), so their outer
+        // corners reach 0.42 from the centre; the lips directly above and below them (0.44) only just extend beyond.
         private static readonly Vector3[] Discs =
         {
-            new Vector3(0.86f, 0.00f, 0.15f), // lower base step
-            new Vector3(0.74f, 0.15f, 0.31f), // upper base step: the lip under the columns
-            new Vector3(0.74f, 2.19f, 2.37f), // capital: the lip over the columns
-            new Vector3(0.66f, 2.37f, 2.47f)  // capital's top step
+            new Vector3(0.56f, 0.00f, 0.15f), // lower base step
+            new Vector3(0.44f, 0.15f, 0.31f), // upper base step: the lip under the columns
+            new Vector3(0.44f, 2.19f, 2.37f), // capital: the lip over the columns
+            new Vector3(0.37f, 2.37f, 2.47f)  // capital's top step
         };
 
         // A plain stone patch of the column's texture: the capital's top face, inset from its edges.
