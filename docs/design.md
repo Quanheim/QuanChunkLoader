@@ -201,6 +201,12 @@ They stay exactly where they were and load normally when a player comes near.
 - The check reads the ZDO's prefab: anything with a `Character` that isn't tamed and isn't a player.
 - **Exception:** creatures spawned while the zone is loaded by a spawner the phantom keeps running (the phantom's
   allowlist, default surtlings) run as normal, so surtling farms work. They usually die in the farm's water at once.
+- **Spawners don't run in loaded zones without a phantom (Quandru, 6 Nov 2026).** No monster AI runs in loaded
+  zones except what a phantom drives, so the server skips the update of any creature spawner or spawner area it runs
+  in a forced zone unless an active phantom drives it (in a local game, also when the host is genuinely near).
+  Found while checking: a spawner area counts only creatures that are running, so one the server ran with a player
+  somewhere in its 256 m trigger range would spawn a creature, have it paused at once, and keep spawning more paused
+  creatures. Spawners outside forced zones, and spawners a player owns because they're near, are untouched.
 
 ## Tames
 

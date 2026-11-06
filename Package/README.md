@@ -129,8 +129,8 @@ production station's output and near an active Phantom Spawner are kept until so
 ### Wild creatures and tames wait for you
 
 - **Wild creatures** in a loaded base aren't loaded while nobody is near. No monsters wander through or attack an
-  empty base. They're exactly where they were when you come back. Creatures from spawners a Phantom Spawner keeps
-  running are the exception, so farms work.
+  empty base. They're exactly where they were when you come back. Spawners and nests in loaded zones don't run
+  either, unless a Phantom Spawner drives them; the creatures those make run as normal, so farms work.
 - **Tames** aren't loaded either, by default. They pause while nobody is near, exactly as without a chunk loader,
   and wake up as soon as a player arrives. This is deliberate: tame mods expect to act on tames near a player, and a
   base's tames run by the server (or by a player far away) is how whole pens have ended up somewhere else. Young
