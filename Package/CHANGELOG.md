@@ -1,21 +1,21 @@
 # Changelog
 
-## 1.0.0 - YYYY-MM-DD
+## 1.0.0 - 2026-11-06
 
 First release. A ground-up rewrite that replaces Frogger's ChunkLoader, ChunkLoader Continued and ChunkLoaderFix.
 
 - **Chunk Observer** (one zone) and **Chunk Observer Cluster** (the 3 × 3 zones around it): keep their zones loaded
   on the server while switched on. They use Frogger's original model, dedicated to him. Only the builder or an
-  admin can switch one.
-- **Phantom Spawner:** keeps surtling farms (and other allowed spawners) running with nobody near, inside loaded
-  zones.
+  admin can switch one, and either can show the zones it covers.
+- **Phantom Spawner:** keeps surtling farms (and other spawners admins allow) running with nobody near, inside loaded
+  zones. A reference list of every spawner in the game, other mods' included, is written next to the config.
 - **Ownership goes to whoever is nearby**, and the server only runs what no player is near. Auto-fuel, auto-store,
   plant regrowth and creature commands work in loaded bases again, and nobody runs a base from far away.
-- **Boats at the edge of a loaded area stay afloat.**
-- **Buildings at the edge of a loaded area keep their support.**
 - **Production after the last player logs off**, in real time: an hour by default, up to four.
+- **Tames can keep breeding and growing** with nobody near, if the server turns it on.
 - **Despawn protection** for drops near production stations and phantoms.
-- **Wild creatures and tames wait** while nobody is near, by default.
+- **Boats at the edge of a loaded area stay afloat**, and **buildings at the edge keep their support.**
+- **Wild creatures and spawners wait** while nobody is near.
 - **Objects from mods the server doesn't have are skipped, not deleted.**
 - Limits counted in zones (per player and in total), expiry, admin-only building, an admin map of observers, and
   server logging.

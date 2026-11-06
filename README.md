@@ -17,8 +17,7 @@ areas, keeps surtling farms spawning, and keeps production going for up to an ho
 
 ## Status
 
-Not yet released. Everything planned for 1.0 is built and passed its single-player check (6 Nov 2026). Next: rework
-the Thunderstore page, publish 1.0.0, then roll it out on the live server. Details in
+**1.0.0 released on 6 Nov 2026** (tag `v1.0.0`). Next: the live rollout on the Quanheim server. Details in
 [docs/design.md](docs/design.md#build-status).
 
 ## Code
