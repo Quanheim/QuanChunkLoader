@@ -9,8 +9,8 @@ namespace QuanChunkLoader
 {
     /// <summary>
     /// Quan's Phantom Spawner (docs/design.md, "Pieces"): makes the spawners around it act as if a player stood
-    /// there, inside zones a Chunk Observer keeps loaded. Look: the vanilla ward's model at 25%, tar-black, with its
-    /// rune lines glowing red. Only the look comes across: the ward's PrivateArea, its area marker and anything else that would
+    /// there, inside zones a Chunk Observer keeps loaded. Look: the vanilla ward's model at 25%, in grey stone, with its
+    /// rune lines glowing red, on a small round stone plinth. Only the look comes across: the ward's PrivateArea, its area marker and anything else that would
     /// make it act as a ward are removed (audited in Strip, and logged at Debug).
     /// </summary>
     internal static class PhantomPiece
@@ -22,7 +22,8 @@ namespace QuanChunkLoader
         private const string WardPrefab = "guard_stone";
         private const float ModelScale = 0.25f;
         private static readonly Color Glow = new Color(1f, 0.15f, 0.1f);
-        private static readonly Color TarBlack = new Color(0.16f, 0.14f, 0.13f); // multiplies the ward's own texture
+        private static readonly Color StoneTint = new Color(0.86f, 0.87f, 0.88f); // a cool grey, like the observers' stone
+        private static readonly int MainTex = Shader.PropertyToID("_MainTex");
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
         private static readonly int EmissionMap = Shader.PropertyToID("_EmissionMap");
 
@@ -196,13 +197,16 @@ namespace QuanChunkLoader
         }
 
         /// <summary>
-        /// Quandru's look (6 Nov 2026): the body tar-black, like darkwood and the tarred shingle roof, and only the
-        /// ward's rune lines glowing red. The ward lights its runes by switching on its material's emission
-        /// (PrivateArea: "_EMISSION"), and only the lines are painted on its emission map, so the red goes there.
-        /// A material without an emission map gets no glow (glowing it would turn the whole surface red).
+        /// Quandru's look (6 Nov 2026): the ward's carved wooden Odin statue turned to grey stone, matching the
+        /// observers' stone, with only its rune lines glowing red. The ward's materials (Guardstone_Oden_mat and
+        /// Guardstone_OdenGlow_mat, read from the game's bundle) share the wood texture OdenStatue_d; a stone-grey
+        /// copy of it replaces it, so the carving and the UV layout stay exactly as they were. The rune lines are
+        /// on the glow material's emission map (OdenStatue_e), which PrivateArea lights with "_EMISSION"; the red
+        /// goes there. A material without an emission map gets no glow (it would turn the whole surface red).
         /// </summary>
         private static void Redden(GameObject prefab)
         {
+            var stone = new Dictionary<Texture, Texture>();
             var copies = new Dictionary<Material, Material>();
             foreach (var renderer in prefab.GetComponentsInChildren<Renderer>(true))
             {
@@ -217,9 +221,18 @@ namespace QuanChunkLoader
                     if (!copies.TryGetValue(m, out var copy))
                     {
                         copy = new Material(m) { name = m.name + "_phantom" };
-                        if (copy.HasProperty("_Color"))
+                        var wood = copy.HasProperty(MainTex) ? copy.GetTexture(MainTex) : null;
+                        if (wood != null)
                         {
-                            copy.color = TarBlack;
+                            if (!stone.TryGetValue(wood, out var grey))
+                            {
+                                grey = StoneCopy(wood);
+                                stone[wood] = grey;
+                            }
+                            if (grey != null)
+                            {
+                                copy.SetTexture(MainTex, grey);
+                            }
                         }
                         var glowMap = copy.HasProperty(EmissionMap) ? copy.GetTexture(EmissionMap) : null;
                         if (glowMap != null && copy.HasProperty(EmissionColor))
@@ -231,13 +244,69 @@ namespace QuanChunkLoader
                         {
                             copy.DisableKeyword("_EMISSION");
                         }
-                        Log.Debug($"Phantom Spawner: material '{m.name}' ({m.shader?.name}) tar-black" +
+                        Log.Debug($"Phantom Spawner: material '{m.name}' ({m.shader?.name}) in stone" +
                                   (glowMap != null ? $", red glow on its emission map '{glowMap.name}'." : ", no emission map."));
                         copies[m] = copy;
                     }
                     materials[i] = copy;
                 }
                 renderer.sharedMaterials = materials;
+            }
+        }
+
+        /// <summary>
+        /// A stone-grey copy of a texture: each pixel's brightness, tinted towards the observers' grey stone, with
+        /// its alpha kept. The game's textures aren't CPU-readable, so it's copied through a render texture. Null on
+        /// a dedicated server (no graphics, and nobody to see it) or if anything fails; the wood then stays.
+        /// </summary>
+        private static Texture StoneCopy(Texture source)
+        {
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+            {
+                return null;
+            }
+            var active = RenderTexture.active;
+            RenderTexture rt = null;
+            try
+            {
+                rt = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.ARGB32,
+                    RenderTextureReadWrite.sRGB);
+                Graphics.Blit(source, rt);
+                RenderTexture.active = rt;
+                var grey = new Texture2D(source.width, source.height, TextureFormat.RGBA32, true)
+                {
+                    name = source.name + "_stone",
+                    wrapMode = source.wrapMode,
+                    filterMode = source.filterMode,
+                    anisoLevel = source.anisoLevel
+                };
+                grey.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
+                var pixels = grey.GetPixels32();
+                for (var i = 0; i < pixels.Length; i++)
+                {
+                    var p = pixels[i];
+                    // Brightness, matched to the observers' stone (checked against both textures, 6 Nov 2026).
+                    var lum = (0.30f * p.r + 0.59f * p.g + 0.11f * p.b) / 255f;
+                    var v = Mathf.Clamp01(0.08f + lum * 0.85f);
+                    pixels[i] = new Color32(
+                        (byte)(v * StoneTint.r * 255f), (byte)(v * StoneTint.g * 255f), (byte)(v * StoneTint.b * 255f), p.a);
+                }
+                grey.SetPixels32(pixels);
+                grey.Apply(true, true);
+                return grey;
+            }
+            catch (System.Exception e)
+            {
+                Log.Warning($"Phantom Spawner: couldn't make a stone copy of '{source.name}', so it stays wood: {e.Message}");
+                return null;
+            }
+            finally
+            {
+                RenderTexture.active = active;
+                if (rt != null)
+                {
+                    RenderTexture.ReleaseTemporary(rt);
+                }
             }
         }
     }

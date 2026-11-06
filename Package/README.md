@@ -86,8 +86,8 @@ player were standing where the phantom is, so a surtling farm keeps producing wh
 > use. It reads them from the game itself, so **spawners added by other mods are included too**, and the list
 > keeps up as you add mods. Copy names from it into "Creature spawners", separated by commas.
 
-- It looks like a small tar-black ward with glowing red runes on a round stone plinth, but it isn't one: it
-  doesn't protect anything or control access.
+- It looks like a small stone ward with glowing red runes on a round stone plinth, but it isn't one: it doesn't
+  protect anything or control access.
 - No fuel, no map pin, and it can't be damaged.
 - Surtlings that spawn into water die at once, so a farm built over water keeps producing coal. You still need to
   come and collect it; despawn protection keeps the drops waiting for you.
