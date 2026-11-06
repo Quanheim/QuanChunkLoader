@@ -9,8 +9,8 @@ namespace QuanChunkLoader
 {
     /// <summary>
     /// Quan's Phantom Spawner (docs/design.md, "Pieces"): makes the spawners around it act as if a player stood
-    /// there, inside zones a Chunk Observer keeps loaded. Placeholder look: the vanilla ward's model at 25% with a
-    /// red glow. Only the look comes across: the ward's PrivateArea, its area marker and anything else that would
+    /// there, inside zones a Chunk Observer keeps loaded. Look: the vanilla ward's model at 25%, tar-black, with its
+    /// rune lines glowing red. Only the look comes across: the ward's PrivateArea, its area marker and anything else that would
     /// make it act as a ward are removed (audited in Strip, and logged at Debug).
     /// </summary>
     internal static class PhantomPiece
@@ -22,7 +22,9 @@ namespace QuanChunkLoader
         private const string WardPrefab = "guard_stone";
         private const float ModelScale = 0.25f;
         private static readonly Color Glow = new Color(1f, 0.15f, 0.1f);
+        private static readonly Color TarBlack = new Color(0.16f, 0.14f, 0.13f); // multiplies the ward's own texture
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int EmissionMap = Shader.PropertyToID("_EmissionMap");
 
         private const string Description =
             "Makes nearby creature spawners act as if a player were standing here, so a surtling farm keeps " +
@@ -147,7 +149,12 @@ namespace QuanChunkLoader
             }
         }
 
-        /// <summary>Red glowing copies of the ward's materials, and a small red light.</summary>
+        /// <summary>
+        /// Quandru's look (6 Nov 2026): the body tar-black, like darkwood and the tarred shingle roof, and only the
+        /// ward's rune lines glowing red. The ward lights its runes by switching on its material's emission
+        /// (PrivateArea: "_EMISSION"), and only the lines are painted on its emission map, so the red goes there.
+        /// A material without an emission map gets no glow (glowing it would turn the whole surface red).
+        /// </summary>
         private static void Redden(GameObject prefab)
         {
             var copies = new Dictionary<Material, Material>();
@@ -164,31 +171,28 @@ namespace QuanChunkLoader
                     if (!copies.TryGetValue(m, out var copy))
                     {
                         copy = new Material(m) { name = m.name + "_phantom" };
-                        if (copy.HasProperty(EmissionColor))
-                        {
-                            copy.EnableKeyword("_EMISSION");
-                            copy.SetColor(EmissionColor, Glow * 1.5f);
-                        }
                         if (copy.HasProperty("_Color"))
                         {
-                            copy.color = Color.Lerp(copy.color, Glow, 0.35f);
+                            copy.color = TarBlack;
                         }
+                        var glowMap = copy.HasProperty(EmissionMap) ? copy.GetTexture(EmissionMap) : null;
+                        if (glowMap != null && copy.HasProperty(EmissionColor))
+                        {
+                            copy.EnableKeyword("_EMISSION");
+                            copy.SetColor(EmissionColor, Glow * 2f);
+                        }
+                        else
+                        {
+                            copy.DisableKeyword("_EMISSION");
+                        }
+                        Log.Debug($"Phantom Spawner: material '{m.name}' ({m.shader?.name}) tar-black" +
+                                  (glowMap != null ? $", red glow on its emission map '{glowMap.name}'." : ", no emission map."));
                         copies[m] = copy;
                     }
                     materials[i] = copy;
                 }
                 renderer.sharedMaterials = materials;
             }
-
-            var light = new GameObject("phantom_light");
-            light.transform.SetParent(prefab.transform, false);
-            light.transform.localPosition = new Vector3(0f, 0.6f, 0f);
-            var l = light.AddComponent<Light>();
-            l.type = LightType.Point;
-            l.color = Glow;
-            l.range = 3f;
-            l.intensity = 1.2f;
-            l.shadows = LightShadows.None;
         }
     }
 }
