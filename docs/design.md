@@ -59,7 +59,7 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Zone grid | Looking at an observer and tapping AltPlace (or AltPlace + Use) draws the zones it loads for 15 s. | Checked (1x1 and 3x3) |
 | Spawner reference list | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt`: every creature spawner in the game, for the phantom's list. | Checked |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
-| Release | **First (Quandru, 6 Nov 2026): reorder, rewrite and add spoiler (collapsible) blocks to the Thunderstore page, `Package/README.md`; Quandru doesn't find the current one compelling.** Then regenerate "Tested with" from the live profile, date the changelog, publish 1.0.0. | To do |
+| Release | **First (Quandru, 6 Nov 2026): reorder, rewrite and add spoiler (collapsible) blocks to the Thunderstore page, `Package/README.md`; Quandru doesn't find the current one compelling.** Then regenerate "Tested with" from the live profile, date the changelog, publish 1.0.0. The package depends on BepInExPack 5.4.2360 (from the recreated QuanChunkLoader profile, 6 Nov 2026): check the server's shared profile has it or later. | To do |
 
 **Single-player check of the full build: passed on 6 Nov 2026**, every step including a surtling farm run by a
 phantom while away (screenshots in `docs/images`). Found while answering a question afterwards: despawn protection
