@@ -140,19 +140,10 @@ farm over water and the coal piles up while you're away.
 
 ## What else it does
 
-- **Lets your tames keep breeding and growing while you're away**, if you choose. Turn on "Simulate tames in
-  loaded zones" and the server runs the tamed animals in a loaded base while nobody is near, just as if a
-  player were standing there:
-  - **They carry on as normal:** eating from their troughs, breeding, having young, healing and wandering their pens.
-  - **Their young grow up** on time.
-  - **It keeps going while anyone is online**, and through the time after the last logout; after that the world clock
-    stops for everything.
-  - **Taming new animals doesn't continue:** wild creatures in a loaded base stay paused until someone comes back.
-  - **Keep an eye on pen sizes.** With nobody watching, a pen can breed well past the numbers you'd normally see, and
-    any tame mod's feeding and breeding code runs on the server.
-
-  It's off by default. Then tames simply pause while nobody is near, as they would without a chunk loader, and carry
-  on when a player arrives; young ones still grow up on time, because growing up catches up.
+- **Tames can keep breeding and growing while you're away.** Turn on "Simulate tames in loaded zones" and the
+  server runs a loaded base's tames as if you were there: they eat, breed, heal and their young grow up. Taming wild
+  animals doesn't continue, and pens can outgrow what you're used to, so keep an eye on them. Off by default, tames
+  simply pause until you're back.
 - **The nearest player always runs things.** Walk into a loaded base and your game takes over everything around you
   within about 2 seconds, exactly as without a chunk loader, so auto-fuel, auto-store, plant timers and creature
   commands all work. Leave, and the server takes over. Nobody runs a base from the other side of the map, and
