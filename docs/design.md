@@ -1,7 +1,7 @@
 # Quan's Chunk Loader: design
 
 Status: design agreed on 2026-10-25. Core built on 2026-11-04; the rest of 1.0 built on 2026-11-05. **Everything passed
-its single-player check on 2026-11-06, and 1.0.0 was released (tagged) the same day.** Next: upload to Thunderstore, then roll out. See
+its single-player check on 2026-11-06, and 1.0.0 was released and uploaded to Thunderstore the same day.** Next: the live rollout. See
 [Build status](#build-status).
 Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
 
@@ -59,16 +59,14 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Zone grid | Looking at an observer and tapping AltPlace (or AltPlace + Use) draws the zones it loads for 15 s. | Checked (1x1 and 3x3) |
 | Spawner reference list | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt`: every creature spawner in the game, for the phantom's list. | Checked |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
-| Release | Thunderstore page reworked into a pitch with a collapsible block (see [README outline](#readme-outline)), changelog dated, **1.0.0 built, tagged `v1.0.0` and pushed on 6 Nov 2026.** The package depends on BepInExPack 5.4.2360 and Jotunn 2.30.2: check the server's shared profile has them or later. Upload to Thunderstore is Quandru's. | Done; upload pending |
+| Release | Thunderstore page reworked into a pitch with a collapsible block (see [README outline](#readme-outline)), changelog dated, **1.0.0 built, tagged `v1.0.0` and pushed on 6 Nov 2026.** The package depends on BepInExPack 5.4.2360 and Jotunn 2.30.2: check the server's shared profile has them or later. Quandru uploaded it to Thunderstore the same day. | Done |
 
 **Single-player check of the full build: passed on 6 Nov 2026**, every step including a surtling farm run by a
 phantom while away (screenshots in `docs/images`). Found while answering a question afterwards: despawn protection
 only ran on the server, so a player arriving more than 25 m from an hour-old pile would have lost it; now fixed on
 players' games too (a rollout check, since single player can't show it).
 
-**Next:**
-1. **Quandru uploads** `dist/Quandru-QuanChunkLoader-1.0.0.zip` to Thunderstore (team Quandru, Valheim community).
-2. **Live rollout** per [Test plan for the real mod](#test-plan-for-the-real-mod): back up the world, swap the old
+**Next:** the **live rollout** (1.0.0 is on Thunderstore since 6 Nov 2026) per [Test plan for the real mod](#test-plan-for-the-real-mod): back up the world, swap the old
    loader out on the server and every client at once, start cautious ("Only admins can build" on, empty-server
    window 0), and turn on "Simulate tames in loaded zones" for Quanheim (decided 2 Nov).
 
