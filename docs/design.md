@@ -455,17 +455,19 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 
 | # | Check | Expected |
 |---|---|---|
+| 0 | Before starting: delete `BepInEx/config/quandru.QuanChunkLoader.cfg` in the test profile | It comes back clean with sections 0–7 (`2 - Tamed Creatures`, empty-server slider up to 240, "Spawner areas" off). |
 | 1 | The hammer's QuanPieces tab | Chunk Observer (10 Stone), Chunk Observer Cluster (30 Stone, its own icon), Phantom Spawner (10 Stone). |
-| 2 | Build a cluster | Three columns 120° apart, a flat rune face of each pointing out, overlapping in the middle, on one round base under one round capital whose lips only just extend beyond the corners; stone matches; no gaps. Red runes off, blue and lit on, on all three. |
-| 3 | Switch the cluster on, then a single observer elsewhere | Log: "now 9 zone(s)", then 10. Hover shows "3x3" and "1x1". |
-| 4 | Go far away, wait for a Summary, come back | Summary shows the zones and objects running on the server. |
-| 5 | Limits: set "Zones per player" to 9 and "Admins ignore limits" off, then switch both on | The second is refused with the per-player message. Put the settings back. |
+| 2 | Build a cluster | Three columns 120° apart, a lit rune face of each pointing straight out, overlapping in the middle and evenly spaced (outer faces would form an equilateral triangle); one round base and capital whose lips only just pass the corners; stone matches. Red runes off, blue and lit on, on all three. |
+| 3 | Switch the cluster on, then a single observer in another zone | Log: "now 9 zone(s)", then 10. Hover shows "3x3" and "1x1". |
+| 4 | Go far away, wait for a Summary, come back | Summary shows the zones and objects running on the server; nothing missing or doubled on return. |
+| 5 | Limits: "Zones per player" 9, "Admins ignore limits" off, then switch both observers on | The second is refused with the per-player message. Put the settings back. |
 | 6 | Build a Phantom Spawner outside any loaded zone | Small red-glowing ward; hover "Dormant: no active chunk observer". It isn't a ward: no area ring, no access list. |
-| 7 | Move it inside a switched-on observer's zone (or switch one on near it) | Hover changes to "Active"; log "Phantom spawner … is now active". |
-| 8 | Surtling farm, if one is handy | With a phantom in a cluster's zone and you far away, surtlings keep spawning (log at Debug: "Phantom-run spawner made …"). |
-| 9 | "Show observers on the map" on | Pins for every observer, lit or unlit, labelled with size and builder. Off removes them. |
-| 10 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |
-| 11 | The log | No errors from the mod; Debug lines list what was stripped from the ward clone. |
+| 7 | Phantom inside a switched-on single observer's zone | Hover "Active"; log "Phantom spawner … is now active". |
+| 8 | Surtling farm, if one is handy | With a phantom in the loaded zone and you far away, surtlings keep spawning. |
+| 9 | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt` | Lists creature spawners only, with what each spawns; `Spawner_imp_respawn` marked `[in use]`. |
+| 10 | "Show observers on the map" on | Pins for every observer, lit or unlit, labelled with size and builder. Off removes them. |
+| 11 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |
+| 12 | The log | No errors from the mod. |
 
 
 **Tested on the live server.** There's no separate test server: this is a hobby, and the mod is a luxury the server
