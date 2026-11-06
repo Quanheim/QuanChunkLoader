@@ -93,8 +93,10 @@ namespace QuanChunkLoader
             const string phantom = "4 - Phantom spawner";
             PhantomCreatureSpawners = config.Bind(phantom, "Creature spawners", "Spawner_imp_respawn",
                 Enforced("Comma-separated prefab names of the creature spawners a Phantom Spawner keeps running. " +
-                         "Spawner_imp_respawn is the surtling spawner. Anything added here runs its monsters on " +
-                         "the server while nobody is near, and they can attack the base."));
+                         "Spawner_imp_respawn is the surtling spawner. Every spawner name in your game, including " +
+                         "other mods', is listed in quandru.QuanChunkLoader.spawners.txt next to this file " +
+                         "(written when the game starts). Anything added here runs its monsters on the server " +
+                         "while nobody is near, and they can attack the base."));
             PhantomSpawnAreas = config.Bind(phantom, "Spawner areas", false,
                 Enforced("Also keep spawner areas running (nests and bone piles: the kind that keeps a number of " +
                          "creatures around it), anywhere in a loaded zone. Their monsters run on the server while " +

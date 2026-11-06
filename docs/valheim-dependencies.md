@@ -29,7 +29,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `StaticPhysics.SUpdate` | Prefix and Finalizer (`EdgeRuleContext`) | Scoped flag for the edge rule. | Still asks `OutsideActiveArea`? |
 | `SpawnArea.UpdateSpawn` | Prefix and Finalizer (`EdgeRuleContext`) | Scoped flag for the edge rule. | Still asks `OutsideActiveArea`? |
 | `WearNTear.RPC_Damage` | Prefix (`ObserverTakesNoDamage`) | Observers and phantoms take no damage. | Still the damage entry point for pieces? |
-| `Game.Start` | Postfix (`RegisterRpcs`) | Registers the mod's routed RPCs each session. | Still runs once per session after `ZRoutedRpc` exists? |
+| `Game.Start` | Postfix (`RegisterRpcs`, `WriteSpawnerReference`) | Registers the mod's routed RPCs each session, and writes the spawner reference list. | Still runs once per session after `ZRoutedRpc` exists? |
 | `ItemDrop.TimedDestruction` | Prefix (`DespawnProtection`) | On the server, skips the hour-old check for an item in a forced zone within 8 m of a server-run station or 40 m of an active phantom. | Still the only despawn path for dropped items? Still private, no parameters? |
 | `Player.IsPlayerInRange` | Postfix (`PhantomCountsAsPlayer`), overloads `(Vector3, float)` and `(Vector3, float, float)` | Inside the phantom context only: an active phantom within `range` of `point` counts as a player. Parameters `point`, `range`. | Overloads or parameter names changed? Do spawners still use these two? |
 | `CreatureSpawner.UpdateSpawner` | Prefix (skips) and Finalizer (`PhantomCreatureSpawnerContext`) | Phantom context for allowlisted creature spawners (by prefab name). On the server in a forced zone, skips the update unless an active phantom within `m_triggerDistance` drives it. | Still checks `Player.IsPlayerInRange` with `m_triggerDistance`? Still spawns inside this update? |
@@ -94,7 +94,6 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Character` | A prefab with a `Character` that isn't tamed or a player is a wild creature, not loaded in forced zones. |
 | `Player` | Players load as in vanilla, and are never claimed. |
 | `Ship`, `Container`, `Smelter`, `Fermenter`, `Beehive`, `CookingStation`, `SapCollector`, `ItemDrop`, `Pickable`, `Plant`, `Piece` | Categories in log lines. |
-| `ZNetScene.m_prefabs` | *Diagnostic:* startup report. |
 | `ZNet.GetSyncedSimulationDistance` | *Diagnostic:* players' vanilla area size. |
 | `ZNet.GetTime` | *Diagnostic:* world clock. |
 | `ZNet.GetTimeSeconds` | *Diagnostic:* world clock in logs. |
@@ -108,6 +107,9 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `EnvMan.GetWindIntensity` | *Diagnostic:* wind on an empty server. |
 | `Utils.GetPrefabName` | Prefab names in logs; matching creature spawners against the phantom allowlist. |
 | `Pickable.GetPicked` | The pick fix only acts on unpicked plants. |
+| `ZNetScene.m_prefabs` | The spawner reference list: every prefab with a `CreatureSpawner` or `SpawnArea`. *Diagnostic* too: startup report. |
+| `CreatureSpawner` | The reference list reads `m_creaturePrefab`, `m_respawnTimeMinuts` and `m_triggerDistance`. |
+| `SpawnArea` | The reference list reads `m_prefabs` (`SpawnData.m_prefab`). |
 | `Piece.m_enabled` | Admin-only building hides this mod's pieces from non-admins' hammers. |
 | `Minimap.AddPin` | Admin map pins (type `Icon3`, not saved). |
 | `Minimap.RemovePin` | Removing the admin map pins before redrawing. |

@@ -74,7 +74,9 @@ player were standing where the phantom is, so a surtling farm keeps producing wh
 - **It only works inside a zone a switched-on Chunk Observer keeps loaded.** Its hover text says "Active" there,
   and "Dormant: no active chunk observer" anywhere else.
 - **It drives surtling spawners.** Admins can add other spawners, and nests and bone piles, in the config, but
-  then those monsters run on the server while nobody is there and can attack the base.
+  then those monsters run on the server while nobody is there and can attack the base. The mod writes
+  `quandru.QuanChunkLoader.spawners.txt` next to its config file, listing every spawner in your game (other mods'
+  too) with what each spawns, so you can copy the names.
 - It looks like a small ward glowing red, but it isn't one: it doesn't protect anything or control access.
 - No fuel, no map pin, and it can't be damaged.
 - Surtlings that spawn into water die at once, so a farm built over water keeps producing coal. You still need to
