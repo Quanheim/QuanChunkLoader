@@ -56,7 +56,7 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Built 5 Nov |
 | Map | Admins can show every observer on the map (personal setting); nobody else receives them. | Built 5 Nov |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
-| Release | Regenerate "Tested with" in `Package/README.md` from the live profile after the rollout; add a screenshot of the cluster's build card (the single observer's is in); date the changelog; publish 1.0.0. | To do |
+| Release | Regenerate "Tested with" in `Package/README.md` from the live profile after the rollout;  date the changelog; publish 1.0.0. | To do |
 
 **Next:** a short single-player check of the new parts (see [Test plan](#test-plan-for-the-real-mod)), then
 publish and roll out. Several parts only show on a dedicated server (ownership between players, the empty-server
@@ -110,7 +110,7 @@ Two more facts limit what any chunk loader can do:
   the same on each observer's own material copy. The light comes on only while on. The bundle's `sparcs` particles
   don't visibly show; Quandru doesn't need them.
 - Ship the bundle as an embedded resource. **Found when building (4 Nov 2026):** the bundle's `ChunkLoader_stone` prefab carries only vanilla scripts (`ZNetView`, `Piece`, `WearNTear`, `LightLod`); the old mod adds its `ChunkLoaderMono` in code. So both observers are clones of that prefab, renamed and set up by our code, with no missing-script warnings. Built with Unity 6000.0.72; the game runs 6000.0.75.
-- **Dedication on the build card (Quandru, 4 Nov 2026):** the single observer's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute." The cluster isn't his model as he made it, so its card says (Quandru, 6 Nov 2026): "Dedicated to Frogger, who first brought chunk loading to Valheim. Our own adaptation of his original chunk loader model, in its style, as a tribute." The single observer's card in game, 6 Nov 2026 ([docs/images/observer-card.png](images/observer-card.png)):
+- **Dedication on the build card (Quandru, 4 Nov 2026):** the single observer's description ends with a short line dedicating the model to Frogger: "Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute." The cluster isn't his model as he made it, so its card says (Quandru, 6 Nov 2026): "Dedicated to Frogger, who first brought chunk loading to Valheim. Our own adaptation of his original chunk loader model, in its style, as a tribute." The single observer's card in game, 6 Nov 2026 ([docs/images/observer-card.png](images/observer-card.png); the cluster's is `cluster-card.png`, the phantom's `phantom-card.png`, and in-game pictures `observers.png` and `phantom.png`, all on the Thunderstore page):
 
   <img src="images/observer-card.png" alt="The Chunk Observer's build card in game: keeps its own zone loaded, with the dedication to Frogger and a cost of 10 Stone" width="480">
 - MIT requires the copyright and licence notice in copies, so `THIRD-PARTY-NOTICES.md` is in the repo root and in `Package/` (which ships in the Thunderstore zip).

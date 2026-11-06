@@ -39,7 +39,14 @@ base (they don't stop monsters spawning nearby).
 
 ### Chunk Observer and Chunk Observer Cluster
 
-<p><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observer-card.png" alt="The Chunk Observer's build card: a carved stone column. Keeps its own zone loaded while switched on, so your base keeps working while you're elsewhere. Nearby players still own everything as usual. Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute. Costs 10 Stone." width="480"></p>
+<p><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observers.png" alt="A Chunk Observer switched off, its runes glowing red, beside a Chunk Observer Cluster switched on: three stone columns on a round base under a round capital, their runes glowing blue and lighting the ground" width="560"></p>
+
+<table>
+<tr>
+<td><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/observer-card.png" alt="Build card: Quan's Chunk Observer. Keeps its own zone loaded while switched on, so your base keeps working while you're elsewhere. Nearby players still own everything as usual. Dedicated to Frogger, who first brought chunk loading to Valheim. This is his original chunk loader model, used as a tribute. Costs 10 Stone." width="400"></td>
+<td><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/cluster-card.png" alt="Build card: Quan's Chunk Observer Cluster. Keeps the 3x3 zones around it loaded while switched on, so a large base keeps working while you're elsewhere. Nearby players still own everything as usual. Dedicated to Frogger, who first brought chunk loading to Valheim. Our own adaptation of his original chunk loader model, in its style, as a tribute. Costs 30 Stone." width="400"></td>
+</tr>
+</table>
 
 The world is divided into zones 64 m square. While an observer is switched on, the server keeps its zones loaded,
 so everything there keeps working with nobody nearby. There are two, so you can match the observer to the base:
@@ -67,6 +74,13 @@ so everything there keeps working with nobody nearby. There are two, so you can 
   near the middle of your base and its 3 × 3 block covers the zones all around.
 
 ### Phantom Spawner
+
+<table>
+<tr>
+<td><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/phantom.png" alt="The Phantom Spawner: a small grey stone Odin statue with glowing red rune lines, on a round two-step stone plinth" width="220"></td>
+<td><img src="https://raw.githubusercontent.com/Quanheim/QuanChunkLoader/main/docs/images/phantom-card.png" alt="Build card: Quan's Phantom Spawner. Makes nearby creature spawners act as if a player were standing here, so a surtling farm keeps producing while you're away. Only works inside zones a switched-on Chunk Observer keeps loaded. Costs 10 Stone." width="400"></td>
+</tr>
+</table>
 
 | Cost | Crafting station | Range |
 |---|---|---|
