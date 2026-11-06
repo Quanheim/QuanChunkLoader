@@ -171,7 +171,7 @@ names them in the log instead, so a mod missing from the server can't wipe out w
 
 ### Map and admin tools
 
-- **Admins can see every observer on the map**, lit when it's on, labelled with its size and builder. It's off by
+- **Admins can see every observer on the map** as an icon, lit when it's on. It's off by
   default; turn on "Show observers on the map" in the config. Other players never receive anyone else's observers.
 - **Admins see "Admin-placed"** when hovering over an observer an admin built.
 - **Admin-only building** can be switched on, which hides all three pieces from other players' hammers. Useful for

@@ -395,7 +395,7 @@ was left in it; nothing was released under the old names.
 - **Expiry** counts real hours, because the world clock stops on an empty server. Switching an observer on restarts its countdown (stored on the observer as real UTC time). Turning expiry on later (or at a server start with it on) starts every switched-on observer's countdown from that moment, so nothing expires instantly. An expired observer is switched off, never deleted, and the server checks once a minute.
 
 Client config:
-- **Show observers on the map (admins only, personal):** off by default. When on, every observer in the world is shown, with Frogger's active and inactive icons and a label of its size and builder. **As built:** a config setting only; the toggle on the large map wasn't built. An admin's game asks the server once per session, and the server sends the full list again whenever an observer is built, switched or removed; non-admins are refused and never receive it.
+- **Show observers on the map (admins only, personal):** off by default. When on, every observer in the world is shown, with Frogger's active and inactive icons, and no label (Quandru, 6 Nov 2026: icons only). **As built:** a config setting only; the toggle on the large map wasn't built. An admin's game asks the server once per session, and the server sends the full list again whenever an observer is built, switched or removed; non-admins are refused and never receive it.
 - **Pins persist.** Pins are rebuilt only when a list arrives. There are no timers while the map is open and no client-side ZDO scans.
 
 ## Compatibility
@@ -471,7 +471,7 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 | 8 | Surtling farm, if one is handy | With a phantom in the loaded zone and you far away, surtlings keep spawning. |
 | 9 | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt` | Lists creature spawners only, with what each spawns; `Spawner_imp_respawn` marked `[in use]`. |
 | 9b | Look at each observer and tap your AltPlace key (shown on the hover; Left Shift by default), then hold it and press E | White lines along the borders of the zones it loads (1 for the single, 9 for the cluster) and white corner posts, for 15 s. |
-| 10 | "Show observers on the map" on | Pins for every observer, lit or unlit, labelled with size and builder. Off removes them. |
+| 10 | "Show observers on the map" on | An icon for every observer, lit or unlit, with no label. Off removes them. |
 | 11 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |
 | 12 | The log | No errors from the mod. |
 

@@ -161,8 +161,8 @@ namespace QuanChunkLoader.Core
             }
             foreach (var e in Entries)
             {
-                var label = (e.Cluster ? "3x3" : "1x1") + (string.IsNullOrEmpty(e.Builder) ? "" : " " + e.Builder);
-                var pin = map.AddPin(e.Position, Minimap.PinType.Icon3, label, false, false);
+                // Icon only, no label (Quandru, 6 Nov 2026).
+                var pin = map.AddPin(e.Position, Minimap.PinType.Icon3, "", false, false);
                 var icon = e.On ? ObserverPiece.IconActive : ObserverPiece.IconDisabled;
                 if (pin != null && icon != null)
                 {
