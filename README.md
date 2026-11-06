@@ -17,8 +17,9 @@ areas, keeps surtling farms spawning, and keeps production going for up to an ho
 
 ## Status
 
-In development. Everything planned for 1.0 is built (5 Nov 2026); the core has passed a single-player check and the
-rest is waiting for one. What's been checked so far is in [docs/design.md](docs/design.md#build-status).
+Not yet released. Everything planned for 1.0 is built and passed its single-player check (6 Nov 2026). Next: rework
+the Thunderstore page, publish 1.0.0, then roll it out on the live server. Details in
+[docs/design.md](docs/design.md#build-status).
 
 ## Code
 
@@ -30,6 +31,7 @@ rest is waiting for one. What's been checked so far is in [docs/design.md](docs/
 | [Core/Observers.cs](Core/Observers.cs) | The server's list of observers, the set of loaded ("forced") zones, switching, limits, expiry and admin-only building. |
 | [Core/Phantoms.cs](Core/Phantoms.cs) | The server's list of Phantom Spawners and which are active. |
 | [Core/EmptyServer.cs](Core/EmptyServer.cs) | The empty-server hour: keeps the world clock running after the last logout. |
+| [Core/SpawnerReference.cs](Core/SpawnerReference.cs) | Writes `quandru.QuanChunkLoader.spawners.txt` next to the config: every creature spawner in the game. |
 | [Core/ObserverMap.cs](Core/ObserverMap.cs) | The admin map: the server sends admins the observer list; their game draws the pins. |
 | [Core/ServerLoader.cs](Core/ServerLoader.cs) | Server only: loads forced zones and their objects, and runs the 2 s ownership pass and the summaries. |
 | [Core/ObjectKinds.cs](Core/ObjectKinds.cs) | What the server loads (no wild creatures or tames by default) and what it may own. |

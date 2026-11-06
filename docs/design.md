@@ -1,7 +1,8 @@
 # Quan's Chunk Loader: design
 
-Status: design agreed on 2026-10-25. Core built on 2026-11-04 and checked in single player on 2026-11-05.
-**The rest of 1.0 built on 2026-11-05**, awaiting its single-player check. See [Build status](#build-status).
+Status: design agreed on 2026-10-25. Core built on 2026-11-04; the rest of 1.0 built on 2026-11-05. **Everything passed
+its single-player check on 2026-11-06.** Next: rework the Thunderstore page, then publish and roll out. See
+[Build status](#build-status).
 Valheim 1.0.21 (network version 41), BepInEx, Jotunn.
 
 Quan's Chunk Loader (`QuanChunkLoader`) is a new chunk loader for dedicated servers. It replaces Frogger's original ChunkLoader and two later forks of it, NerdLounge "ChunkLoader Continued" and zeeCamelSnake "ChunkLoaderFix". It's a rewrite rather than a fork. The old mods share one core mechanism, and that mechanism causes their main bugs (see [Why the old approach fails](#why-the-old-approach-fails)).
@@ -10,8 +11,8 @@ Every claim below was checked against the 1.0.20 decompile, re-checked against 1
 
 ## Build status
 
-Updated 5 Nov 2026. **Everything planned for 1.0 is built.** The core passed its single-player check on 5 Nov;
-the rest hasn't run in game yet.
+Updated 6 Nov 2026. **Everything planned for 1.0 is built and passed its single-player check** (the core on 5 Nov,
+the rest on 6 Nov). What only a dedicated server can show is checked during the rollout.
 
 **Pieces: three**, all in the QuanPieces hammer tab, none needing a crafting station:
 
@@ -42,19 +43,21 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 
 | Part | What it means | Status |
 |---|---|---|
-| Chunk Observer and Cluster | Frogger's model at 50%: one column, or three on round plinths. Dedication on both build cards. Can't be damaged; the hammer removes them. | Single checked; cluster built 5 Nov |
+| Chunk Observer and Cluster | Frogger's model at 50%: one column, or three on round plinths. Dedication on both build cards. Can't be damaged; the hammer removes them. | Checked (look, dedications, no damage, removal) |
 | Switching | E switches it on or off. Only its builder or an admin can, by default; the hover shows the size, who built it, and "Admin-placed" to admins. | Checked |
 | Server loading | The server keeps every zone of every active observer generated and its objects running. No wild creatures (except phantom spawns), no tames unless "Simulate tames" is on. Clients load nothing extra. | Checked |
 | Ownership rule | Every 2 s the server takes objects in loaded zones that no player is near; vanilla hands them to nearby players. Objects owned by a far player are taken back; paused creatures held from afar are released. | Checked in single player; needs the dedi |
-| Edge-support rule | Wear and support (and `StaticPhysics`, `SpawnArea`) only run where all 8 neighbouring zones are loaded. | Built |
+| Edge-support rule | Wear and support (and `StaticPhysics`, ordinary `SpawnArea`s) only run where all 8 neighbouring zones are loaded; phantom-run spawner areas anywhere in a loaded zone. | Built |
 | Unknown-prefab guard | Objects whose prefab the server doesn't know are skipped and logged, not deleted. | Built |
 | Logging | Switches, zone changes, 5-minute summaries, warnings, distant claims, unknown prefabs, phantoms, the empty-server clock. | Checked |
-| Phantom Spawner | Allowlisted creature spawners (default surtlings; spawner areas only if admins turn them on) act as if a player stood at an active phantom. | Built 5 Nov |
-| Boat fix | Water readings from unloaded zones are replaced with the ship's centre reading while it runs on the server. | Built 5 Nov |
-| Despawn protection | Items within 8 m of a server-run station or 40 m of an active phantom in loaded zones don't time out. | Built 5 Nov |
+| Phantom Spawner | Allowlisted creature spawners (default surtlings; spawner areas only if admins turn them on) act as if a player stood at an active phantom. Without a phantom, spawners the server runs in loaded zones don't run at all. | Checked (a surtling farm kept producing while away) |
+| Boat fix | Water readings from unloaded zones are replaced with the ship's centre reading while it runs on the server. | Built; rollout check |
+| Despawn protection | Items in loaded zones within 8 m of a station or 40 m of an active phantom don't time out, on the server and (since 6 Nov) on players' games. | Checked on the server side (surtling loot kept); players' games: rollout check |
 | Empty-server hour | With an observer on, the world clock keeps running in real time for up to 60 min after the last logout (admins can set 0–240). | Built 5 Nov; dedicated server only |
-| Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Built 5 Nov |
-| Map | Admins can show every observer on the map (personal setting); nobody else receives them. | Built 5 Nov |
+| Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Per-player limit checked; the rest built |
+| Map | Admins can show every observer on the map (personal setting), as icons only; nobody else receives them. | Checked |
+| Zone grid | Looking at an observer and tapping AltPlace (or AltPlace + Use) draws the zones it loads for 15 s. | Checked (1x1 and 3x3) |
+| Spawner reference list | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt`: every creature spawner in the game, for the phantom's list. | Checked |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
 | Release | **First (Quandru, 6 Nov 2026): reorder, rewrite and add spoiler (collapsible) blocks to the Thunderstore page, `Package/README.md`; Quandru doesn't find the current one compelling.** Then regenerate "Tested with" from the live profile, date the changelog, publish 1.0.0. | To do |
 
@@ -203,11 +206,17 @@ All of this runs on the server. Clients load nothing extra.
    - **Clients never load forced zones.** A client only creates and simulates objects in its own vanilla active area. Forced zones exist only on the server (see goal 7).
    - **Paused creatures held from afar are released (decided while building, 4 Nov 2026).** The server never claims a tame or wild creature it doesn't run. But if one in a forced zone is owned by a player who isn't near it (they teleported away, or a mod claimed it), the server sets its owner to nobody, as vanilla does when a player walks away. No distant client keeps a base's tames, and nobody runs them until a player comes near.
 5. **Observer list.**
-   - The server holds the authoritative observer list: position, on/off, builder, admin flag. Clients don't receive observers' data from across the world.
-   - **Who gets what.** The server knows who is an admin (the world's admin list); clients don't, so it tells each client.
-     - **Admins** get the full list: a snapshot on connect, then small add/change/remove updates. A client replaces its list on each snapshot, so a missed update can't leave a stale pin. It can also ask for a fresh snapshot, for example when opening the large map.
-     - **Other players** get only their own observers and the server-wide total, which is enough for the limit pre-check. They never receive anyone else's positions.
-   - If a player's admin status changes while they're online, the server sends the right set on their next snapshot request or reconnect.
+   - The server holds the authoritative observer list: position, size, on/off, builder, admin flag, blocked flag,
+     last switched on. Clients don't receive observers' data from across the world.
+   - **Who gets what (as built, 5 Nov 2026).** The server knows who is an admin (the world's admin list); clients
+     don't.
+     - **Admins** who turn on "Show observers on the map" ask once per session and get the full list; the server
+       sends it again to them whenever an observer is built, switched or removed. A client replaces its pins on each
+       list, so a missed update can't leave a stale pin.
+     - **Other players** get nothing. The design first had the server send each player their own observers and the
+       server-wide total for a limit pre-check; limits are checked by the server when an observer is switched on
+       instead, so nothing else needs sending. The server refuses the map request from non-admins and logs it.
+   - Admin status is checked on every send, so someone removed from the admin list stops receiving it.
 
 ## Wild creatures
 
@@ -439,6 +448,9 @@ Client config:
 
 ## README outline
 
+The first outline for the Thunderstore page; the page was written from it. **Quandru will reorder and rewrite the page
+on 7 Nov 2026 (spoiler blocks too) before publishing**, so treat this as the starting point, not the final order.
+
 1. **Intro:** what the mod is, in a couple of lines.
 2. **What it fixes:** the symptoms players actually see, each with its cause.
    - Production chains stall while players are in the base: ownership never goes back to them, so auto-fuel and auto-store can't act.
@@ -460,7 +472,7 @@ Client config:
 5. **Features:** the three pieces with costs and how to use them; ownership handback; boats; the phantom spawner; the empty-server hour; despawn protection; map and admin controls; the defensive fixes.
 6. **Dedication and credit (highlighted):**
    - Frogger had the original idea of a Valheim chunk loader.
-   - As a tribute, the Chunk Observer uses Frogger's original chunk loader model, under the MIT licence (Copyright (c) 2023 Vyacheslav, [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader)).
+   - As a tribute, the Chunk Observer uses Frogger's original chunk loader model and the Cluster an adaptation of it, under the MIT licence (Copyright (c) 2023 Vyacheslav, [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader)).
    - The model is the only thing reused: no code comes from Frogger's mod or any other current chunk loader mod.
 7. **Configuration reference.**
 8. **Recommended companions,** described by type only, not by name: conversion capacity and speed mods, auto-fuel, auto-store, with why each matters. Readers who want our picks can see them in "Tested with".

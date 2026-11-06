@@ -4,7 +4,7 @@ Everything this mod relies on from Valheim, so a game update can be checked quic
 `.decompiles` repo reads the **Game code** tables and flags any entry the game changed. See "Valheim updates" in
 `docs/DEVELOPMENT.md` for the whole check.
 
-**Checked against Valheim:** 1.0.21 (2026-11-02)
+**Checked against Valheim:** 1.0.21 (2026-11-02; every entry re-checked against the 1.0.21 decompile on 2026-11-06)
 
 Update this file in the same commit as any code that patches, calls or relies on something new in the game, and
 update the version line above each time the mod passes the Valheim update check.
@@ -105,6 +105,42 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Pickable.m_respawnTimeMinutes` | *Diagnostic:* plant regrow time. |
 | `WaterVolume.Instances` | *Diagnostic:* water in forced zones. |
 | `EnvMan.GetWindIntensity` | *Diagnostic:* wind on an empty server. |
+| `ZDO.GetBool` | Observer and phantom flags (`QCL_on`, `QCL_admin`, `QCL_blocked`, `QCL_active`, `QCL_phantom`); `ZDOVars.s_tamed`. |
+| `ZDO.GetLong` | Builder ID (`ZDOVars.s_creator`), `QCL_refreshed`. |
+| `ZDO.GetInt` | `ZDOVars.s_inUse`. |
+| `ZDO.GetString` | `QCL_builder`. |
+| `ZDO.Set` | Writing those flags and values. |
+| `ZDO.GetPrefab` | Telling observers, phantoms and object kinds apart. |
+| `ZDO.GetPosition` | Observer, phantom and object positions. |
+| `ZDO.GetOwner` | The ownership rule, log lines. |
+| `ZDO.m_uid` | Object IDs in the observer list, RPCs and logs. |
+| `ZNetView.GetZDO` | A piece's synced data. |
+| `ZNetView.IsValid` | Guards before reading a piece's data. |
+| `ZNetView.IsOwner` | Only the owner writes; pick fix and placement. |
+| `ZNetView.Register` | The pieces' `QCL_SetBool` and `QCL_SetLong` RPCs. |
+| `ZNetView.m_persistent` | Set on the cloned pieces so they're saved. |
+| `ZNetPeer.IsReady` | Only connected, ready players count for the ownership rule. |
+| `ZNetPeer.m_uid` | A player's session ID (owner IDs, RPC targets). |
+| `ZNet.ConnectionStatus` | Waiting for the world before starting. |
+| `Piece.m_name` | Hover titles. |
+| `Piece.m_placeEffect` | Copied from `stone_wall_1x1`. |
+| `Piece.m_craftingStation` | Cleared on the phantom (the ward's isn't wanted). |
+| `Piece.m_comfort` | Cleared on the phantom. |
+| `Piece.m_isUpgrade` | Cleared on the phantom. |
+| `Piece.m_spaceRequirement` | Cleared on the phantom. |
+| `WearNTear.m_materialType` | Stone on all three pieces. |
+| `WearNTear.MaterialType` | As above. |
+| `WearNTear.m_burnable` | Off on all three pieces. |
+| `WearNTear.m_triggerPrivateArea` | Off on all three pieces. |
+| `WearNTear.m_hitEffect` | Copied from `stone_wall_1x1`. |
+| `WearNTear.m_destroyedEffect` | Copied from `stone_wall_1x1`. |
+| `Hoverable` | The observers' and phantom's hover text (`GetHoverText`, `GetHoverName`, `GetHoverOffset`). |
+| `Interactable` | Switching an observer and showing its zones (`Interact`, `UseItem`). |
+| `ItemDrop.ItemData` | In `Interactable.UseItem`'s signature. |
+| `Humanoid.Message` | Refusal messages to the player switching. |
+| `MessageHud.MessageType` | Centre messages. |
+| `Minimap.PinType` | `Icon3` for the admin map's pins. |
+| `Localization` | `Localize` for hover text and key names (`$KEY_Use`, `$KEY_AltPlace`). In `assembly_guiutils`. |
 | `Utils.GetPrefabName` | Prefab names in logs; matching creature spawners against the phantom allowlist. |
 | `Pickable.GetPicked` | The pick fix only acts on unpicked plants. |
 | `ZInput.GetButtonDown` | Tapping `AltPlace` while looking at an observer shows its zones. |
