@@ -17,8 +17,11 @@ namespace QuanChunkLoader
         private const float ShaftBottom = 0.295f;
         private const float ShaftTop = 2.205f;
 
-        // Each shaft's centre stands this far out from the middle, towards its outer face: about 15% of its width,
-        // measured from Quandru's sketch. The shafts overlap in a triangle around the middle.
+        // Each shaft stands this far out from the middle along its own direction (0, 120 and 240 degrees), towards its
+        // outer rune face: about 15% of its width, the overlap in Quandru's sketch. By construction the three outer
+        // faces, extended, form an equilateral triangle whose side midpoints are the centres of the rune faces
+        // (0.335 from the middle: this plus the half-width). Measured 6 Nov 2026: the shaft and both rune panels are
+        // centred on the mesh's axis to within 0.005 (under 3 mm in game), so no correction is needed.
         private const float ColumnOut = 0.08f;
         private const float ColumnSideways = 0f;
 

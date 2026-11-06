@@ -131,7 +131,10 @@ build:
     misread the request.)
   - **How it's built** (`ClusterModel`): the column mesh is readable, so the shaft alone is cut out of it at load
     (triangles between 0.30 and 2.20 m of the 2.47 m column; the base and capital are dropped). Each shaft stands
-    0.08 model units (before the 50% scale; about 15% of its width) out from the centre towards its outer rune face;
+    0.08 model units (before the 50% scale; about 15% of its width) out from the centre towards its outer rune face,
+    at exactly 0, 120 and 240 degrees, so the outer faces extended form an equilateral triangle with the centres of
+    the rune faces at its side midpoints (Quandru, 6 Nov 2026; the shaft and its rune panels are centred on the mesh
+    to within 0.005, under 3 mm in game);
     the shafts pass through each other in the middle, where nobody sees. Their outer corners reach 0.42; the lips
     above and below are 0.44, the lower base step 0.56. The round steps and capital are cylinders generated in code,
     textured with the plain stone patch of the column's own texture (the capital's top face), so they match. Each
