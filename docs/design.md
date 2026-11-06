@@ -124,15 +124,18 @@ carries a PlayerBase `EffectArea`, so none suppresses spawners or counts as a ba
 build:
 - **Chunk Observer:** the single column. Loads its own zone (1×1, 64 × 64 m). 10 Stone.
 - **Chunk Observer Cluster:** three columns. Loads its own zone and the 8 around it (3×3, 192 × 192 m). 30 Stone.
-  - **Look (Quandru):** three of the columns, each turned 120 degrees from the next and offset so a corner of each
-    points outwards, like a squared three-pointed star, on a shared round two-step base under a shared round
-    capital, instead of three square bases and capitals.
+  - **Look (Quandru, 6 Nov 2026):** three of the columns, 120 degrees apart, each with a flat (rune) face pointing
+    straight out, as close together as they can stand so only narrow V-seams show between them, on a shared round
+    two-step base under a shared round capital whose lips only just cover them. (The first build, 5 Nov, had a
+    corner of each pointing out; Quandru asked for flats.)
   - **How it's built** (`ClusterModel`): the column mesh is readable, so the shaft alone is cut out of it at load
-    (triangles between 0.30 and 2.20 m of the 2.47 m column; the base and capital are dropped). Three copies stand
-    0.30 m (model units, before the 50% scale) from the centre, turned 0, 120 and 240 degrees plus 45 so a corner
-    points out; their inner corners meet in the middle. The round base steps and capital are cylinders generated in
-    code, textured with the plain stone patch of the column's own texture (the capital's top face), so they match.
-    Each column keeps its runes on its two opposite faces; one faces out between the star's points.
+    (triangles between 0.30 and 2.20 m of the 2.47 m column; the base and capital are dropped). Square columns
+    120 degrees apart with flats out can only close up as a pinwheel: each is shifted sideways by its half-width
+    (0.255 model units, before the 50% scale) and stands 0.255 out from the centre, so the three inner corners meet
+    in the middle and the seams between them are 30-degree Vs, the narrowest possible. Their outer corners reach
+    0.72; the lips above and below are 0.74. The round steps and capital are cylinders generated in code, textured
+    with the plain stone patch of the column's own texture (the capital's top face), so they match. Each column's
+    second rune face points into the middle.
   - **Icon:** rendered from the model with Jotunn's `RenderManager` (skipped on a dedicated server, which has no
     graphics); the single column's icon is the fallback.
 
@@ -264,10 +267,16 @@ Dropped items are destroyed after 3,600 s of world time unless one of these appl
 - a player is within 25 m;
 - they're in tar.
 
-Offline output would therefore start vanishing shortly after the next login. Two scoped protections fix this. Each uses the scoped-flag trick around `ItemDrop.TimedDestruction`'s 25 m player check:
+Offline output would therefore start vanishing shortly after the next login. Two protections fix this, on the
+server, inside forced zones:
 
-- **Near conversion stations:** drops near any conversion station's output point inside a forced zone don't time out.
+- **Near conversion stations:** drops near any conversion station's output point don't time out.
 - **Near phantoms:** drops near an active phantom don't time out.
+
+**As built (5 Nov 2026):** a prefix on `ItemDrop.TimedDestruction` skips the check for an item in a forced zone within
+8 m of a server-run station (smelters and kilns, fermenters, beehives, cooking stations, sap collectors; positions
+refreshed each 2 s ownership pass) or within 40 m of an active phantom. Simpler than a scoped flag around the player
+check, with the same effect: the item is kept.
 
 Neither adds a PlayerBase area, so neither affects spawners.
 
@@ -433,7 +442,7 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 | # | Check | Expected |
 |---|---|---|
 | 1 | The hammer's QuanPieces tab | Chunk Observer (10 Stone), Chunk Observer Cluster (30 Stone, its own icon), Phantom Spawner (10 Stone). |
-| 2 | Build a cluster | Three columns turned 120° apart, a corner of each pointing out, on one round base under one round capital; stone matches; no gaps. Red runes off, blue and lit on, on all three. |
+| 2 | Build a cluster | Three columns 120° apart, a flat rune face of each pointing out, close together with narrow V-seams between them, on one round base under one round capital whose lips just cover them; stone matches; no gaps. Red runes off, blue and lit on, on all three. |
 | 3 | Switch the cluster on, then a single observer elsewhere | Log: "now 9 zone(s)", then 10. Hover shows "3x3" and "1x1". |
 | 4 | Go far away, wait for a Summary, come back | Summary shows the zones and objects running on the server. |
 | 5 | Limits: set "Zones per player" to 9 and "Admins ignore limits" off, then switch both on | The second is refused with the per-player message. Put the settings back. |
