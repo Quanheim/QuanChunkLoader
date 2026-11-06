@@ -59,7 +59,7 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Zone grid | Looking at an observer and tapping AltPlace (or AltPlace + Use) draws the zones it loads for 15 s. | Checked (1x1 and 3x3) |
 | Spawner reference list | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt`: every creature spawner in the game, for the phantom's list. | Checked |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
-| Release | **First (Quandru, 6 Nov 2026): reorder, rewrite and add spoiler (collapsible) blocks to the Thunderstore page, `Package/README.md`; Quandru doesn't find the current one compelling.** Then regenerate "Tested with" from the live profile, date the changelog, publish 1.0.0. The package depends on BepInExPack 5.4.2360 (from the recreated QuanChunkLoader profile, 6 Nov 2026): check the server's shared profile has it or later. | To do |
+| Release | **First: the Thunderstore page (`Package/README.md`), reworked into a pitch with a collapsible block on 7 Nov 2026 (see [README outline](#readme-outline)); waiting for Quandru's review.** Then date the changelog and publish 1.0.0. The package depends on BepInExPack 5.4.2360 (from the recreated QuanChunkLoader profile, 6 Nov 2026): check the server's shared profile has it or later. | To do |
 
 **Single-player check of the full build: passed on 6 Nov 2026**, every step including a surtling farm run by a
 phantom while away (screenshots in `docs/images`). Found while answering a question afterwards: despawn protection
@@ -67,8 +67,8 @@ only ran on the server, so a player arriving more than 25 m from an hour-old pil
 players' games too (a rollout check, since single player can't show it).
 
 **Next, before publishing (to do, 7 Nov):**
-1. **Rework the Thunderstore page (`Package/README.md`) with Quandru:** reorder, rewrite and put sections in spoiler
-   (collapsible `<details>`) blocks, as QuanPieces' page does. Quandru doesn't find the current page compelling.
+1. **Rework the Thunderstore page (`Package/README.md`) with Quandru:** drafted 7 Nov 2026 as a pitch with one
+   collapsible block (see [README outline](#readme-outline)); waiting for Quandru's review.
 2. Keep the GitHub page (`README.md`) in step where it overlaps (it's the developer page; it links to the
    Thunderstore page rather than repeating it).
 3. Then the release steps in the table above, and the live rollout.
@@ -448,37 +448,26 @@ Client config:
 
 ## README outline
 
-The first outline for the Thunderstore page; the page was written from it. **Quandru will reorder and rewrite the page
-on 7 Nov 2026 (spoiler blocks too) before publishing**, so treat this as the starting point, not the final order.
+The Thunderstore page (`Package/README.md`), as reworked with Quandru on 7 Nov 2026: a pitch first, the problems
+with other loaders out of the way in one collapsible block, then what the mod gives you.
 
-1. **Intro:** what the mod is, in a couple of lines.
-2. **What it fixes:** the symptoms players actually see, each with its cause.
-   - Production chains stall while players are in the base: ownership never goes back to them, so auto-fuel and auto-store can't act.
-   - Plants show "Ready" but never regrow.
-   - Moored boats sink at the edge of a loaded area.
-   - Picks fail silently.
-   - Surtling farms stop without a player nearby.
-   - The large map lags, which blocks portal selection.
-   - Tames in a loaded base ignore E, or get moved by another player's mods: whoever switched the loader on keeps running the base from wherever they are.
-3. **How chunk loading really works, and what every chunk loader gets wrong:** explained as how the game works, not as criticism of anyone's mod.
-   - "Loaded" doesn't mean "owned by a player".
-   - Telling the game every loaded point is in range of everyone makes the server and departed players hoard objects.
-   - Some vanilla code assumes the owner is a player.
-   - A boat needs every water sample point loaded.
-4. **What no chunk loader can ever do:**
-   - The world clock stops when nobody is online, so nothing runs all night.
-   - Auto-fuel and auto-store need a player nearby, so offline production only uses what's already loaded.
-   - What this mod does instead: up to an hour (by default) of real-time production after the last logout.
-5. **Features:** the three pieces with costs and how to use them; ownership handback; boats; the phantom spawner; the empty-server hour; despawn protection; map and admin controls; the defensive fixes.
-6. **Dedication and credit (highlighted):**
-   - Frogger had the original idea of a Valheim chunk loader.
-   - As a tribute, the Chunk Observer uses Frogger's original chunk loader model and the Cluster an adaptation of it, under the MIT licence (Copyright (c) 2023 Vyacheslav, [JFHeim/ChunkLoader](https://github.com/JFHeim/ChunkLoader)).
-   - The model is the only thing reused: no code comes from Frogger's mod or any other current chunk loader mod.
-7. **Configuration reference.**
-8. **Recommended companions,** described by type only, not by name: conversion capacity and speed mods, auto-fuel, auto-store, with why each matters. Readers who want our picks can see them in "Tested with".
-9. **Tested with:** every mod and version from the live server's plugin list.
-10. **Migrating from an old chunk loader.**
-11. **Known limits:** windmill variability, the empty-server window at most (an hour by default, up to four), and tames pause while nobody is near (with the config option to change that and its risks).
+1. **Tagline: "Chunkloading Done Right"**, then a short pitch: what keeps running, and that most chunk loaders get
+   the fundamentals wrong (promising what the game won't allow, more bugs than features) while this one does it
+   differently. A bulleted "at a glance" list of the headline benefits, then the install note.
+2. **One collapsible `<details>` block: "Why most chunk loaders cause problems, and what's actually possible"**,
+   holding what it fixes (symptom and cause table), how chunk loading works and why it goes wrong, and what no
+   chunk loader can do. Readers who want the detail open it; everyone else goes straight to the features.
+3. **Chunk loaders:** the in-game picture and both build cards, the two pieces in one table, and what using them is
+   like (switching, the zone grid, who can switch, overlap, limits). No separate heading per piece: the build
+   cards say which is which.
+4. **Farms that keep farming: the Phantom Spawner:** picture and card, what it does, and the spawner-list callout.
+5. **What else it does:** one compact bullet per feature (ownership, production after logout, despawn protection,
+   boats, edge buildings, creatures, missing-mod safety, admin tools, the fixes, logging).
+6. **Pairs well with**, **Moving from an older chunk loader**, **Known limits.**
+7. **Credits and licence**, with the dedication to Frogger, at the bottom.
+
+**Left out on purpose (Quandru):** the configuration table (players see every setting and its description in the
+mod's config) and the "Tested with" list (71 mods is too long for anyone to read).
 
 ## Versioning
 
