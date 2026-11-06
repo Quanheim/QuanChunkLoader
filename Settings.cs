@@ -98,9 +98,10 @@ namespace QuanChunkLoader
                          "(written when the game starts). Anything added here runs its monsters on the server " +
                          "while nobody is near, and they can attack the base."));
             PhantomSpawnAreas = config.Bind(phantom, "Spawner areas", false,
-                Enforced("Also keep spawner areas running (nests and bone piles: the kind that keeps a number of " +
-                         "creatures around it), anywhere in a loaded zone. Their monsters run on the server while " +
-                         "nobody is near and can attack the base."));
+                Enforced("Also keep spawner areas running, anywhere in a loaded zone: the kind of spawner that keeps " +
+                         "a group of creatures topped up around itself, such as greydwarf nests and bone piles, " +
+                         "including other mods' ones. They can't be chosen one by one; this turns them all on or " +
+                         "off. Their monsters run on the server while nobody is near and can attack the base."));
 
             const string despawn = "5 - Despawn protection";
             DespawnProtection = config.Bind(despawn, "Despawn protection", true,

@@ -74,9 +74,14 @@ player were standing where the phantom is, so a surtling farm keeps producing wh
 - **It only works inside a zone a switched-on Chunk Observer keeps loaded.** Its hover text says "Active" there,
   and "Dormant: no active chunk observer" anywhere else.
 - **It drives surtling spawners.** Admins can add other spawners, and nests and bone piles, in the config, but
-  then those monsters run on the server while nobody is there and can attack the base. The mod writes
-  `quandru.QuanChunkLoader.spawners.txt` next to its config file, listing every spawner in your game (other mods'
-  too) with what each spawns, so you can copy the names.
+  then those monsters run on the server while nobody is there and can attack the base.
+
+> **Spawner names, ready to copy.** You don't need to look up spawner names. Each time the game starts, the mod
+> writes **`BepInEx/config/quandru.QuanChunkLoader.spawners.txt`**, next to its config file. It lists every creature
+> spawner in your game, with what each one spawns, how often and from how far away, and marks the ones you already
+> use. It reads them from the game itself, so **spawners added by other mods are included too**, and the list
+> keeps up as you add mods. Copy names from it into "Creature spawners", separated by commas.
+
 - It looks like a small ward glowing red, but it isn't one: it doesn't protect anything or control access.
 - No fuel, no map pin, and it can't be damaged.
 - Surtlings that spawn into water die at once, so a farm built over water keeps producing coal. You still need to
@@ -213,8 +218,8 @@ themselves.
 | | Expire after hours without a refresh | 0 (never) | An observer nobody has switched on for this many real hours switches off. It's never deleted. |
 | 2 - Tamed Creatures | Simulate tames in loaded zones | Off | On: the server runs tames in loaded bases while nobody is near, so pens keep breeding. See the risks below. |
 | 3 - Empty server | Empty-server window in minutes | 60 | How long the world clock keeps running after the last logout, up to 240. 0 turns it off. |
-| 4 - Phantom spawner | Creature spawners | Spawner_imp_respawn | Which creature spawners a Phantom Spawner keeps running, by prefab name, comma-separated. |
-| | Spawner areas | Off | Whether it also runs spawner areas (nests, bone piles), anywhere in a loaded zone. |
+| 4 - Phantom spawner | Creature spawners | Spawner_imp_respawn | Which creature spawners a Phantom Spawner keeps running, by prefab name, comma-separated. Every name in your game, other mods' too, is in `quandru.QuanChunkLoader.spawners.txt` next to the config. |
+| | Spawner areas | Off | Whether it also runs spawner areas (nests, bone piles, other mods' too), anywhere in a loaded zone. All or none. |
 | 5 - Despawn protection | Despawn protection | On | Keeps drops near production stations and phantoms in loaded zones. |
 | 6 - Map (personal) | Show observers on the map | Off | Admins only. Each admin's own choice. |
 | 7 - Logging | Log detail | Info | Info, Debug (a line per object) or Trace (every decision, for chasing a bug). Don't leave Debug or Trace on. |

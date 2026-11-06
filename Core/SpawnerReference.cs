@@ -9,7 +9,7 @@ using UnityEngine;
 namespace QuanChunkLoader.Core
 {
     /// <summary>
-    /// Writes a reference list of every spawner in the game, including other mods', next to the config file, so
+    /// Writes a reference list of every creature spawner in the game, including other mods', next to the config file, so
     /// admins can copy names into "Creature spawners" without looking them up. BepInEx rewrites the .cfg itself and
     /// keeps only settings and their descriptions, so the list lives in its own file; the setting's description
     /// points to it. Rewritten only when its contents change.
@@ -31,12 +31,13 @@ namespace QuanChunkLoader.Core
                     .Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
 
                 var text = new StringBuilder();
-                text.AppendLine("Quan's Chunk Loader: every spawner in this game, for the Phantom Spawner settings.");
+                text.AppendLine("Quan's Chunk Loader: every creature spawner in this game, for the Phantom Spawner.");
                 text.AppendLine("Written by the mod each time the game starts; edits to this file are overwritten.");
                 text.AppendLine();
                 text.AppendLine("Creature spawners: copy names into \"Creature spawners\" (section 4 - Phantom spawner),");
                 text.AppendLine("comma-separated. Anything added runs its monsters on the server while nobody is near,");
                 text.AppendLine("and they can attack the base. [in use] marks names already in your list.");
+                text.AppendLine("Spawners added by other mods are listed too.");
                 text.AppendLine();
                 text.AppendLine("Name | Spawns | Respawn (world minutes) | Trigger range (m)");
 
@@ -55,21 +56,6 @@ namespace QuanChunkLoader.Core
                         text.Append("  [in use]");
                     }
                     text.AppendLine();
-                }
-
-                text.AppendLine();
-                text.AppendLine("Spawner areas (nests, bone piles): these aren't chosen by name. The \"Spawner areas\"");
-                text.AppendLine("setting turns all of them on or off together. Listed so you know what it covers.");
-                text.AppendLine();
-                text.AppendLine("Name | Spawns");
-                var areas = scene.m_prefabs
-                    .Where(p => p != null && p.GetComponent<SpawnArea>() != null)
-                    .OrderBy(p => p.name, StringComparer.OrdinalIgnoreCase);
-                foreach (var prefab in areas)
-                {
-                    var creatures = prefab.GetComponent<SpawnArea>().m_prefabs
-                        .Where(d => d != null && d.m_prefab != null).Select(d => d.m_prefab.name).Distinct();
-                    text.Append(prefab.name).Append(" | ").AppendLine(string.Join(", ", creatures));
                 }
 
                 var path = Path.Combine(Paths.ConfigPath, FileName);

@@ -107,9 +107,8 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `EnvMan.GetWindIntensity` | *Diagnostic:* wind on an empty server. |
 | `Utils.GetPrefabName` | Prefab names in logs; matching creature spawners against the phantom allowlist. |
 | `Pickable.GetPicked` | The pick fix only acts on unpicked plants. |
-| `ZNetScene.m_prefabs` | The spawner reference list: every prefab with a `CreatureSpawner` or `SpawnArea`. *Diagnostic* too: startup report. |
+| `ZNetScene.m_prefabs` | The spawner reference list: every prefab with a `CreatureSpawner`. *Diagnostic* too: startup report. |
 | `CreatureSpawner` | The reference list reads `m_creaturePrefab`, `m_respawnTimeMinuts` and `m_triggerDistance`. |
-| `SpawnArea` | The reference list reads `m_prefabs` (`SpawnData.m_prefab`). |
 | `Piece.m_enabled` | Admin-only building hides this mod's pieces from non-admins' hammers. |
 | `Minimap.AddPin` | Admin map pins (type `Icon3`, not saved). |
 | `Minimap.RemovePin` | Removing the admin map pins before redrawing. |
