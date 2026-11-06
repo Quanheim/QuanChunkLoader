@@ -21,6 +21,29 @@ namespace QuanChunkLoader
 
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
+        // Observers loaded on this machine, for despawn protection on a player's game (which doesn't know the
+        // server's loaded zones).
+        private static readonly List<ChunkObserver> Loaded = new List<ChunkObserver>();
+
+        /// <summary>Whether a switched-on observer loaded on this machine keeps this zone loaded.</summary>
+        internal static bool AnyOnCovering(Vector2s zone)
+        {
+            foreach (var o in Loaded)
+            {
+                if (o == null || !o.IsOn)
+                {
+                    continue;
+                }
+                var c = ZoneSystem.GetZone(o.transform.position);
+                var r = ObserverPiece.RadiusOf(o._nview.GetZDO().GetPrefab());
+                if (Mathf.Abs(zone.x - c.x) <= r && Mathf.Abs(zone.y - c.y) <= r)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // Frogger's original look: red runes while off (Color.red * 6, as his mod used), the model's own blue while on.
         private static readonly Color OffGlow = new Color(6f, 0f, 0f, 1f);
 
@@ -38,6 +61,7 @@ namespace QuanChunkLoader
             }
             _nview.Register<string, bool>(Observers.SetBoolRpc, RPC_SetBool);
             _nview.Register<string, long>(Observers.SetLongRpc, RPC_SetLong);
+            Loaded.Add(this);
             _shownOn = IsOn;
             ShowState(_shownOn);
         }
@@ -128,6 +152,7 @@ namespace QuanChunkLoader
 
         private void OnDestroy()
         {
+            Loaded.Remove(this);
             if (_columnMaterial != null)
             {
                 Destroy(_columnMaterial);

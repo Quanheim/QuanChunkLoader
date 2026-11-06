@@ -12,6 +12,26 @@ namespace QuanChunkLoader
         private ZNetView _nview;
         private Piece _piece;
 
+        // Phantoms loaded on this machine, for despawn protection on a player's game.
+        private static readonly System.Collections.Generic.List<PhantomSpawner> Loaded =
+            new System.Collections.Generic.List<PhantomSpawner>();
+
+        /// <summary>Whether an active phantom loaded on this machine stands within range of a point.</summary>
+        internal static bool AnyActiveWithin(Vector3 point, float range)
+        {
+            foreach (var p in Loaded)
+            {
+                if (p != null && p._nview != null && p._nview.IsValid() && p._nview.GetZDO().GetBool(Phantoms.ActiveKey) &&
+                    Vector3.Distance(p.transform.position, point) < range)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void OnDestroy() => Loaded.Remove(this);
+
         private void Awake()
         {
             _nview = GetComponent<ZNetView>();
@@ -21,6 +41,7 @@ namespace QuanChunkLoader
                 return;
             }
             _nview.Register<string, bool>(Observers.SetBoolRpc, RPC_SetBool);
+            Loaded.Add(this);
         }
 
         private void Start()

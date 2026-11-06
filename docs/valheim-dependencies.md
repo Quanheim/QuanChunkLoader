@@ -30,7 +30,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `SpawnArea.UpdateSpawn` | Prefix and Finalizer (`EdgeRuleContext`) | Scoped flag for the edge rule. | Still asks `OutsideActiveArea`? |
 | `WearNTear.RPC_Damage` | Prefix (`ObserverTakesNoDamage`) | Observers and phantoms take no damage. | Still the damage entry point for pieces? |
 | `Game.Start` | Postfix (`RegisterRpcs`, `WriteSpawnerReference`) | Registers the mod's routed RPCs each session, and writes the spawner reference list. | Still runs once per session after `ZRoutedRpc` exists? |
-| `ItemDrop.TimedDestruction` | Prefix (`DespawnProtection`) | On the server, skips the hour-old check for an item in a forced zone within 8 m of a server-run station or 40 m of an active phantom. | Still the only despawn path for dropped items? Still private, no parameters? |
+| `ItemDrop.TimedDestruction` | Prefix (`DespawnProtection`) | On whichever machine owns the item, skips the hour-old check for an item in a loaded zone within 8 m of a station or 40 m of an active phantom. The server uses its forced zones; a player's game uses its own loaded switched-on observers and phantoms, and a physics overlap for stations. | Still the only despawn path for dropped items? Still private, no parameters? |
 | `Player.IsPlayerInRange` | Postfix (`PhantomCountsAsPlayer`), overloads `(Vector3, float)` and `(Vector3, float, float)` | Inside the phantom context only: an active phantom within `range` of `point` counts as a player. Parameters `point`, `range`. | Overloads or parameter names changed? Do spawners still use these two? |
 | `CreatureSpawner.UpdateSpawner` | Prefix (skips) and Finalizer (`PhantomCreatureSpawnerContext`) | Phantom context for allowlisted creature spawners (by prefab name). On the server in a forced zone, skips the update unless an active phantom within `m_triggerDistance` drives it. | Still checks `Player.IsPlayerInRange` with `m_triggerDistance`? Still spawns inside this update? |
 | `SpawnArea.UpdateSpawn` (phantom) | Prefix (skips) and Finalizer (`PhantomSpawnAreaContext`) | Phantom context for spawner areas, when the setting is on; records the area's `m_triggerDistance` for the edge rule's exception. On the server in a forced zone, skips the update unless an active phantom drives it. | Still checks `Player.IsPlayerInRange` and spawns via `SpawnOne` inside it? |
@@ -93,7 +93,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `MessageHud.ShowMessage` | Refusal messages. |
 | `Character` | A prefab with a `Character` that isn't tamed or a player is a wild creature, not loaded in forced zones. |
 | `Player` | Players load as in vanilla, and are never claimed. |
-| `Ship`, `Container`, `Smelter`, `Fermenter`, `Beehive`, `CookingStation`, `SapCollector`, `ItemDrop`, `Pickable`, `Plant`, `Piece` | Categories in log lines. |
+| `Ship`, `Container`, `Smelter`, `Fermenter`, `Beehive`, `CookingStation`, `SapCollector`, `ItemDrop`, `Pickable`, `Plant`, `Piece` | Categories in log lines. The five station types also mark "near a station" for despawn protection (found on a player's game by their colliders on the `piece`, `piece_nonsolid`, `Default` and `static_solid` layers). |
 | `ZNet.GetSyncedSimulationDistance` | *Diagnostic:* players' vanilla area size. |
 | `ZNet.GetTime` | *Diagnostic:* world clock. |
 | `ZNet.GetTimeSeconds` | *Diagnostic:* world clock in logs. |

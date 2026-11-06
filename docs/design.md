@@ -294,6 +294,14 @@ server, inside forced zones:
 refreshed each 2 s ownership pass) or within 40 m of an active phantom. Simpler than a scoped flag around the player
 check, with the same effect: the item is kept.
 
+**On players' games too (found 6 Nov 2026, after the surtling test).** The check runs on whichever machine owns the
+item. A player arriving at a base takes the items over within about 2 s, and if they're more than 25 m from an
+hour-old pile at that moment, their game would destroy it. So a player's game applies the same protection, using
+what it has loaded itself (it doesn't know the server's loaded zones): the item's zone must be covered by a
+switched-on observer loaded on that machine, and the item must be within 40 m of a phantom whose server-written
+"active" flag is set, or within 8 m of a station found with a physics overlap. In single player the host is the
+server, so the test there couldn't show this; it's a rollout check.
+
 Neither adds a PlayerBase area, so neither affects spawners.
 
 ## Boats at the edge
@@ -516,6 +524,8 @@ The checks below are done on the live server as each feature is switched on.
 4. **Edge buildings.** A building that crosses the edge of a loaded area should keep its support with nobody near: no damage, no collapse.
 5. **Auto mods.** AzuAutoStore and OttoFuel should work in a loaded base with a player present.
 6. **Phantom.**
+   - Leave a surtling farm running, log off, come back after more than an hour of world time and approach from more
+     than 25 m away. The drops should still be there (despawn protection on the player's own game).
    - A surtling farm with no player nearby should keep spawning while someone is online elsewhere.
    - The phantom should show the dormant message without an observer.
    - Drops near it should survive more than an hour of world time.

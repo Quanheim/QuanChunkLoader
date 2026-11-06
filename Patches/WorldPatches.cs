@@ -8,8 +8,13 @@ namespace QuanChunkLoader.Patches
 {
     /// <summary>
     /// Despawn protection (docs/design.md, "Despawn protection"). Vanilla destroys an item that has been on the
-    /// ground for an hour of world time unless it's in a base, near a player or in tar. In loaded zones on the
-    /// server, items near a production station or an active Phantom Spawner are kept until someone collects them.
+    /// ground for an hour of world time unless it's in a base, near a player or in tar. In loaded zones, items near
+    /// a production station or an active Phantom Spawner are kept until someone collects them.
+    ///
+    /// The check runs on whichever machine owns the item: the server while nobody is near, and a player's game once
+    /// they come near (6 Nov 2026: otherwise a player arriving more than 25 m from the pile would take the items over
+    /// and their game would destroy the hour-old ones). A player's game doesn't know the loaded zones, so it uses the
+    /// switched-on observers and active phantoms it has loaded itself, and the stations around the item.
     /// </summary>
     [HarmonyPatch(typeof(ItemDrop), "TimedDestruction")]
     internal static class DespawnProtection
@@ -19,20 +24,63 @@ namespace QuanChunkLoader.Patches
 
         private static bool Prefix(ItemDrop __instance) => !Protected(__instance.transform.position);
 
+        private static int _stationMask;
+
         private static bool Protected(Vector3 pos)
         {
-            if (!Settings.DespawnProtection.Value || !ServerLoader.Running || !Observers.IsForced(ZoneSystem.GetZone(pos)))
+            if (!Settings.DespawnProtection.Value)
             {
                 return false;
             }
-            foreach (var station in ServerLoader.Stations)
+            var zone = ZoneSystem.GetZone(pos);
+            if (ServerLoader.Running)
             {
-                if (Vector3.Distance(station, pos) < NearStation)
+                if (!Observers.IsForced(zone))
+                {
+                    return false;
+                }
+                foreach (var station in ServerLoader.Stations)
+                {
+                    if (Vector3.Distance(station, pos) < NearStation)
+                    {
+                        return true;
+                    }
+                }
+                return Phantoms.AnyWithin(pos, NearPhantom);
+            }
+
+            // A player's game: their own loaded observers, phantoms and stations.
+            if (!ChunkObserver.AnyOnCovering(zone))
+            {
+                return false;
+            }
+            return PhantomSpawner.AnyActiveWithin(pos, NearPhantom) || StationNear(pos);
+        }
+
+        private static readonly Collider[] Hits = new Collider[64];
+
+        private static bool StationNear(Vector3 pos)
+        {
+            if (_stationMask == 0)
+            {
+                _stationMask = LayerMask.GetMask("piece", "piece_nonsolid", "Default", "static_solid");
+            }
+            var n = Physics.OverlapSphereNonAlloc(pos, NearStation, Hits, _stationMask);
+            for (var i = 0; i < n; i++)
+            {
+                var c = Hits[i];
+                if (c == null)
+                {
+                    continue;
+                }
+                if (c.GetComponentInParent<Smelter>() != null || c.GetComponentInParent<Fermenter>() != null ||
+                    c.GetComponentInParent<Beehive>() != null || c.GetComponentInParent<CookingStation>() != null ||
+                    c.GetComponentInParent<SapCollector>() != null)
                 {
                     return true;
                 }
             }
-            return Phantoms.AnyWithin(pos, NearPhantom);
+            return false;
         }
     }
 
