@@ -173,15 +173,7 @@ namespace QuanChunkLoader.Core
                 {
                     continue;
                 }
-                var c = ZoneSystem.GetZone(o.Position);
-                var r = o.Radius;
-                for (var dy = -r; dy <= r; dy++)
-                {
-                    for (var dx = -r; dx <= r; dx++)
-                    {
-                        next.Add(new Vector2s(c.x + dx, c.y + dy));
-                    }
-                }
+                AddZones(o, next);
             }
 
             var added = next.Where(z => !Forced.Contains(z)).ToList();
@@ -198,6 +190,20 @@ namespace QuanChunkLoader.Core
                      (removed.Count > 0 ? $"-{removed.Count} [{Zones(removed)}] " : "") +
                      $"now {Forced.Count} zone(s) from {All.Values.Count(o => o.On)} active observer(s).");
             Phantoms.Refresh();
+        }
+
+        /// <summary>Adds the zones an observer loads to a set.</summary>
+        private static void AddZones(Info o, HashSet<Vector2s> into)
+        {
+            var c = ZoneSystem.GetZone(o.Position);
+            var r = o.Radius;
+            for (var dy = -r; dy <= r; dy++)
+            {
+                for (var dx = -r; dx <= r; dx++)
+                {
+                    into.Add(new Vector2s(c.x + dx, c.y + dy));
+                }
+            }
         }
 
         private static string Zones(IEnumerable<Vector2s> zones) =>
@@ -249,7 +255,23 @@ namespace QuanChunkLoader.Core
 
         // ---- Limits and expiry -----------------------------------------------------------------------------
 
-        private static int ZonesOn(Func<Info, bool> which) => All.Values.Where(o => o.On && o.Counts && which(o)).Sum(o => o.Zones);
+        /// <summary>
+        /// The zones the counting observers that are on would load if <paramref name="extra"/> were on too, each zone
+        /// counted once: overlapping observers share their common zones (Quandru, 7 Nov 2026).
+        /// </summary>
+        private static int ZonesWith(Info extra, Func<Info, bool> which)
+        {
+            var zones = new HashSet<Vector2s>();
+            foreach (var o in All.Values)
+            {
+                if (o.On && o.Counts && which(o))
+                {
+                    AddZones(o, zones);
+                }
+            }
+            AddZones(extra, zones);
+            return zones.Count;
+        }
 
         /// <summary>Why switching this observer on would break a limit, or null if it wouldn't.</summary>
         private static string LimitRefusal(Info o)
@@ -258,14 +280,14 @@ namespace QuanChunkLoader.Core
             {
                 return null;
             }
-            var player = ZonesOn(x => x.BuilderId == o.BuilderId) + o.Zones;
+            var player = ZonesWith(o, x => x.BuilderId == o.BuilderId);
             if (player > Settings.ZonesPerPlayer.Value)
             {
                 var builder = string.IsNullOrEmpty(o.BuilderName) ? "this observer's builder" : o.BuilderName;
                 return $"That would load {player} zones for {builder}; the limit is {Settings.ZonesPerPlayer.Value} " +
                        "per player. Switch off or remove another of their observers first.";
             }
-            var total = ZonesOn(x => true) + o.Zones;
+            var total = ZonesWith(o, x => true);
             if (total > Settings.ZonesInTotal.Value)
             {
                 return $"This server's observers would load {total} zones; the limit is {Settings.ZonesInTotal.Value}. " +
@@ -330,6 +352,7 @@ namespace QuanChunkLoader.Core
             ZRoutedRpc.instance.Register<ZDOID>(PlacedRpc, RPC_Placed);
             ZRoutedRpc.instance.Register<string>(MessageRpc, RPC_Message);
             ObserverMap.RegisterRpcs();
+            ZoneGrid.RegisterRpcs();
         }
 
         /// <summary>Server: a player asks to switch an observer. Checks who may and the limits, then changes the forced set.</summary>

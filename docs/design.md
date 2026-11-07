@@ -54,7 +54,7 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Boat fix | Water readings from unloaded zones are replaced with the ship's centre reading while it runs on the server. | Built; rollout check |
 | Despawn protection | Items in loaded zones within 8 m of a station or 40 m of an active phantom don't time out, on the server and (since 6 Nov) on players' games. | Checked on the server side (surtling loot kept); players' games: rollout check |
 | Empty-server hour | With an observer on, the world clock keeps running in real time for up to 60 min after the last logout (admins can set 0–240). | Built 5 Nov; dedicated server only |
-| Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Per-player limit checked; the rest built |
+| Limits and admin-only building | Zones per player (18) and in total (108), each zone counted once from 1.1.0, admin exemption, expiry, admin-only building. | Per-player limit checked; the rest built |
 | Map | Admins can show every observer on the map (personal setting), as icons only; nobody else receives them. | Checked |
 | Zone grid | Looking at an observer and tapping AltPlace (or AltPlace + Use) draws the zones it loads for 2 minutes (15 s in 1.0.0). | Checked (1x1 and 3x3) |
 | Spawner reference list | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt`: every creature spawner in the game, for the phantom's list. | Checked |
@@ -163,6 +163,11 @@ Both observers:
   following the ground, and thin white posts at every zone corner (QuanTerraforming's zone grid, in white). Drawn on
   the player's own machine from the observer's position and size, so it works for anyone, on or off. Frogger's
   mod tinted the terrain dark blue instead.
+  - **Other loaded zones nearby in yellow (Quandru, 7 Nov 2026; 1.1.0).** The player's game asks the server which
+    zones are loaded within 4 zones of the observer's own, and draws those that aren't part of its block in yellow;
+    where a yellow line would lie on the white grid, white wins. The server answers with zone squares only, never who
+    built what or where an observer stands, so it stays in line with the admin-only map. Asking the server rather than
+    using observers the player's game has loaded catches neighbours more than about 2 zones from the player.
 - **Hover text** shows on/off, the size it loads, and the builder's name. **Admins only** also see "Admin-placed" on observers an admin built. Other players never see it. The flag is stored on the observer (it has to survive restarts); it isn't secret data, just not displayed to non-admins.
 - **It can't be destroyed and monsters ignore it.** It isn't a target for AI (`StaticTarget`, `Piece.m_targetNonPlayerBuilt`), and a prefix on `WearNTear.RPC_Damage` blocks damage. Removing it with the hammer still works.
 - **Overlap is allowed.** Loaded zones form a set, so overlapping observers cost nothing extra. That lets a player add a single observer at a dock on the edge of a cluster's area.
@@ -406,8 +411,9 @@ was left in it; nothing was released under the old names.
 
 - **Limits count zones, not observers (decided while building, 5 Nov 2026).** With two sizes, "observers per
   player" no longer measures load: a cluster loads nine times what a single one does. So each switched-on observer
-  counts the zones it loads (1 or 9), per builder and in total. Overlap isn't subtracted, so the count is simple and
-  predictable. The defaults keep the old numbers' meaning: 18 per player is two clusters, 108 in total is twelve.
+  counts the zones it loads (1 or 9), per builder and in total. **From 1.1.0 each zone counts once** (Quandru, 7 Nov
+  2026): overlapping observers share their common zones, so two clusters one zone apart count 12, what the server
+  really loads, not 18. In 1.0.0 overlap wasn't subtracted. The defaults keep the old numbers' meaning: 18 per player is two clusters, 108 in total is twelve.
 - **Checked when switching on, not when building (decided while building).** Observers are built switched off and
   load nothing until switched on, so the server checks the limits in the switch request, where it's authoritative
   and there's no race to recover from. Building is never refused for limits. Lowering a limit later doesn't switch
@@ -487,7 +493,8 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 | 7 | Phantom inside a switched-on single observer's zone | Hover "Active"; log "Phantom spawner … is now active". |
 | 8 | Surtling farm, if one is handy | With a phantom in the loaded zone and you far away, surtlings keep spawning. |
 | 9 | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt` | Lists creature spawners only, with what each spawns; `Spawner_imp_respawn` marked `[in use]`. |
-| 9b | Look at each observer and tap your AltPlace key (shown on the hover; Left Shift by default), then hold it and press E | White lines along the borders of the zones it loads (1 for the single, 9 for the cluster) and white corner posts, for 2 minutes. |
+| 9b | Look at each observer and tap your AltPlace key (shown on the hover; Left Shift by default), then hold it and press E | White lines along the borders of the zones it loads (1 for the single, 9 for the cluster) and white corner posts, for 2 minutes. Other switched-on observers' zones within 4 zones show in yellow, white winning on shared lines (1.1.0). |
+| 9c | 1.1.0: "Zones per player" 12, two clusters one zone apart, both switched on | Both switch on (12 zones, not 18); a third overlapping one adding any new zone is refused. Put the setting back. |
 | 10 | "Show observers on the map" on | An icon for every observer, lit or unlit, with no label. Off removes them. |
 | 11 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |
 | 12 | The log | No errors from the mod. |

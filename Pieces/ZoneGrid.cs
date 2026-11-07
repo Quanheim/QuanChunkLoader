@@ -1,17 +1,28 @@
 using System.Collections.Generic;
+using QuanChunkLoader.Core;
 using UnityEngine;
 
 namespace QuanChunkLoader
 {
     /// <summary>
     /// Shows the zones an observer loads (docs/design.md, "Pieces"): thin white lines along the zone borders,
-    /// following the ground, and a thin white post at every zone corner, for a short while after the player asks.
+    /// following the ground, and a thin white post at every zone corner, for a while after the player asks.
     /// Drawn on the player's own machine from the observer's position and size, so it works for anyone.
-    /// The look follows QuanTerraforming's zone grid, in white throughout.
+    /// The look follows QuanTerraforming's zone grid.
+    ///
+    /// Other loaded zones nearby are drawn in yellow (Quandru, 7 Nov 2026), so overlaps and gaps show. They come from
+    /// the server, which answers with zone squares only: never who built what or where an observer stands.
+    /// Where a yellow line would lie on the white grid, white wins.
     /// </summary>
     internal sealed class ZoneGrid : MonoBehaviour
     {
         internal const float ShowSeconds = 120f;    // 2 minutes (Quandru, 7 Nov 2026)
+
+        /// <summary>How far around the observer's own zone other loaded zones are shown, in zones.</summary>
+        private const int NearbyReach = 4;
+
+        private const string RequestRpc = "QCL_ZonesNear";
+        private const string ReplyRpc = "QCL_ZonesNearReply";
 
         private const float ZoneSize = 64f;     // ZoneSystem.m_zoneSize
         private const float WaterLevel = 30f;   // ZoneSystem.m_waterLevel
@@ -20,6 +31,7 @@ namespace QuanChunkLoader
         private const float PostWidth = 0.15f;
         private const float PostHeight = 20f;
         private static readonly Color White = new Color(1f, 1f, 1f, 0.85f);
+        private static readonly Color Yellow = new Color(1f, 0.85f, 0.1f, 0.85f);
 
         private static ZoneGrid _instance;
 
@@ -28,16 +40,92 @@ namespace QuanChunkLoader
         private Material _material;
         private float _hideAt;
 
+        // What's on screen: the observer's block, and the other loaded zones near it once the server answers.
+        private Vector2s _centre;
+        private int _radius;
+
         internal static void Hook(GameObject host) => _instance = host.AddComponent<ZoneGrid>();
 
         /// <summary>Shows the block of zones around a centre zone (radius 0 = just that zone) for a while.</summary>
         internal static void Show(Vector2s centre, int radius)
         {
-            if (_instance != null)
+            if (_instance == null)
             {
-                _instance.Draw(centre, radius);
+                return;
+            }
+            _instance._centre = centre;
+            _instance._radius = radius;
+            _instance.Draw(null);
+            _instance._hideAt = Time.time + ShowSeconds;
+            if (ZRoutedRpc.instance != null)
+            {
+                ZRoutedRpc.instance.InvokeRoutedRPC(RequestRpc, (int)centre.x, (int)centre.y);
             }
         }
+
+        // ---- Nearby loaded zones (server query) ----------------------------------------------------------
+
+        internal static void RegisterRpcs()
+        {
+            ZRoutedRpc.instance.Register<int, int>(RequestRpc, RPC_Request);
+            ZRoutedRpc.instance.Register<ZPackage>(ReplyRpc, RPC_Reply);
+        }
+
+        /// <summary>Server: sends back the loaded zones within reach of a zone. Zone squares only.</summary>
+        private static void RPC_Request(long sender, int x, int z)
+        {
+            if (!ZNet.instance.IsServer())
+            {
+                return;
+            }
+            var zones = new List<Vector2s>();
+            foreach (var zone in Observers.Forced)
+            {
+                if (Mathf.Abs(zone.x - x) <= NearbyReach && Mathf.Abs(zone.y - z) <= NearbyReach)
+                {
+                    zones.Add(zone);
+                }
+            }
+            var package = new ZPackage();
+            package.Write(x);
+            package.Write(z);
+            package.Write(zones.Count);
+            foreach (var zone in zones)
+            {
+                package.Write((int)zone.x);
+                package.Write((int)zone.y);
+            }
+            ZRoutedRpc.instance.InvokeRoutedRPC(sender, ReplyRpc, package);
+        }
+
+        /// <summary>Client: adds the server's answer to the grid on screen, if it's still showing that observer.</summary>
+        private static void RPC_Reply(long sender, ZPackage package)
+        {
+            if (!ZNet.instance.IsServer())
+            {
+                var server = ZNet.instance.GetServerPeer();
+                if (server == null || sender != server.m_uid)
+                {
+                    return;
+                }
+            }
+            var x = package.ReadInt();
+            var z = package.ReadInt();
+            var count = package.ReadInt();
+            var zones = new HashSet<Vector2s>();
+            for (var i = 0; i < count; i++)
+            {
+                zones.Add(new Vector2s((short)package.ReadInt(), (short)package.ReadInt()));
+            }
+            var grid = _instance;
+            if (grid == null || !grid._root.gameObject.activeSelf || grid._centre.x != x || grid._centre.y != z)
+            {
+                return;
+            }
+            grid.Draw(zones);
+        }
+
+        // ---- Drawing -------------------------------------------------------------------------------------
 
         private void Awake()
         {
@@ -62,45 +150,98 @@ namespace QuanChunkLoader
             }
         }
 
-        private void Draw(Vector2s centre, int radius)
+        // Grid corners are numbered so corner (i, j) sits at (i * 64 - 32, j * 64 - 32): zone (x, z) spans corners
+        // x..x+1 and z..z+1 (ZoneSystem.GetZone).
+        private static float CornerCoord(int i) => i * ZoneSize - ZoneSize / 2f;
+
+        /// <summary>Draws the observer's block in white and, if given, the other loaded zones near it in yellow.</summary>
+        private void Draw(HashSet<Vector2s> loadedNearby)
         {
             var used = 0;
-            // Zone (x, z) spans its centre (x * 64, z * 64) plus or minus 32 m (ZoneSystem.GetZone).
-            var minX = (centre.x - radius) * ZoneSize - ZoneSize / 2f;
-            var maxX = (centre.x + radius + 1) * ZoneSize - ZoneSize / 2f;
-            var minZ = (centre.y - radius) * ZoneSize - ZoneSize / 2f;
-            var maxZ = (centre.y + radius + 1) * ZoneSize - ZoneSize / 2f;
+            int iMin = _centre.x - _radius, iMax = _centre.x + _radius + 1;
+            int jMin = _centre.y - _radius, jMax = _centre.y + _radius + 1;
 
-            for (var x = minX; x <= maxX + 0.1f; x += ZoneSize)
+            // White: every grid line across the block and a post at every corner.
+            for (var i = iMin; i <= iMax; i++)
             {
-                GroundLine(new Vector3(x, 0f, minZ), new Vector3(x, 0f, maxZ), ref used);
+                GroundLine(CornerCoord(i), CornerCoord(jMin), CornerCoord(i), CornerCoord(jMax), White, ref used);
             }
-            for (var z = minZ; z <= maxZ + 0.1f; z += ZoneSize)
+            for (var j = jMin; j <= jMax; j++)
             {
-                GroundLine(new Vector3(minX, 0f, z), new Vector3(maxX, 0f, z), ref used);
+                GroundLine(CornerCoord(iMin), CornerCoord(j), CornerCoord(iMax), CornerCoord(j), White, ref used);
             }
-            for (var x = minX; x <= maxX + 0.1f; x += ZoneSize)
+            for (var i = iMin; i <= iMax; i++)
             {
-                for (var z = minZ; z <= maxZ + 0.1f; z += ZoneSize)
+                for (var j = jMin; j <= jMax; j++)
                 {
-                    Post(x, z, ref used);
+                    Post(CornerCoord(i), CornerCoord(j), White, ref used);
                 }
             }
-            for (var i = used; i < _pool.Count; i++)
+
+            // Yellow: the edges and corners of other loaded zones that aren't already part of the white block.
+            if (loadedNearby != null)
             {
-                _pool[i].gameObject.SetActive(false);
+                bool InBlock(int i, int j) => i >= iMin && i <= iMax && j >= jMin && j <= jMax;
+                var edges = new HashSet<long>();
+                var posts = new HashSet<long>();
+                foreach (var zone in loadedNearby)
+                {
+                    int i = zone.x, j = zone.y;
+                    if (i >= iMin && i < iMax && j >= jMin && j < jMax)
+                    {
+                        continue; // inside the white block
+                    }
+                    // An edge lies on the white grid when both its ends are corners of the block.
+                    TryEdge(i, j, i + 1, j);
+                    TryEdge(i, j + 1, i + 1, j + 1);
+                    TryEdge(i, j, i, j + 1);
+                    TryEdge(i + 1, j, i + 1, j + 1);
+                    TryPost(i, j);
+                    TryPost(i + 1, j);
+                    TryPost(i, j + 1);
+                    TryPost(i + 1, j + 1);
+                }
+
+                void TryEdge(int ai, int aj, int bi, int bj)
+                {
+                    if (InBlock(ai, aj) && InBlock(bi, bj))
+                    {
+                        return;
+                    }
+                    var vertical = ai == bi ? 1L : 0L;
+                    if (edges.Add(Key(ai, aj) * 2 + vertical))
+                    {
+                        GroundLine(CornerCoord(ai), CornerCoord(aj), CornerCoord(bi), CornerCoord(bj), Yellow, ref used);
+                    }
+                }
+
+                void TryPost(int ci, int cj)
+                {
+                    if (!InBlock(ci, cj) && posts.Add(Key(ci, cj)))
+                    {
+                        Post(CornerCoord(ci), CornerCoord(cj), Yellow, ref used);
+                    }
+                }
+            }
+
+            for (var k = used; k < _pool.Count; k++)
+            {
+                _pool[k].gameObject.SetActive(false);
             }
             _root.gameObject.SetActive(true);
-            _hideAt = Time.time + ShowSeconds;
         }
+
+        private static long Key(int i, int j) => ((long)i << 32) ^ (uint)j;
 
         private static float Ground(Vector3 at) =>
             Mathf.Max(Heightmap.GetHeight(at, out var height) ? height : WaterLevel, WaterLevel);
 
-        private void GroundLine(Vector3 a, Vector3 b, ref int used)
+        private void GroundLine(float ax, float az, float bx, float bz, Color colour, ref int used)
         {
+            var a = new Vector3(ax, 0f, az);
+            var b = new Vector3(bx, 0f, bz);
             var n = Mathf.Max(2, Mathf.CeilToInt(Vector3.Distance(a, b) / SampleStep) + 1);
-            var line = Next(ref used, LineWidth);
+            var line = Next(ref used, LineWidth, colour);
             line.positionCount = n;
             for (var i = 0; i < n; i++)
             {
@@ -110,17 +251,16 @@ namespace QuanChunkLoader
             }
         }
 
-        private void Post(float x, float z, ref int used)
+        private void Post(float x, float z, Color colour, ref int used)
         {
-            var at = new Vector3(x, 0f, z);
-            var bottom = Ground(at);
-            var line = Next(ref used, PostWidth);
+            var bottom = Ground(new Vector3(x, 0f, z));
+            var line = Next(ref used, PostWidth, colour);
             line.positionCount = 2;
             line.SetPosition(0, new Vector3(x, bottom, z));
             line.SetPosition(1, new Vector3(x, bottom + PostHeight, z));
         }
 
-        private LineRenderer Next(ref int used, float width)
+        private LineRenderer Next(ref int used, float width, Color colour)
         {
             if (used == _pool.Count)
             {
@@ -136,7 +276,7 @@ namespace QuanChunkLoader
             var r = _pool[used++];
             r.gameObject.SetActive(true);
             r.startWidth = r.endWidth = width;
-            r.startColor = r.endColor = White;
+            r.startColor = r.endColor = colour;
             return r;
         }
 

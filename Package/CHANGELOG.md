@@ -4,6 +4,9 @@
 
 - The daily log file (off by default) moved to `BepInEx/QuanChunkLoaderLogs`.
 - The zone grid now stays up for 2 minutes instead of 15 seconds, and the hover says so.
+- **Zone grid shows other loaded zones nearby in yellow**, so overlaps and gaps between observers show. The server
+  sends only the zone squares, not who built what.
+- **Overlapping observers count each zone once** towards the limits: two clusters one zone apart count 12 zones, not 18.
 - Server log: creatures a nearby player is running no longer count as paused in the 5-minute summary, and objects
   seen for the first time (a zone just switched on) no longer raise the "claimed by players far from them" warning.
 

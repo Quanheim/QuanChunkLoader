@@ -98,12 +98,13 @@ Both are in the **QuanPieces** tab of the hammer and need no crafting station.
 - **Switch it on with E.** The runes turn from red to glowing blue, at once for everyone nearby. No fuel: it stays on
   until someone switches it off.
 - **See exactly what it covers.** Look at it and tap your alternative-placement key (Left Shift by default; the hover
-  text shows yours). Thin white lines mark the zone borders, with a post at every corner.
+  text shows yours). For 2 minutes, thin white lines mark its zone borders, with a post at every corner, and any other
+  loaded zones nearby show in yellow, so you can see how loaders meet.
 - **Only its builder or an admin can switch it,** so nobody turns off your base. The hover text shows who built it.
 - **It can't be damaged, monsters ignore it**, and it doesn't count as a base, so it changes nothing else around it.
   Remove it with the hammer as usual.
-- **Overlap freely.** Two loaders covering the same zone cost nothing extra, so add a single one at your dock if it's
-  just outside a cluster's area.
+- **Overlap freely.** A zone covered by two loaders counts once, for the server and for your limit, so add a single
+  one at your dock if it's just outside a cluster's area.
 - **Fair limits:** by default each player's switched-on loaders can cover 18 zones (two clusters, or any mix) and
   the whole server 108. Admins' loaders don't count.
 

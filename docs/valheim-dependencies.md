@@ -81,7 +81,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZNet.IsDedicated` | Telling a dedicated server from a local game's host. |
 | `ZNet.GetConnectionStatus` | Waiting for the world before starting. |
 | `ZNet.GetReferencePosition` | The host's own area in a local game. |
-| `ZRoutedRpc.Register` | The switch, placed and message RPCs. |
+| `ZRoutedRpc.Register` | The switch, placed and message RPCs, the admin map and the nearby-zones query for the zone grid. |
 | `ZRoutedRpc.InvokeRoutedRPC` | As above, and flag changes routed to an observer's owner. |
 | `ZDOVars.s_tamed` | Skipping tames in forced zones. |
 | `ZDOVars.s_inUse` | Never claiming an object in use. |
