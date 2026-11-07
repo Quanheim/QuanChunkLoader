@@ -250,7 +250,7 @@ namespace QuanChunkLoader
                 text += Localization.instance.Localize(
                     $"\n[<color=yellow><b>$KEY_Use</b></color>] {(on ? "Switch off" : "Switch on")}");
             }
-            text += Localization.instance.Localize("\n[<color=yellow><b>$KEY_AltPlace</b></color>] Show its zones");
+            text += Localization.instance.Localize("\n[<color=yellow><b>$KEY_AltPlace</b></color>] Show its zones for 2m");
             return text;
         }
 

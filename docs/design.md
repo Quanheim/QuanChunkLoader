@@ -56,7 +56,7 @@ Log detail Trace), on the single observer when it still loaded 3×3:
 | Empty-server hour | With an observer on, the world clock keeps running in real time for up to 60 min after the last logout (admins can set 0–240). | Built 5 Nov; dedicated server only |
 | Limits and admin-only building | Zones per player (18) and in total (108), admin exemption, expiry, admin-only building. | Per-player limit checked; the rest built |
 | Map | Admins can show every observer on the map (personal setting), as icons only; nobody else receives them. | Checked |
-| Zone grid | Looking at an observer and tapping AltPlace (or AltPlace + Use) draws the zones it loads for 15 s. | Checked (1x1 and 3x3) |
+| Zone grid | Looking at an observer and tapping AltPlace (or AltPlace + Use) draws the zones it loads for 2 minutes (15 s in 1.0.0). | Checked (1x1 and 3x3) |
 | Spawner reference list | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt`: every creature spawner in the game, for the phantom's list. | Checked |
 | Defensive patches | `Pickable.RPC_Pick` and `Ship.UpdateSailSize` no longer fail when the server owns the object. | Built 5 Nov; needs the dedi |
 | Release | Thunderstore page reworked into a pitch with a collapsible block (see [README outline](#readme-outline)), changelog dated, **1.0.0 built, tagged `v1.0.0` and pushed on 6 Nov 2026.** The package depends on BepInExPack 5.4.2360 and Jotunn 2.30.2: check the server's shared profile has them or later. Quandru uploaded it to Thunderstore the same day. | Done |
@@ -159,7 +159,7 @@ Both observers:
 - **Only its builder or an admin can switch it** (server setting, on by default). Other players see who built it and can't change it. With the setting off, switching falls back to wards (`PrivateArea.CheckAccess`).
 - **Its glow updates immediately for everyone nearby** when switched. The old mod took 2-3 s.
 - **Show its zones (Quandru, 6 Nov 2026):** looking at an observer and tapping the AltPlace key, or holding it and
-  pressing Use (as Frogger's mod did), draws the zones it loads for 15 s: thin white lines along the zone borders,
+  pressing Use (as Frogger's mod did), draws the zones it loads for 2 minutes (15 s in 1.0.0; lengthened by Quandru on 7 Nov): thin white lines along the zone borders,
   following the ground, and thin white posts at every zone corner (QuanTerraforming's zone grid, in white). Drawn on
   the player's own machine from the observer's position and size, so it works for anyone, on or off. Frogger's
   mod tinted the terrain dark blue instead.
@@ -487,7 +487,7 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 | 7 | Phantom inside a switched-on single observer's zone | Hover "Active"; log "Phantom spawner … is now active". |
 | 8 | Surtling farm, if one is handy | With a phantom in the loaded zone and you far away, surtlings keep spawning. |
 | 9 | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt` | Lists creature spawners only, with what each spawns; `Spawner_imp_respawn` marked `[in use]`. |
-| 9b | Look at each observer and tap your AltPlace key (shown on the hover; Left Shift by default), then hold it and press E | White lines along the borders of the zones it loads (1 for the single, 9 for the cluster) and white corner posts, for 15 s. |
+| 9b | Look at each observer and tap your AltPlace key (shown on the hover; Left Shift by default), then hold it and press E | White lines along the borders of the zones it loads (1 for the single, 9 for the cluster) and white corner posts, for 2 minutes. |
 | 10 | "Show observers on the map" on | An icon for every observer, lit or unlit, with no label. Off removes them. |
 | 11 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |
 | 12 | The log | No errors from the mod. |

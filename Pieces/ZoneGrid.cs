@@ -11,7 +11,7 @@ namespace QuanChunkLoader
     /// </summary>
     internal sealed class ZoneGrid : MonoBehaviour
     {
-        internal const float ShowSeconds = 15f;
+        internal const float ShowSeconds = 120f;    // 2 minutes (Quandru, 7 Nov 2026)
 
         private const float ZoneSize = 64f;     // ZoneSystem.m_zoneSize
         private const float WaterLevel = 30f;   // ZoneSystem.m_waterLevel

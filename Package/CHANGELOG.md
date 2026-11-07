@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The zone grid now stays up for 2 minutes instead of 15 seconds, and the hover says so.
+
 ## 1.0.0 - 2026-11-06
 
 First release. A ground-up rewrite that replaces Frogger's ChunkLoader, ChunkLoader Continued and ChunkLoaderFix.
