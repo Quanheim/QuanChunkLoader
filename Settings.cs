@@ -120,7 +120,7 @@ namespace QuanChunkLoader
                          "for ownership changes and loads. Trace: adds every ownership decision, for chasing a bug. " +
                          "Debug and Trace write thousands of lines when players come and go; don't leave them on."));
             DailyFile = config.Bind(logging, "Write a daily log file", false,
-                Enforced("Also write this mod's log lines to BepInEx/QuanChunkLoader/logs, one file per day."));
+                Enforced("Also write this mod's log lines to BepInEx/QuanChunkLoaderLogs, one file per day."));
             DaysToKeep = config.Bind(logging, "Days of daily files to keep", 14,
                 Enforced("Older daily files are deleted.", new AcceptableValueRange<int>(1, 365)));
         }

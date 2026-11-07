@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - unreleased
 
+- The daily log file (off by default) moved to `BepInEx/QuanChunkLoaderLogs`.
 - The zone grid now stays up for 2 minutes instead of 15 seconds, and the hover says so.
 
 ## 1.0.0 - 2026-11-06

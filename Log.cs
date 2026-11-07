@@ -16,7 +16,7 @@ namespace QuanChunkLoader
         private static string _fileDay;
         private static StreamWriter _file;
 
-        private static string Folder => Path.Combine(Paths.BepInExRootPath, "QuanChunkLoader", "logs");
+        private static string Folder => Path.Combine(Paths.BepInExRootPath, "QuanChunkLoaderLogs");
 
         internal static bool DebugOn => Settings.Detail.Value >= LogDetail.Debug;
         internal static bool TraceOn => Settings.Detail.Value >= LogDetail.Trace;

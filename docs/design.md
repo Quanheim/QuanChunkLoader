@@ -270,7 +270,7 @@ The diagnostic plugin retires at 1.0, so everything below is built into the mod.
   - **Debug:** adds per-object detail for ownership changes and loads.
   - **Trace:** adds every ownership decision and scene pass, for chasing a specific bug, then switching back.
 - Everything goes to the normal BepInEx log. Writing a separate daily log file (as the diagnostic did, up to about
-  10 MB a day) is an option, off by default, with a setting for how many days of files to keep.
+  10 MB a day) is an option, off by default, with a setting for how many days of files to keep. The files go in`n  `BepInEx/QuanChunkLoaderLogs` (`BepInEx/QuanChunkLoader/logs` in 1.0.0; flattened by Quandru on 7 Nov 2026).
 
 Timestamps include the UTC offset, as the diagnostic does, so they can be matched against client `Player.log` files.
 
@@ -468,7 +468,7 @@ mod's config) and the "Tested with" list (71 mods is too long for anyone to read
 
 ## Versioning
 
-The first release is 1.0.0. Builds stay at 1.0.0 through development and testing. The tagged commit that goes to Thunderstore fixes what 1.0.0 is; later changes bump the version. It has to be on Thunderstore so every player gets it through the shared Gale profile.
+The first release is 1.0.0. Builds stay at 1.0.0 through development and testing. The tagged commit that goes to Thunderstore fixes what 1.0.0 is; later changes bump the version. The first changes after the rollout started go out as 1.1.0 (Quandru, 7 Nov 2026). It has to be on Thunderstore so every player gets it through the shared Gale profile.
 
 ## Test plan for the real mod
 
