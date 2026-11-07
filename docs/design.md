@@ -433,7 +433,7 @@ Client config:
 
 - **Hard dependency:** Jotunn (in the manifest too). Settings sync through Jotunn's config sync (`IsAdminOnly`), not ServerSync (see `docs/DEVELOPMENT.md`).
 - **Incompatible:** the three old chunk loaders, declared with `BepInIncompatibility`. Two GUIDs cover all three: `com.Frogger.ChunkLoader` (Frogger's original, and NerdLounge's ChunkLoader Continued 1.8.0, which kept that GUID) and `com.zeecamelsnake.ChunkLoaderFix` (zeeCamelSnake 1.0.4; checked from the Thunderstore DLLs on 2026-10-25). Running alongside one would bring back the ownership bug. If BepInEx doesn't show the refusal clearly, the mod detects the old loader itself, logs a clear error and stays inactive.
-- **No soft dependencies.** Nothing needs a particular load order. The hammer tab name is a fixed constant, `QuanPieces`, matching the QuanPieces mod, so if both are installed their pieces share one tab. That needs only the same name, not a dependency.
+- **One soft dependency (1.1.0): SteadyFrame**, so it loads first when installed (see below). Otherwise nothing needs a particular load order. The hammer tab name is a fixed constant, `QuanPieces`, matching the QuanPieces mod, so if both are installed their pieces share one tab. That needs only the same name, not a dependency.
 - **Patch order.** Before release, check every installed mod for patches on the methods we touch, and set Harmony priority or before/after per patch as needed. The methods are listed in `docs/valheim-dependencies.md` ("Harmony patches"): `ZNetScene` object removal and creation, `ZNetScene.PointInsideActiveArea` with its three callers, `ItemDrop.TimedDestruction`, `Player.IsPlayerInRange`, `CreatureSpawner.UpdateSpawner`, `SpawnArea.UpdateSpawn`, `Character.Awake`, `Pickable.RPC_Pick`, `Ship.UpdateSailSize`, `Ship.CustomFixedUpdate` with `Floating.GetWaterLevel`, `WearNTear.RPC_Damage` and `Game.Start`. The full list, with what each relies on, belongs in the mod's Valheim Code Dependency doc.
 - **Known interactions, none needing code:**
   - **AzuAutoStore and OttoFuel** start working inside loaded bases again, because players get ownership.
@@ -441,6 +441,17 @@ Client config:
   - **Seed Totem** plants and harvests normally while a player is near, because that player owns the totem. With nobody near it doesn't plant, the same as auto-fuel and auto-store (see Still open for why).
   - **Conversion Size & Speed** and similar mods complement the empty-server hour.
   - **TargetPortal's** map selection is no longer blocked.
+  - **SteadyFrame's Object streaming, "Unload by zone" (found on the live server, 7 Nov 2026; handled in 1.1.0).** It
+    replaces the game's unloading pass with its own, which unloads every instance outside the zones around the
+    reference point and ignores the loader's keep marks. On the dedicated server (reference point 0,0) it unloaded
+    everything in loaded zones as fast as the loader created it: summaries showed about 20 of 5,000 objects running,
+    smelters only appeared to work through the game's own catch-up (up to an hour), and chickens on a QuanPieces coop
+    floor sank through it while the server owned them (each recreation could run a physics step before the floor
+    was back). 1.0.0 needs "Unload by zone" off on the server. 1.1.0 patches SteadyFrame's collection step to leave
+    loaded zones alone, and the 5-minute summary warns if objects keep having to be recreated, whatever the cause.
+    Single player didn't show it: Object streaming was off for everyone then.
+  - **OttoFuel's "Restrict kiln output"** stops filling a kiln once that much coal is in containers within range, and
+    skips open containers, so a kiln can look stuck until someone opens the coal chest. Its own setting, not ours.
   - **BetterTames and TeleportCreatures** only ever see tames near a player, because neither the server nor a distant client keeps tames loaded (see [Tames](#tames)).
 
 ## Migrating from an old chunk loader
@@ -494,6 +505,7 @@ world, with Log detail on Info. What can only be seen on a dedicated server is l
 | 8 | Surtling farm, if one is handy | With a phantom in the loaded zone and you far away, surtlings keep spawning. |
 | 9 | `BepInEx/config/quandru.QuanChunkLoader.spawners.txt` | Lists creature spawners only, with what each spawns; `Spawner_imp_respawn` marked `[in use]`. |
 | 9b | Look at each observer and tap your AltPlace key (shown on the hover; Left Shift by default), then hold it and press E | White lines along the borders of the zones it loads (1 for the single, 9 for the cluster) and white corner posts, for 2 minutes. Other switched-on observers' zones within 4 zones show in yellow, white winning on shared lines (1.1.0). |
+| 9d | 1.1.0, with SteadyFrame's Object streaming and "Unload by zone" on: switch an observer on, go far away, wait for a summary | Log at start: "SteadyFrame found: its "Unload by zone" is kept away from loaded zones." Summary: nearly all the zone's objects running on the server, and no "had to be created again" warning. |
 | 9c | 1.1.0: "Zones per player" 12, two clusters one zone apart, both switched on | Both switch on (12 zones, not 18); a third overlapping one adding any new zone is refused. Put the setting back. |
 | 10 | "Show observers on the map" on | An icon for every observer, lit or unlit, with no label. Off removes them. |
 | 11 | Hit the cluster and the phantom; remove both with the hammer | No damage; both come off; logged. |

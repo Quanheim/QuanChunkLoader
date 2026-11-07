@@ -6,6 +6,9 @@
 - The zone grid now stays up for 2 minutes instead of 15 seconds, and the hover says so.
 - **Zone grid shows other loaded zones nearby in yellow**, so overlaps and gaps between observers show. The server
   sends only the zone squares, not who built what.
+- **Works with SteadyFrame's Object streaming.** Its "Unload by zone" unloaded everything in loaded zones on a
+  dedicated server, so bases didn't really run while nobody was there. Loaded zones are now left alone. The server
+  log also warns if anything else keeps unloading them.
 - **Overlapping observers count each zone once** towards the limits: two clusters one zone apart count 12 zones, not 18.
 - Server log: creatures a nearby player is running no longer count as paused in the 5-minute summary, and objects
   seen for the first time (a zone just switched on) no longer raise the "claimed by players far from them" warning.

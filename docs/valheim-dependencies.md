@@ -21,7 +21,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 
 | Game code | Patch | What it does | If the game changes it |
 |---|---|---|---|
-| `ZNetScene.RemoveObjects` | Prefix (`KeepForcedInstances`) | On the server, earmarks forced-zone instances with this frame's mark (`Time.frameCount & 0xFF`) so the scene pass keeps them. Tames and wild creatures aren't marked (except phantom spawns), so they unload. | Core of loading: still earmarks by frame count and unloads unmarked instances? Still deletes non-persistent objects it unloads? |
+| `ZNetScene.RemoveObjects` | Prefix (`KeepForcedInstances`) | On the server, earmarks forced-zone instances with this frame's mark (`Time.frameCount & 0xFF`) so the scene pass keeps them. Tames (unless "Simulate tames" is on) and wild creatures (except phantom spawns) aren't marked, so they unload. | Core of loading: still earmarks by frame count and unloads unmarked instances? Still deletes non-persistent objects it unloads? |
 | `ZNetScene.CreateObjectsSorted` | Prefix (`UnknownPrefabGuardNear`) | Takes unknown-prefab ZDOs in forced zones out of the list, so vanilla can't delete them. Parameter `currentNearObjects`. | Still destroys ZDOs whose prefab it can't create? Parameter renamed? |
 | `ZNetScene.CreateDistantObjects` | Prefix (`UnknownPrefabGuardDistant`) | As above, for distant objects. Parameter `objects`. | As above. |
 | `ZNetScene.PointInsideActiveArea` | Postfix (`EdgeRule`) | Inside the three callers below only, on the server: a point in a forced zone whose 8 neighbours are all forced counts as active; for a spawner area a phantom runs, any point in a forced zone with an active phantom within the area's `m_triggerDistance`. Parameter `point`. | Still the test behind `OutsideActiveArea` and `InActiveArea`? Still private static `(Vector2s, Vector3)`? |
@@ -192,6 +192,14 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZNet.UpdateNetTime` | On the server, adds time only while `GetNrOfPlayers() > 0`, so the empty-server hour adds its own and they never overlap. |
 | `Smelter.UpdateSmelter` | Catches up on up to an hour of elapsed world time when next loaded, so a smelter can't show whether its zone stayed loaded (tests use the log's Summary instead). |
 | `WearNTear.Highlight` | The hammer's hover highlight writes `_EmissionColor` through `MaterialMan` property blocks and then clears it. So the observer changes its rune colour on its own material copy, which the highlight's reset doesn't undo. |
+
+## Other mods' code
+
+Not game code, so not in the tables the update script reads. Check these when the other mod updates.
+
+| Mod | Code | How it's used | If it changes |
+|---|---|---|---|
+| SteadyFrame (`ru.ivest.steadyframe`, checked against 1.2.1) | `SteadyFrame.SceneStreaming.ZoneUnload.Collect` (private static), static field `Removed` (`List<ZDO>`) | Postfix (`SteadyFrameZoneUnload`): after SteadyFrame's "Unload by zone" collects the instances to unload, takes back out the ones the loader keeps in forced zones. Found by name at startup; skipped with a warning if missing. Soft `BepInDependency` so SteadyFrame loads first. | Renamed or reshaped: the patch is skipped and logs a warning, and the 5-minute summary warns that objects keep being unloaded. Turn "Unload by zone" off on the server until fixed. |
 
 ## Prefabs and assets
 

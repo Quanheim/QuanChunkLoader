@@ -24,11 +24,64 @@ namespace QuanChunkLoader.Patches
             var mark = (byte)(Time.frameCount & 0xFF);
             foreach (var zdo in GameAccess.Instances(__instance).Keys)
             {
-                if (Observers.IsForced(zdo.GetSector()) &&
-                    (ObjectKinds.ServerLoads(zdo) || (!zdo.Persistent && zdo.IsOwner())))
+                if (Keeps(zdo))
                 {
                     zdo.TempRemoveEarmark = mark;
                 }
+            }
+        }
+
+        /// <summary>Whether the server keeps this instance alive: a forced-zone object it loads, or a temporary one it owns there.</summary>
+        internal static bool Keeps(ZDO zdo) =>
+            ServerLoader.Running && Observers.IsForced(zdo.GetSector()) &&
+            (ObjectKinds.ServerLoads(zdo) || (!zdo.Persistent && zdo.IsOwner()));
+    }
+
+    /// <summary>
+    /// SteadyFrame's Object streaming, "Unload by zone" (found on the live server, 7 Nov 2026). It replaces
+    /// ZNetScene.RemoveObjects with its own pass that unloads every instance outside the zones around the reference
+    /// point and ignores the marks above, so on a dedicated server (reference point 0,0) it unloaded everything in
+    /// loaded zones as fast as the loader created it. Its pass collects the instances to unload into a list, then
+    /// unloads them; this takes ours back out of that list in between. Applied only when SteadyFrame is installed.
+    /// </summary>
+    [HarmonyPatch]
+    internal static class SteadyFrameZoneUnload
+    {
+        private static List<ZDO> _removed;
+
+        private static bool Prepare()
+        {
+            var type = AccessTools.TypeByName("SteadyFrame.SceneStreaming.ZoneUnload");
+            if (type == null)
+            {
+                return false;
+            }
+            _removed = AccessTools.Field(type, "Removed")?.GetValue(null) as List<ZDO>;
+            var collect = AccessTools.Method(type, "Collect");
+            if (_removed == null || collect == null)
+            {
+                Log.Warning("SteadyFrame is installed but its zone unloading has changed shape; if its \"Unload by zone\" " +
+                            "is on, turn it off on the server or loaded zones won't stay loaded.");
+                return false;
+            }
+            if (!_announced)
+            {
+                _announced = true;
+                Log.Info("SteadyFrame found: its \"Unload by zone\" is kept away from loaded zones.");
+            }
+            return true;
+        }
+
+        private static bool _announced;
+
+        private static System.Reflection.MethodBase TargetMethod() =>
+            AccessTools.Method(AccessTools.TypeByName("SteadyFrame.SceneStreaming.ZoneUnload"), "Collect");
+
+        private static void Postfix()
+        {
+            if (_removed != null && _removed.Count > 0 && ServerLoader.Running && Observers.Forced.Count > 0)
+            {
+                _removed.RemoveAll(KeepForcedInstances.Keeps);
             }
         }
     }

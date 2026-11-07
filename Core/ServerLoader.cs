@@ -34,6 +34,12 @@ namespace QuanChunkLoader.Core
         private readonly List<ZDO> _zoneObjects = new List<ZDO>();
         private readonly HashSet<ZDOID> _unknownLogged = new HashSet<ZDOID>();
 
+        // Objects created in loaded zones, to notice something else unloading them (live server, 7 Nov 2026:
+        // SteadyFrame's "Unload by zone" did, so only about 20 objects ever existed at once).
+        private readonly HashSet<ZDOID> _createdOnce = new HashSet<ZDOID>();
+        private int _createdForcedVersion = -1;
+        private int _recreated;
+
         private struct Seen
         {
             internal long Owner;
@@ -117,6 +123,8 @@ namespace QuanChunkLoader.Core
             Stations.Clear();
             EmptyServer.Reset();
             _unknownLogged.Clear();
+            _createdOnce.Clear();
+            _recreated = 0;
             _summaryTimer = SummaryInterval - 30f; // first summary half a minute after start
             Observers.ServerStart();
         }
@@ -172,6 +180,12 @@ namespace QuanChunkLoader.Core
         private void CreateObjects()
         {
             var budget = CreatePerTick;
+            if (_createdForcedVersion != Observers.ForcedVersion)
+            {
+                // Zones switched off and on again legitimately unload and recreate their objects.
+                _createdForcedVersion = Observers.ForcedVersion;
+                _createdOnce.Clear();
+            }
             foreach (var zone in Observers.Forced)
             {
                 if (!ZoneSystem.instance.IsZoneLoaded(zone))
@@ -203,6 +217,10 @@ namespace QuanChunkLoader.Core
                     if (go == null)
                     {
                         continue; // never destroyed: the safety rule for unknown objects
+                    }
+                    if (!_createdOnce.Add(zdo.m_uid))
+                    {
+                        _recreated++;
                     }
                     if (Log.DebugOn)
                     {
@@ -424,6 +442,16 @@ namespace QuanChunkLoader.Core
                 Log.Info($"Summary: {Observers.Forced.Count} zone(s) loaded by {active} observer(s); {objects} objects, " +
                          $"owners: {owners}; {instantiated} running on the server; " +
                          $"{tamesPaused} tame(s) and {wildPaused} wild creature(s) paused.");
+            }
+            if (summary)
+            {
+                if (_recreated >= LargeChange)
+                {
+                    Log.Warning($"{_recreated} object(s) in loaded zones had to be created again in the last 5 minutes: " +
+                                "something else on the server keeps unloading them, so they aren't really running. " +
+                                "Look for another mod that unloads distant objects (SteadyFrame's \"Unload by zone\" did).");
+                }
+                _recreated = 0;
             }
         }
 

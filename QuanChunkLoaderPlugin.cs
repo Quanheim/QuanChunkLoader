@@ -17,6 +17,9 @@ namespace QuanChunkLoader
     // the ownership bug. Frogger's original and NerdLounge's ChunkLoader Continued share the first GUID.
     [BepInIncompatibility(FroggerGuid)]
     [BepInIncompatibility(ZeeCamelSnakeGuid)]
+    // Loaded after SteadyFrame when it's installed, so the patch that keeps its "Unload by zone" off loaded zones
+    // can find its code (Patches/ScenePatches.cs, SteadyFrameZoneUnload).
+    [BepInDependency(SteadyFrameGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor)]
     public class QuanChunkLoaderPlugin : BaseUnityPlugin
     {
@@ -26,6 +29,7 @@ namespace QuanChunkLoader
 
         private const string FroggerGuid = "com.Frogger.ChunkLoader";
         private const string ZeeCamelSnakeGuid = "com.zeecamelsnake.ChunkLoaderFix";
+        private const string SteadyFrameGuid = "ru.ivest.steadyframe";
 
         // Shared with the QuanPieces mod by name only, so both mods' pieces land in one hammer tab when both are installed.
         internal const string HammerCategory = "QuanPieces";
