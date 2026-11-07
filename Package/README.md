@@ -199,6 +199,10 @@ them: if one is installed it stays switched off and says so in the log.
 - **Seed Totems** only plant while a player is near, like auto-fuel.
 - **Clients don't load anything extra.** The server keeps loaded bases running; your own game only loads what's
   around you, as normal.
+- **Mods that unload distant objects on the server.** If another mod makes the server unload objects far from its
+  centre point (usually sold as a performance boost), loaded bases stop running while nobody's there. The server
+  log warns about it in its 5-minute summary. We've catered for Ivvty's **SteadyFrame**: its Object streaming,
+  "Unload by zone" included, is safe to use with this mod from 1.1.0.
 
 ## Credits and licence
 
