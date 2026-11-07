@@ -334,14 +334,17 @@ namespace QuanChunkLoader.Core
                         if (ObjectKinds.ServerClaims(zdo))
                         {
                             var category = ObjectKinds.Category(zdo);
-                            if (hadBefore && before.Owner == owner)
-                            {
-                                leftBehind.Add(who);
-                            }
-                            else
+                            // Only a change of owner seen between two passes is a distant claim. An object seen for
+                            // the first time (a zone just switched on, or a creature that walked in) is ordinary:
+                            // its owner walked out of range before we had looked (live server, 7 Nov 2026).
+                            if (hadBefore && before.Owner != owner)
                             {
                                 distantClaims.Add(who);
                                 distantCategories.Add(category);
+                            }
+                            else
+                            {
+                                leftBehind.Add(who);
                             }
                             zdo.SetOwner(session);
                             owner = session;
@@ -373,8 +376,9 @@ namespace QuanChunkLoader.Core
                         {
                             instantiated++;
                         }
-                        else if (kind == Kind.Creature)
+                        else if (kind == Kind.Creature && (owner == session || owner == 0))
                         {
+                            // Paused means nobody runs it. A creature a nearby player owns runs on their game.
                             if (ObjectKinds.IsTame(zdo)) tamesPaused++;
                             else wildPaused++;
                         }

@@ -4,6 +4,8 @@
 
 - The daily log file (off by default) moved to `BepInEx/QuanChunkLoaderLogs`.
 - The zone grid now stays up for 2 minutes instead of 15 seconds, and the hover says so.
+- Server log: creatures a nearby player is running no longer count as paused in the 5-minute summary, and objects
+  seen for the first time (a zone just switched on) no longer raise the "claimed by players far from them" warning.
 
 ## 1.0.0 - 2026-11-06
 
