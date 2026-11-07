@@ -505,8 +505,15 @@ can run without. That's acceptable because of the risk assessment (2 Nov 2026):
 1. **Back up the world** just before the swap, and keep that backup for a couple of weeks.
 2. **Swap** the old loader for ours on the server and every client at once (see
    [Migrating from an old chunk loader](#migrating-from-an-old-chunk-loader)).
-3. **Start cautious:** "Only admins can build" on, empty-server window 0 (off). Admins place a few observers at bases
-   that want them.
+3. **Start:** planned as "Only admins can build" on and empty-server window 0. **As done (Quandru, 7 Nov 2026):**
+   defaults throughout (building open to everyone, empty-server window 60 minutes) with "Simulate tames" on and the
+   daily log file on, after a fresh backup.
+   - **First start, 7 Nov 08:19:** clean. 71 plugins with the old loader and the diagnostic gone, "Found 0 chunk
+     observer(s)", spawner list written. Two overlapping clusters loaded 14 zones (+9, then +5), and removing the first
+     dropped only its 5 unshared zones.
+   - **Found:** the 5-minute summary counted tames a nearby player was running as "paused", and the first pass after a
+     switch-on reported tames their owner had just walked out of range of as "claimed by players far from them". Both
+     were log wording only; fixed for 1.1.0.
 4. **Day one checks:** moored boats at the edge of a loaded area are afloat; a busy base's chests and smelters hold
    what they should; the server log shows no unknown-prefab skips, no large ownership swings and no errors.
 5. **Then switch on one thing at a time:** the empty-server hour, phantoms, more observers, and finally building for
