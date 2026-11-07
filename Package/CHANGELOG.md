@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 - unreleased
+
+- "Show observers on the map" no longer turns the map's dot-pin filter back on. Observer pins now have no filter
+  of their own, like the map's location icons.
+
 ## 1.1.0 - 2026-11-07
 
 - The daily log file (off by default) moved to `BepInEx/QuanChunkLoaderLogs`.

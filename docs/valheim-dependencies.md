@@ -139,7 +139,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ItemDrop.ItemData` | In `Interactable.UseItem`'s signature. |
 | `Humanoid.Message` | Refusal messages to the player switching. |
 | `MessageHud.MessageType` | Centre messages. |
-| `Minimap.PinType` | `Icon3` for the admin map's pins. |
+| `Minimap.PinType` | `None` for the admin map's pins (no filter button; `AddPin` re-enables a filtered type, which `Icon3` did until 1.1.1). |
 | `Localization` | `Localize` for hover text and key names (`$KEY_Use`, `$KEY_AltPlace`). In `assembly_guiutils`. |
 | `Utils.GetPrefabName` | Prefab names in logs; matching creature spawners against the phantom allowlist. |
 | `Pickable.GetPicked` | The pick fix only acts on unpicked plants. |
@@ -149,7 +149,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZNetScene.m_prefabs` | The spawner reference list: every prefab with a `CreatureSpawner`. *Diagnostic* too: startup report. |
 | `CreatureSpawner` | The reference list reads `m_creaturePrefab`, `m_respawnTimeMinuts` and `m_triggerDistance`. |
 | `Piece.m_enabled` | Admin-only building hides this mod's pieces from non-admins' hammers. |
-| `Minimap.AddPin` | Admin map pins (type `Icon3`, not saved). |
+| `Minimap.AddPin` | Admin map pins (type `None`, not saved). Relies on it turning a filter back on only for the pin's own type. |
 | `Minimap.RemovePin` | Removing the admin map pins before redrawing. |
 | `Minimap.PinData` | `m_icon` replaced with Frogger's icons after `AddPin`. |
 | `Character` | Phantom spawns: a new creature's `ZNetView` ZDO gets the `QCL_phantom` flag. |

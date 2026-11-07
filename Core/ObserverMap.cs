@@ -161,8 +161,9 @@ namespace QuanChunkLoader.Core
             }
             foreach (var e in Entries)
             {
-                // Icon only, no label (Quandru, 6 Nov 2026).
-                var pin = map.AddPin(e.Position, Minimap.PinType.Icon3, "", false, false);
+                // Icon only, no label (Quandru, 6 Nov 2026). PinType.None, as vanilla's own location icons use:
+                // AddPin turns a hidden pin type's map filter back on, and None has no filter button.
+                var pin = map.AddPin(e.Position, Minimap.PinType.None, "", false, false);
                 var icon = e.On ? ObserverPiece.IconActive : ObserverPiece.IconDisabled;
                 if (pin != null && icon != null)
                 {
