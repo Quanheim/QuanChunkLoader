@@ -116,9 +116,12 @@ namespace QuanChunkLoader
             const string logging = "7 - Logging";
             Detail = config.Bind(logging, "Log detail", LogDetail.Info,
                 Enforced("How much the server logs. Info: switches, loaded-zone changes, a summary every 5 " +
-                         "minutes and warnings; a handful of lines a minute at most. Debug: adds a line per object " +
-                         "for ownership changes and loads. Trace: adds every ownership decision, for chasing a bug. " +
-                         "Debug and Trace write thousands of lines when players come and go; don't leave them on."));
+                         "minutes and warnings; a handful of lines a minute at most. Debug: adds the diagnostic " +
+                         "checks: a tame watch (each tame that moves 10 m or more, jumps, or changes who runs it), " +
+                         "owner changes grouped, players coming and going, ships' buoyancy, plants overdue to " +
+                         "regrow, station capacities at start and a heartbeat with each summary. Trace: adds a " +
+                         "line per object loaded or taken, for chasing a bug; thousands of lines when players " +
+                         "come and go, so don't leave it on."));
             DailyFile = config.Bind(logging, "Write a daily log file", false,
                 Enforced("Also write this mod's log lines to BepInEx/QuanChunkLoaderLogs, one file per day."));
             DaysToKeep = config.Bind(logging, "Days of daily files to keep", 14,

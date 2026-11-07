@@ -39,6 +39,7 @@ namespace QuanChunkLoader.Core
         private readonly HashSet<ZDOID> _createdOnce = new HashSet<ZDOID>();
         private int _createdForcedVersion = -1;
         private int _recreated;
+        private readonly Dictionary<string, int> _recreatedNames = new Dictionary<string, int>();
 
         // When each object was last taken back from a far player, to tell a mod claiming at a distance (repeats)
         // from a player flying past (once).
@@ -89,6 +90,7 @@ namespace QuanChunkLoader.Core
 
             var dt = Time.unscaledDeltaTime;
             EmptyServer.Update(dt);
+            DebugWatch.Update(dt);
             if ((_secondTimer += dt) >= 1f)
             {
                 _secondTimer = 0f;
@@ -131,6 +133,9 @@ namespace QuanChunkLoader.Core
             _createdOnce.Clear();
             _recreated = 0;
             _takenBack.Clear();
+            TameWatch.Reset();
+            DebugWatch.Reset();
+            _recreatedNames.Clear();
             _summaryTimer = SummaryInterval - 30f; // first summary half a minute after start
             Observers.ServerStart();
         }
@@ -227,10 +232,13 @@ namespace QuanChunkLoader.Core
                     if (!_createdOnce.Add(zdo.m_uid))
                     {
                         _recreated++;
+                        var name = Utils.GetPrefabName(go);
+                        _recreatedNames.TryGetValue(name, out var n);
+                        _recreatedNames[name] = n + 1;
                     }
-                    if (Log.DebugOn)
+                    if (Log.TraceOn)
                     {
-                        Log.Debug($"Loaded {Utils.GetPrefabName(go)} {zdo.m_uid} in zone {zone.x},{zone.y}.");
+                        Log.Trace($"Loaded {Utils.GetPrefabName(go)} {zdo.m_uid} in zone {zone.x},{zone.y}.");
                     }
                     if (--budget <= 0)
                     {
@@ -376,7 +384,7 @@ namespace QuanChunkLoader.Core
                             }
                             zdo.SetOwner(session);
                             owner = session;
-                            Log.Debug($"Took {category} {id} at ({pos.x:0}, {pos.z:0}) from {who}, who isn't near it.");
+                            Log.Trace($"Took {category} {id} at ({pos.x:0}, {pos.z:0}) from {who}, who isn't near it.");
                         }
                         else if (kind == Kind.Creature && zdo.GetInt(ZDOVars.s_inUse) == 0)
                         {
@@ -385,13 +393,22 @@ namespace QuanChunkLoader.Core
                             zdo.SetOwner(0L);
                             owner = 0;
                             released.Add(who);
-                            Log.Debug($"Released {ObjectKinds.Category(zdo)} {id} from {who}, who isn't near it.");
+                            Log.Trace($"Released {ObjectKinds.Category(zdo)} {id} from {who}, who isn't near it.");
                         }
                     }
 
                     if (kind == Kind.Station && owner == session)
                     {
                         _stationsThisPass.Add(pos);
+                    }
+
+                    if (hadBefore && before.Owner != owner)
+                    {
+                        DebugWatch.OwnerChanged(zdo, before.Category, before.Owner, owner);
+                    }
+                    if (kind == Kind.Creature && ObjectKinds.IsTame(zdo))
+                    {
+                        TameWatch.Note(zdo, owner);
                     }
 
                     _thisPass[id] = new Seen { Owner = owner, Category = hadBefore ? before.Category : ObjectKinds.Category(zdo) };
@@ -417,6 +434,8 @@ namespace QuanChunkLoader.Core
             Stations.Clear();
             Stations.AddRange(_stationsThisPass);
             ReportMovedOut();
+            TameWatch.EndPass();
+            DebugWatch.EndOwnershipPass();
 
             if (distantClaims.Total > 0)
             {
@@ -452,6 +471,8 @@ namespace QuanChunkLoader.Core
                 Log.Info($"Summary: {Observers.Forced.Count} zone(s) loaded by {active} observer(s); {objects} objects, " +
                          $"owners: {owners}; {instantiated} running on the server; " +
                          $"{tamesPaused} tame(s) and {wildPaused} wild creature(s) paused.");
+                TameWatch.Summary();
+                DebugWatch.Heartbeat();
             }
             if (summary)
             {
@@ -459,9 +480,12 @@ namespace QuanChunkLoader.Core
                 {
                     Log.Warning($"{_recreated} object(s) in loaded zones had to be created again in the last 5 minutes: " +
                                 "something else on the server keeps unloading them, so they aren't really running. " +
-                                "Look for another mod that unloads distant objects (SteadyFrame's \"Unload by zone\" did).");
+                                "Look for another mod that unloads distant objects (SteadyFrame's \"Unload by zone\" did). " +
+                                "Most often: " + string.Join(", ", _recreatedNames.OrderByDescending(kv => kv.Value).Take(8)
+                                    .Select(kv => $"{kv.Key} {kv.Value}")) + ".");
                 }
                 _recreated = 0;
+                _recreatedNames.Clear();
                 var stale = Time.time - RepeatWindow;
                 foreach (var key in _takenBack.Where(kv => kv.Value < stale).Select(kv => kv.Key).ToList())
                 {

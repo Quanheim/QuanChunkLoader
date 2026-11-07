@@ -9,8 +9,10 @@ Everything this mod relies on from Valheim, so a game update can be checked quic
 Update this file in the same commit as any code that patches, calls or relies on something new in the game, and
 update the version line above each time the mod passes the Valheim update check.
 
-Everything planned for 1.0 is built (5 Nov 2026), so nothing is marked *planned* any more. The read-only diagnostic
-plugin (`Diagnostics/QuanChunkLoaderDiag`) is listed too, marked *diagnostic*, until it retires at 1.0.
+Everything planned for 1.0 is built (5 Nov 2026), so nothing is marked *planned* any more. Entries marked *debug* are
+used only by the Debug log checks (`Core/DebugWatch.cs`, `Core/TameWatch.cs`, 1.1.1), which took over the old read-only
+diagnostic plugin's checks. Entries marked *diagnostic* are used only by that plugin (`Diagnostics/QuanChunkLoaderDiag`),
+which is retired from the server.
 
 ## Game code
 
@@ -49,8 +51,8 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZoneSystem.PokeLocalZone` | Method `(Vector2s)` | Keeping forced zones loaded (resets their time to live), loading or generating them as for a visiting player. |
 | `ZDOMan.m_objectsByID` | Field | Finding every observer in the world at server start. |
 | `ZNetScene.PointInsideActiveArea` | Method | Patched (above). Diagnostic: vanilla's active-area test. |
-| `ItemDrop.s_instances` | Field | *Diagnostic:* dropped items in forced zones. |
-| `Floating.s_waterVolumeMask` | Field | *Diagnostic:* boat water sampling. |
+| `ItemDrop.s_instances` | Field | *Debug:* items on the ground in loaded zones (heartbeat). Read tolerantly: missing reads as -1. |
+| `Floating.s_waterVolumeMask` | Field | *Debug:* the water lookup mask (ships check, heartbeat). Read tolerantly: missing reads as unreadable. |
 | `ZNet.m_netTime` | Field | Empty-server hour: advances the world clock with no players (`EmptyServer`). |
 | `Player.UpdateAvailablePiecesList` | Method | Refreshes the hammer after admin-only building hides or shows this mod's pieces. |
 
@@ -94,17 +96,28 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Character` | A prefab with a `Character` that isn't tamed or a player is a wild creature, not loaded in forced zones. |
 | `Player` | Players load as in vanilla, and are never claimed. |
 | `Ship`, `Container`, `Smelter`, `Fermenter`, `Beehive`, `CookingStation`, `SapCollector`, `ItemDrop`, `Pickable`, `Plant`, `Piece` | Categories in log lines. The five station types also mark "near a station" for despawn protection (found on a player's game by their colliders on the `piece`, `piece_nonsolid`, `Default` and `static_solid` layers). |
-| `ZNet.GetSyncedSimulationDistance` | *Diagnostic:* players' vanilla area size. |
-| `ZNet.GetTime` | *Diagnostic:* world clock. |
-| `ZNet.GetTimeSeconds` | *Diagnostic:* world clock in logs. |
+| `ZNet.GetSyncedSimulationDistance` | *Debug:* players' vanilla area size (plant check). |
+| `ZNet.GetTime` | *Debug:* world clock (plant regrow timing). |
+| `ZNet.GetTimeSeconds` | *Debug:* world clock in logs. |
 | `ZNet.GetNrOfPlayers` | Empty-server hour: the window opens when it drops to 0. |
-| `ZDOVars.s_picked` | *Diagnostic:* plant state. |
-| `ZDOVars.s_pickedTime` | *Diagnostic:* plant regrow timing. |
+| `ZDOVars.s_picked` | *Debug:* plant state. |
+| `ZDOVars.s_pickedTime` | *Debug:* plant regrow timing. |
 | `ZDOVars.s_state` | *Diagnostic:* old loader on/off. |
 | `ZDOVars.s_fuel` | *Diagnostic:* old loader fuel. |
-| `Pickable.m_respawnTimeMinutes` | *Diagnostic:* plant regrow time. |
-| `WaterVolume.Instances` | *Diagnostic:* water in forced zones. |
-| `EnvMan.GetWindIntensity` | *Diagnostic:* wind on an empty server. |
+| `Pickable.m_respawnTimeMinutes` | *Debug:* plant regrow time. |
+| `WaterVolume.Instances` | *Debug:* water volumes in loaded zones (heartbeat). |
+| `WaterVolume.GetWaterSurface` | *Debug:* the true water level under a ship, from our own physics query. |
+| `Ship.Instances` | *Debug:* ships instantiated on the server. |
+| `Ship.m_floatCollider` | *Debug:* the ship's five water sample points. |
+| `Ship.m_waterLevelOffset` | *Debug:* re-running the buoyancy decision. |
+| `Ship.m_disableLevel` | *Debug:* as above. |
+| `Floating.GetWaterLevel` | *Debug:* called outside `Ship.CustomFixedUpdate` with a fresh cache, for the game's own reading (also patched, above). |
+| `Smelter` | *Debug:* startup report of each station's `m_maxOre`, `m_maxFuel`, `m_fuelItem`, `m_fuelPerProduct`, `m_secPerProduct`, `m_spawnStack`, `m_requiresRoof`, `m_conversion`. |
+| `Version.GetVersionString` | *Debug:* game version in the startup report. |
+| `Character.GetAllCharacters` | *Debug:* surtlings in loaded zones (heartbeat). |
+| `ZDOVars.s_tamedName` | *Debug:* a tame's name in the tame watch. |
+| `ZDOVars.s_follow` | *Debug:* who a tame is following, in the tame watch. |
+| `EnvMan.GetWindIntensity` | *Debug:* wind on an empty server (heartbeat). |
 | `ZDO.GetBool` | Observer and phantom flags (`QCL_on`, `QCL_admin`, `QCL_blocked`, `QCL_active`, `QCL_phantom`); `ZDOVars.s_tamed`. |
 | `ZDO.GetLong` | Builder ID (`ZDOVars.s_creator`), `QCL_refreshed`. |
 | `ZDO.GetInt` | `ZDOVars.s_inUse`. |
@@ -211,4 +224,4 @@ Not game code, so not in the tables the update script reads. Check these when th
 | `guard_stone` (vanilla ward) | Phantom Spawner placeholder look: cloned, every script but `ZNetView`, `Piece` and `WearNTear` removed (with its particles, lights, sounds and trigger volumes), children and root colliders at 25%, material copies with a stone-grey copy of its wood texture (`_MainTex`, `OdenStatue_d`) and a red `_EmissionColor` only where there's an `_EmissionMap` (the rune lines, `OdenStatue_e` on `Guardstone_OdenGlow_mat`). Loading stops if a `PrivateArea` or `EffectArea` survives. | Renamed (the phantom isn't added; logged), or re-modelled or re-textured so the stripped clone looks wrong. |
 | `Spawner_imp_respawn` | Default phantom allowlist entry (the surtling spawner), by prefab name. | Renamed: surtling farms stop until the setting is updated. |
 | Old loader prefab (`StartupReport.OldLoaderPrefab`) | *Diagnostic:* finding old loaders in the world. | The old mod renames it. |
-| Surtling prefab names | *Diagnostic:* counts surtlings in forced zones by name. | Renamed. |
+| Surtling prefab names | *Debug:* counts surtlings in loaded zones by name (`Surtling*`). | Renamed. |

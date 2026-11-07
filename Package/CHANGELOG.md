@@ -4,6 +4,12 @@
 
 - "Show observers on the map" no longer turns the map's dot-pin filter back on. Observer pins now have no filter
   of their own, like the map's location icons.
+- **Debug log checks.** With "Log detail" on Debug, the server also logs a tame watch (each tame in a loaded zone that
+  moves 10 m or more, jumps, or changes who runs it, with its name and position), owner changes grouped, players
+  coming and going, ships' buoyancy, picked plants overdue to regrow, every station's capacity at start, and a
+  heartbeat with each summary. These are the checks of the old diagnostic plugin, now built in. The per-object lines
+  for loading and taking objects moved from Debug to Trace, so Debug doesn't flood the log when players come and go.
+- The "had to be created again" warning now names the objects it counted most.
 
 ## 1.1.0 - 2026-11-07
 

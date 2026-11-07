@@ -645,8 +645,9 @@ Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server
 
 **To do**
 - 1.1.0: on GitHub (release `v1.1.0`); Quandru uploads it to Thunderstore.
-- 1.1.1: the map-pin fix is committed, with the changelog marked unreleased; the csproj still says 1.1.0. Bump,
-  build, test 19, release.
+- 1.1.1: built 7 Nov (version bumped, zip in `dist`, not tagged): the map-pin fix, plus the Debug log checks
+  (`Core/TameWatch.cs` for the deer, `Core/DebugWatch.cs` with the old diagnostic plugin's checks). Install on the
+  server with "Log detail" on Debug for the overnight re-run of 14 and 15, then test 19, then release.
 
 ## Still open
 
