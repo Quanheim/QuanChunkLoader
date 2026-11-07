@@ -533,6 +533,14 @@ can run without. That's acceptable because of the risk assessment (2 Nov 2026):
    - **Found:** the 5-minute summary counted tames a nearby player was running as "paused", and the first pass after a
      switch-on reported tames their owner had just walked out of range of as "claimed by players far from them". Both
      were log wording only; fixed for 1.1.0.
+   - **Found the same morning (log 08:19–09:27):** every summary with Quandru away said "0 running on the server"
+     though ownership moved correctly: SteadyFrame's "Unload by zone" (see [Compatibility](#compatibility)). Kiln
+     output while away was the game's own catch-up, not the loader. Flying in and out also raised "Took back 195 …
+     claimed by players far from them" each time (objects picked up and dropped within one 2 s pass); 1.1.0 only
+     warns when the same object is taken back again within a minute.
+   - **1.1.0 released 7 Nov 2026** with these fixes, the yellow nearby zones, limits counting each zone once, the
+     2-minute zone grid and the flatter log folder. Not yet checked in game before tagging (Quandru's call): the
+     SteadyFrame patch, the yellow grid and the limits.
 4. **Day one checks:** moored boats at the edge of a loaded area are afloat; a busy base's chests and smelters hold
    what they should; the server log shows no unknown-prefab skips, no large ownership swings and no errors.
 5. **Then switch on one thing at a time:** the empty-server hour, phantoms, more observers, and finally building for

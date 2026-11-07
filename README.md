@@ -17,7 +17,7 @@ areas, keeps surtling farms spawning, and keeps production going for up to an ho
 
 ## Status
 
-**1.0.0 released on 6 Nov 2026** (tag `v1.0.0`). Next: the live rollout on the Quanheim server. Details in
+**1.1.0 released on 7 Nov 2026** (tag `v1.1.0`; 1.0.0 on 6 Nov). Live on the Quanheim server since 7 Nov. Details in
 [docs/design.md](docs/design.md#build-status).
 
 ## Code

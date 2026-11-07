@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 - unreleased
+## 1.1.0 - 2026-11-07
 
 - The daily log file (off by default) moved to `BepInEx/QuanChunkLoaderLogs`.
 - The zone grid now stays up for 2 minutes instead of 15 seconds, and the hover says so.
@@ -10,8 +10,9 @@
   dedicated server, so bases didn't really run while nobody was there. Loaded zones are now left alone. The server
   log also warns if anything else keeps unloading them.
 - **Overlapping observers count each zone once** towards the limits: two clusters one zone apart count 12 zones, not 18.
-- Server log: creatures a nearby player is running no longer count as paused in the 5-minute summary, and objects
-  seen for the first time (a zone just switched on) no longer raise the "claimed by players far from them" warning.
+- Server log: creatures a nearby player is running no longer count as paused in the 5-minute summary, and the
+  "claimed by players far from them" warning no longer fires for a player who just flew past or for a zone just
+  switched on: only for objects taken back again within a minute, as a mod claiming at a distance would cause.
 
 ## 1.0.0 - 2026-11-06
 

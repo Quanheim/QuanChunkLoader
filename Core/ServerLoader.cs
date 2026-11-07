@@ -40,6 +40,11 @@ namespace QuanChunkLoader.Core
         private int _createdForcedVersion = -1;
         private int _recreated;
 
+        // When each object was last taken back from a far player, to tell a mod claiming at a distance (repeats)
+        // from a player flying past (once).
+        private readonly Dictionary<ZDOID, float> _takenBack = new Dictionary<ZDOID, float>();
+        private const float RepeatWindow = 60f;
+
         private struct Seen
         {
             internal long Owner;
@@ -125,6 +130,7 @@ namespace QuanChunkLoader.Core
             _unknownLogged.Clear();
             _createdOnce.Clear();
             _recreated = 0;
+            _takenBack.Clear();
             _summaryTimer = SummaryInterval - 30f; // first summary half a minute after start
             Observers.ServerStart();
         }
@@ -352,10 +358,14 @@ namespace QuanChunkLoader.Core
                         if (ObjectKinds.ServerClaims(zdo))
                         {
                             var category = ObjectKinds.Category(zdo);
-                            // Only a change of owner seen between two passes is a distant claim. An object seen for
-                            // the first time (a zone just switched on, or a creature that walked in) is ordinary:
-                            // its owner walked out of range before we had looked (live server, 7 Nov 2026).
-                            if (hadBefore && before.Owner != owner)
+                            // A player flying past takes objects within the 2 s between passes and is out of range by
+                            // the next one; seen once, that's ordinary (live server, 7 Nov 2026: 195 objects at a
+                            // time as Quandru flew in and out). A mod claiming at a distance keeps doing it, so only
+                            // an object taken back again within a minute counts as a distant claim.
+                            var now = Time.time;
+                            var repeat = _takenBack.TryGetValue(id, out var last) && now - last < RepeatWindow;
+                            _takenBack[id] = now;
+                            if (repeat && hadBefore && before.Owner != owner)
                             {
                                 distantClaims.Add(who);
                                 distantCategories.Add(category);
@@ -452,6 +462,11 @@ namespace QuanChunkLoader.Core
                                 "Look for another mod that unloads distant objects (SteadyFrame's \"Unload by zone\" did).");
                 }
                 _recreated = 0;
+                var stale = Time.time - RepeatWindow;
+                foreach (var key in _takenBack.Where(kv => kv.Value < stale).Select(kv => kv.Key).ToList())
+                {
+                    _takenBack.Remove(key);
+                }
             }
         }
 
