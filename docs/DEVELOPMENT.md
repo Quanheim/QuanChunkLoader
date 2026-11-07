@@ -131,9 +131,10 @@ develop against `Default`**: your server's `BepInEx` folder is a junction into i
      `PluginVersion = PluginInfo.Version` alone. Change `NetworkCompatibility` if the mod is client-only.
    - In `Package\`, write `README.md` (the Thunderstore page), start `CHANGELOG.md`, and replace `icon.png`
      with a PNG of exactly 256×256.
-   - In `thunderstore.toml`, set `name` to the mod's `AssemblyName`. Leave the categories as `["undefined"]` until
-     you know them: every build fails while they say `undefined`, which is the point, but commits don't, so design
-     docs can go in first. When you're ready to build, set them (see "Thunderstore categories" in section 6).
+   - In `thunderstore.toml` and `hexium.json`, set `name` to the mod's `AssemblyName`. Leave the categories (and
+     Hexium's `installLocation`) as `undefined` until you know them: every build fails while they say `undefined`,
+     which is the point, but commits don't, so design docs can go in first. When you're ready to build, set them
+     (see "Store categories" in section 6).
    - Replace the template's root `README.md` with one about the mod. That's the GitHub page.
    - Keep `docs/valheim-dependencies.md`, and add a row to it whenever the mod starts relying on game code or a
      vanilla prefab (see section 10).
@@ -196,8 +197,8 @@ profile and stop running Debug builds there. To go back to Debug builds, remove 
    ```
    Check the `depends on:` line in the output. It's the dependency list going into the manifest.
    The zip has the same contents as the Debug deploy you tested, just zipped instead of copied.
-   **This build is the gate for the tag.** It checks `thunderstore.toml` (see "Thunderstore categories" below),
-   with each category checked against Thunderstore's live list. If it failed, or printed the warning that the list
+   **This build is the gate for the tag.** It checks `thunderstore.toml` and `hexium.json` (see "Store categories"
+   below), with each category checked against that store's live list. If it failed, or printed the warning that the list
    couldn't be downloaded, fix that and build again before step 5. Never tag or publish a release from a commit
    whose Release build didn't pass.
 5. Commit, tag and push. The tag must be **annotated** (`-a`): `--follow-tags` silently skips lightweight tags.
@@ -219,12 +220,18 @@ How the generated `manifest.json` gets its fields:
 | `website_url` | `<RepoUrl>` if set; otherwise the repo's `origin` remote, converted to https, with any embedded credentials and `.git` removed. |
 | `dependencies` | BepInExPack's version, read from the profile's `changelog.txt`; Jotunn's version, read from its `manifest.json` in the profile; and any `<ThunderstoreDependency>` items in the `.csproj`. Write those as `Team-Name` to use the version installed in the mod's Gale profile (read from `BepInEx\plugins\Team-Name\manifest.json`, so it's the version you tested against), or `Team-Name-x.y.z` to pin one. |
 
-### Thunderstore categories (`thunderstore.toml`)
+### Store categories (`thunderstore.toml` and `hexium.json`)
 
-Each mod keeps its Thunderstore upload settings in `thunderstore.toml` at the repo root, in the format of
-Thunderstore's own CLI (`tcli`), so the planned release workflow can upload with it. It holds only what the manifest
-doesn't: the team (`namespace`), the package `name`, the community and the **categories**. Version, description and
-dependencies stay in the `.csproj`. The file isn't packed into the zip.
+Each mod keeps its store listing settings in two files at the repo root, one per store, so the planned release
+workflow can publish the same Release zip to both. They hold only what the manifest doesn't: the team
+(`namespace`), the package `name`, the community and the **categories** (plus Hexium's install location). Version,
+description and dependencies stay in the `.csproj`. Neither file is packed into the zip.
+
+When choosing categories, choose both stores' together, so the two listings describe the mod the same way.
+
+#### Thunderstore: `thunderstore.toml`
+
+In the format of Thunderstore's own CLI (`tcli`), which the workflow uploads with.
 
 ```toml
 [publish.categories]
@@ -241,7 +248,27 @@ A Release build also checks each one against Thunderstore's live list (offline i
 `undefined` in the template and in any new mod until someone chooses them, so nothing can be built, released or
 tagged without them; commits still work.
 
-Hexium ignores categories on upload. The same list is the reference for setting them there by hand.
+#### Hexium: `hexium.json`
+
+```json
+"installLocation": "both",
+"categories": ["Pieces", "Building", "Open Source", "Valheim 1.0"]
+```
+
+Hexium's upload ignores categories and install location, so they're set after upload (its
+`POST /api/mod/{namespace}/{name}/set-metadata`, or by hand on the site) from this file.
+
+- **Categories** are Hexium's slugs, which are the display names, capitals and spaces included (`Quality of Life`),
+  listed at <https://hexium.gg/api/experimental/community/valheim/category/>. Hexium's list differs from
+  Thunderstore's, so pick from it rather than translating.
+- **`installLocation`** is where the mod must be installed: `client` (players only), `server` (server only), `both`
+  (server and every player; any mod with `EveryoneMustHaveMod`), or `client_opt_server` (players, and optionally the
+  server). Hexium shows it as the Client-only, Server-only, Client & Server or Client (& Server) label, so those four
+  never go in `categories`.
+
+Every build checks the file as it does `thunderstore.toml`: `namespace` and `name` must match, `installLocation` must
+be one of the four values, and the categories must be set and not `undefined` (in any capitalisation). A Release
+build also checks each category against Hexium's live list (case-sensitive; offline it warns instead).
 
 About the BepInExPack heuristic: the pack's `changelog.txt` is a git log listed newest first. Pack versions look
 like `5.4.2351` (four-digit patch), while BepInEx's own versions look like `5.4.23.5`. The build takes the first
@@ -275,7 +302,7 @@ server profile in Gale like any other mod.
 | `Could not load file or assembly 'System.ValueTuple'` in the log, and the mod's content is missing | The code uses C# tuples, which Valheim's runtime can't load. Replace them with a `struct` or `out` parameters (see section 0). |
 | A cloned piece's build card shows red-and-white shields and "None" for the station | It was copied from another mod's piece before Jotunn replaced its `JVLmock_` placeholders. Strip that prefix from the item and station names (see section 0). |
 | Release: `Dependency '...' isn't installed in the Gale profile` | A `<ThunderstoreDependency>` without a version takes it from the profile. Install that mod in the profile, or pin a version as `Team-Name-x.y.z`. |
-| `thunderstore.toml: ...` | The file is missing, doesn't match the `.csproj`, or its categories aren't set. The message says which. See "Thunderstore categories" in section 6. |
+| `thunderstore.toml: ...` or `hexium.json: ...` | The file is missing, doesn't match the `.csproj`, or its categories (or Hexium's install location) aren't set. The message says which. See "Store categories" in section 6. |
 | Need a private game field | Add `BepInEx.AssemblyPublicizer.MSBuild` and set `Publicize="true"` on the `assembly_valheim` reference. |
 | Build errors about types from `research/` or another project in a subfolder | The SDK compiles every `.cs` file under the repo. `research/` is excluded in `Directory.Build.props`; exclude any other folder in the mod's `.csproj` with `<DefaultItemExcludes>$(DefaultItemExcludes);Folder/**</DefaultItemExcludes>`. |
 
@@ -292,13 +319,13 @@ difference found between a mod and the template is a learning to share, not some
    organisation (`gh repo list Quanheim`) for mod repos that aren't cloned yet.
 
 Template-derived files to compare: `.gitignore`, `Directory.Build.props`, `Directory.Build.targets`,
-`Local.props.example`, `docs/DEVELOPMENT.md`, the layout of `thunderstore.toml` (comments, tables, keys), the
+`Local.props.example`, `docs/DEVELOPMENT.md`, the layout of `thunderstore.toml` and `hexium.json` (comments, keys), the
 section layout of `docs/valheim-dependencies.md`, and the shape of
 `.vscode/` (which the template no longer tracks).
 
 Expected differences, which are **not** drift: the mod's name, GUID, version and description in its `.csproj` and
-plugin class, its `Package/` files, its root `README.md`, the entries in `docs/valheim-dependencies.md`, the `name`
-and categories in `thunderstore.toml`, and machine- or mod-specific paths in `Local.props.example`.
+plugin class, its `Package/` files, its root `README.md`, the entries in `docs/valheim-dependencies.md`, the `name`,
+categories and install location in `thunderstore.toml` and `hexium.json`, and machine- or mod-specific paths in `Local.props.example`.
 
 ## 10. Valheim updates
 

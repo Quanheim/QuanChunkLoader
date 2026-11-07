@@ -1,0 +1,18 @@
+{
+  "$comment": [
+    "Hexium (valheim.hexium.gg) listing settings for the release workflow: the counterpart of thunderstore.toml.",
+    "Hexium's upload ignores categories and install location; they're set after upload with",
+    "POST /api/mod/{namespace}/{name}/set-metadata, or by hand on the site. Version, description and dependencies",
+    "come from the manifest.json in the Release zip, as for Thunderstore.",
+    "Every build checks this file (docs/DEVELOPMENT.md, section 6): namespace must equal ThunderstoreTeam, name must",
+    "equal AssemblyName, installLocation must be client, server, both or client_opt_server, and categories must be",
+    "filled in, never undefined. Category slugs are their display names, e.g. Quality of Life:",
+    "https://hexium.gg/api/experimental/community/valheim/category/",
+    "Don't list Client-only, Server-only, Client & Server or Client (& Server): Hexium shows those from installLocation."
+  ],
+  "namespace": "Quandru",
+  "name": "QuanChunkLoader",
+  "community": "valheim",
+  "installLocation": "both",
+  "categories": ["Mechanics", "Quality of Life", "Tools", "Pieces", "Open Source", "Valheim 1.0"]
+}

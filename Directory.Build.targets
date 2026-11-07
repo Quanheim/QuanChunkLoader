@@ -43,7 +43,7 @@
            Text="thunderstore.toml: [package] name is '$(_TsTomlName)', but AssemblyName is '$(AssemblyName)'. They must match." />
     <Error Condition="'$(_TsCategoriesLine)' == '' Or '@(_TsCategory)' == ''"
            Text="thunderstore.toml: set this mod's Thunderstore categories, e.g. valheim = [&quot;mods&quot;, &quot;server-side&quot;] under [publish.categories]. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
-    <Error Condition="$(_TsCategories.Contains('undefined'))"
+    <Error Condition="$(_TsCategories.ToLowerInvariant().Contains('undefined'))"
            Text="thunderstore.toml: categories are still 'undefined'. Choose this mod's Thunderstore categories under [publish.categories]. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
     <Error Condition="'@(_TsCategory)' != '' And !$([System.Text.RegularExpressions.Regex]::IsMatch('%(_TsCategory.Identity)', '^[a-z0-9-]+$'))"
            Text="thunderstore.toml: '%(_TsCategory.Identity)' isn't a category slug. Use the lowercase slug, e.g. client-side, not Client-side. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
@@ -65,6 +65,59 @@
              Text="Couldn't download Thunderstore's category list, so the categories in thunderstore.toml weren't checked against it." />
     <Error Condition="Exists('$(_TsCategoryListFile)') And !$([System.IO.File]::ReadAllText('$(_TsCategoryListFile)').Contains('&quot;slug&quot;:&quot;%(_TsCategory.Identity)&quot;'))"
            Text="thunderstore.toml: '%(_TsCategory.Identity)' isn't a Valheim category on Thunderstore. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
+  </Target>
+
+  <!-- hexium.json (Hexium listing settings, the counterpart of thunderstore.toml): same rules, every build. -->
+  <Target Name="CheckHexiumJson" BeforeTargets="ResolveAssemblyReferences"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_HxJsonFile>$(MSBuildProjectDirectory)\hexium.json</_HxJsonFile>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_HxJsonFile)')"
+           Text="hexium.json is missing. Copy it from mod-template and fill it in (docs/DEVELOPMENT.md, section 3)." />
+    <PropertyGroup>
+      <!-- The "$comment" lines are skipped: values are read from their own keys only -->
+      <_HxJson>$([System.IO.File]::ReadAllText('$(_HxJsonFile)'))</_HxJson>
+      <_HxNamespace>$([System.Text.RegularExpressions.Regex]::Match($(_HxJson), '\x22namespace\x22\s*:\s*\x22([^\x22]*)\x22').Groups[1].Value)</_HxNamespace>
+      <_HxName>$([System.Text.RegularExpressions.Regex]::Match($(_HxJson), '\x22name\x22\s*:\s*\x22([^\x22]*)\x22').Groups[1].Value)</_HxName>
+      <_HxInstall>$([System.Text.RegularExpressions.Regex]::Match($(_HxJson), '\x22installLocation\x22\s*:\s*\x22([^\x22]*)\x22').Groups[1].Value)</_HxInstall>
+      <_HxCategoriesRaw>$([System.Text.RegularExpressions.Regex]::Match($(_HxJson), '\x22categories\x22\s*:\s*\[([^\]]*)\]').Groups[1].Value)</_HxCategoriesRaw>
+      <!-- Hexium slugs contain spaces (Quality of Life), so only the quotes and the space around commas go -->
+      <_HxCategories>$([System.Text.RegularExpressions.Regex]::Replace($([System.Text.RegularExpressions.Regex]::Replace($(_HxCategoriesRaw), '\s*\x22\s*', '')), '\s*,\s*', ',').Trim())</_HxCategories>
+    </PropertyGroup>
+    <ItemGroup>
+      <_HxCategory Remove="@(_HxCategory)" />
+      <_HxCategory Include="$(_HxCategories.Split(','))" />
+    </ItemGroup>
+    <Error Condition="'$(_HxNamespace)' != '$(ThunderstoreTeam)'"
+           Text="hexium.json: namespace is '$(_HxNamespace)', but ThunderstoreTeam is '$(ThunderstoreTeam)'. They must match." />
+    <Error Condition="'$(_HxName)' != '$(AssemblyName)'"
+           Text="hexium.json: name is '$(_HxName)', but AssemblyName is '$(AssemblyName)'. They must match." />
+    <Error Condition="'$(_HxInstall)' != 'client' And '$(_HxInstall)' != 'server' And '$(_HxInstall)' != 'both' And '$(_HxInstall)' != 'client_opt_server'"
+           Text="hexium.json: installLocation is '$(_HxInstall)'. Set it to client, server, both (required on server and clients) or client_opt_server (client, optionally server)." />
+    <Error Condition="'@(_HxCategory)' == ''"
+           Text="hexium.json: set this mod's Hexium categories, e.g. &quot;categories&quot;: [&quot;Pieces&quot;, &quot;Building&quot;]. Slugs: https://hexium.gg/api/experimental/community/valheim/category/" />
+    <Error Condition="$(_HxCategories.ToLowerInvariant().Contains('undefined'))"
+           Text="hexium.json: categories are still 'undefined'. Choose this mod's Hexium categories. Slugs: https://hexium.gg/api/experimental/community/valheim/category/" />
+    <Error Condition="'%(_HxCategory.Identity)' == 'Client-only' Or '%(_HxCategory.Identity)' == 'Server-only' Or '%(_HxCategory.Identity)' == 'Client &amp; Server' Or '%(_HxCategory.Identity)' == 'Client (&amp; Server)'"
+           Text="hexium.json: remove '%(_HxCategory.Identity)' from categories. Hexium shows it from installLocation." />
+  </Target>
+
+  <!-- Release builds check each Hexium category against Hexium's live list, as for Thunderstore. -->
+  <Target Name="CheckHexiumCategorySlugs" AfterTargets="CheckHexiumJson"
+          Condition="'$(Configuration)' == 'Release' And '$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_HxCategoryListDir>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</_HxCategoryListDir>
+      <_HxCategoryListFile>$(_HxCategoryListDir)hexium-categories.json</_HxCategoryListFile>
+    </PropertyGroup>
+    <Delete Files="$(_HxCategoryListFile)" />
+    <DownloadFile SourceUrl="https://hexium.gg/api/experimental/community/valheim/category/"
+                  DestinationFolder="$(_HxCategoryListDir)" DestinationFileName="hexium-categories.json"
+                  Retries="1" ContinueOnError="true" />
+    <Warning Condition="!Exists('$(_HxCategoryListFile)')"
+             Text="Couldn't download Hexium's category list, so the categories in hexium.json weren't checked against it." />
+    <Error Condition="Exists('$(_HxCategoryListFile)') And !$([System.IO.File]::ReadAllText('$(_HxCategoryListFile)').Contains('&quot;slug&quot;:&quot;%(_HxCategory.Identity)&quot;'))"
+           Text="hexium.json: '%(_HxCategory.Identity)' isn't a Valheim category on Hexium (slugs are case-sensitive). Slugs: https://hexium.gg/api/experimental/community/valheim/category/" />
   </Target>
 
   <!-- Single source of truth for the version: generates PluginInfo.Version from <Version> in the .csproj. -->
