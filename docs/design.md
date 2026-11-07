@@ -66,7 +66,10 @@ phantom while away (screenshots in `docs/images`). Found while answering a quest
 only ran on the server, so a player arriving more than 25 m from an hour-old pile would have lost it; now fixed on
 players' games too (a rollout check, since single player can't show it).
 
-**Next:** the **live rollout** (1.0.0 is on Thunderstore since 6 Nov 2026) per [Test plan for the real mod](#test-plan-for-the-real-mod): back up the world, swap the old
+**Live since 7 Nov 2026 (1.1.0).** Where the live test stands, and what's next: [Live test, 7 Nov
+2026](#live-test-7-nov-2026-110).
+
+**Was next (6 Nov):** the **live rollout** (1.0.0 is on Thunderstore since 6 Nov 2026) per [Test plan for the real mod](#test-plan-for-the-real-mod): back up the world, swap the old
    loader out on the server and every client at once, start cautious ("Only admins can build" on, empty-server
    window 0), and turn on "Simulate tames in loaded zones" for Quanheim (decided 2 Nov).
 
@@ -541,6 +544,7 @@ can run without. That's acceptable because of the risk assessment (2 Nov 2026):
    - **1.1.0 released 7 Nov 2026** with these fixes, the yellow nearby zones, limits counting each zone once, the
      2-minute zone grid and the flatter log folder. Not yet checked in game before tagging (Quandru's call): the
      SteadyFrame patch, the yellow grid and the limits.
+   - **Live test of 1.1.0, 7 Nov 2026:** see [Live test, 7 Nov 2026](#live-test-7-nov-2026-110) below.
 4. **Day one checks:** moored boats at the edge of a loaded area are afloat; a busy base's chests and smelters hold
    what they should; the server log shows no unknown-prefab skips, no large ownership swings and no errors.
 5. **Then switch on one thing at a time:** the empty-server hour, phantoms, more observers, and finally building for
@@ -591,6 +595,51 @@ The checks below are done on the live server as each feature is switched on.
     - Walk back in. The tames should load normally and pass to that player within about 2 s. E (follow and stay) should work at once.
     - Tame a creature inside a forced zone with a player present, then leave. The server should drop it within about 2 s and never claim it.
     - Turn on "Simulate tames in loaded zones" and repeat the first check. Tames should be server-owned with no player near and handed over when one arrives.
+
+### Live test, 7 Nov 2026 (1.1.0)
+
+Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server with 1.1.0. Logs checked up to
+17:10: no errors from the mod. Paused that evening with 14 and 15 under way; **pick up from "Where it stands"**.
+
+**Passed**
+
+| # | Check | Result |
+|---|---|---|
+| 1 | At the tamed base, go 300 m+ away and wait for a summary | 6,461 to 6,470 objects running on the server. |
+| 2 | Come back to the base | Nothing missing or doubled. |
+| 3 | Load the kiln, go 300 m+ away, come back (redone) | Coal 576 → 694 while away; kiln emptied. OttoFuel's RestrictKilnOutput stops the kiln at 500+ coal in containers within 40 m, and can't count an open container, so it restarts while a chest is open. That's OttoFuel, not the loader. |
+| 4 | Come back and pick crops or berries by hand at once | Works. |
+| 5 | Longship moored across a loaded-area edge | Val's longship sits across the zone edge (zone grid screenshot): afloat and undamaged after time away. |
+| 6 | Building across the edge | The boathouse and dock cross the same line: intact after time away. |
+| 7 | AzuAutoStore and OttoFuel with a player present | Work. |
+| 8 | Phantom Spawners at the surtling flames | "Active" inside a loaded zone, "Dormant" outside; 129 cores and 807 coal from one pool after ~4 h away; summaries ~13,400 running with nobody near. |
+| 9 | Drops left for an hour+ of world time, approached from 25 m+ | Surtling cores and coal still on the ground after ~4 h. |
+| 10 | Another player tries to switch your observer | With "only builder or admin" on, Nige (non-admin) got no switch option; turned off, "[F] Switch off" appeared after a few seconds; put back on. **Check the restriction is on in the server's Gale profile and pushed.** |
+| 11 | Another player builds and switches on observers | Haudr's worked; one that would have made 27 zones was refused (limit 18). |
+| 12 | "Show observers on the map" (admin) | Icons only, no labels. **Bug:** it turned the map's dot-pin filter back on. Fixed in 1.1.1 (commit 89acf3c, `PinType.None`). |
+| 13 | Seed Totem in a loaded base with a player near | Works. |
+| 17 | Named chickens put back on the coop floor (after the 1 Nov incident), away 10 min+ | Stayed put. The rest still need moving back by hand. |
+| 18 | 1.1.0 in the "QCL Test" profile | Works. |
+
+**Where it stands**
+
+| # | Check | State |
+|---|---|---|
+| 14 | Last to log out with smelters loaded | **Under way.** Quandru logged off at **10:42 am, Day 1026** in game, nobody else on. Ore drawers at logoff (top row left to right: 165, 34, empty, empty; bottom row: 173, 217, 221, 325). Server log should show "Last player left: the world clock keeps running for up to 60 min…" at logoff, then "Empty-server clock stopped…" an hour later. |
+| 15 | Next login | Clock moved on: about **Day 1028, ~10:42** after the full hour (a day is 30 real minutes), less if back sooner. Drawer counts above the logoff figures: at most ~120 bars per smelter per hour (30 s per ore), if ore and coal lasted. Check the server log for the two lines in 14. |
+| 16 | The log through the day | Clean up to 17:10. Check the rest of the day's log. |
+| 19 | **1.1.1:** hide the dot pins, then turn "Show observers on the map" on | Dots stay hidden; observer icons show. Needs 1.1.1 built and installed. |
+| 20 | Press Shift at an observer while another player stands near, looking away and not pressing Shift | Only you see the grid. A player said they saw Quandru's grid once; by the code only the presser draws it (`ChunkObserver.Update` checks the local player is looking at it; the server's reply goes to the asker only and is drawn only if that client already shows the same grid). Quandru wants it personal, not shared. If 20 fails, find out why. |
+
+**Also seen**
+- "Had to be created again" warning: stopped after 12:30. A 1.1.1 tweak for it isn't urgent.
+- Haudr: "Took back … claimed by players far from them" (726 at 12:54; 424 three times 13:30–13:31). Maybe position
+  lag, or a client mod that claims at a distance (FarLands?). Watch for it; ask Haudr about his mods if it recurs.
+
+**To do**
+- 1.1.0: on GitHub (release `v1.1.0`); Quandru uploads it to Thunderstore.
+- 1.1.1: the map-pin fix is committed, with the changelog marked unreleased; the csproj still says 1.1.0. Bump,
+  build, test 19, release.
 
 ## Still open
 
