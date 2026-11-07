@@ -14,6 +14,59 @@
            Text="Jotunn.dll not found at '$(JotunnDll)'. Install Jotunn in this mod's Gale profile." />
   </Target>
 
+  <!-- thunderstore.toml (upload settings for the release workflow) must match this project and have real
+       categories. Runs on every build, Debug included, so an unset file can never reach a release or a tag. -->
+  <Target Name="CheckThunderstoreToml" BeforeTargets="ResolveAssemblyReferences"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_TsTomlFile>$(MSBuildProjectDirectory)\thunderstore.toml</_TsTomlFile>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_TsTomlFile)')"
+           Text="thunderstore.toml is missing. Copy it from mod-template and fill it in (docs/DEVELOPMENT.md, section 3)." />
+    <PropertyGroup>
+      <!-- Comments stripped first, so a commented-out line can't satisfy a check -->
+      <_TsToml>$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('$(_TsTomlFile)')), '#[^\r\n]*', ''))</_TsToml>
+      <_TsTomlNamespace>$([System.Text.RegularExpressions.Regex]::Match($(_TsToml), '(?m)^\s*namespace\s*=\s*\x22([^\x22]*)\x22').Groups[1].Value)</_TsTomlNamespace>
+      <_TsTomlName>$([System.Text.RegularExpressions.Regex]::Match($(_TsToml), '(?m)^\s*name\s*=\s*\x22([^\x22]*)\x22').Groups[1].Value)</_TsTomlName>
+      <_TsCategoriesLine>$([System.Text.RegularExpressions.Regex]::Match($(_TsToml), '(?m)^\s*valheim\s*=\s*\[[^\]]*\]').Value)</_TsCategoriesLine>
+      <_TsCategoriesRaw>$([System.Text.RegularExpressions.Regex]::Match($(_TsToml), '(?m)^\s*valheim\s*=\s*\[([^\]]*)\]').Groups[1].Value)</_TsCategoriesRaw>
+      <_TsCategories>$([System.Text.RegularExpressions.Regex]::Replace($(_TsCategoriesRaw), '[\s\x22]', ''))</_TsCategories>
+    </PropertyGroup>
+    <ItemGroup>
+      <_TsCategory Remove="@(_TsCategory)" />
+      <!-- Split(), not a ';' replace: property function results are escaped, so a ';' wouldn't split the list -->
+      <_TsCategory Include="$(_TsCategories.Split(','))" />
+    </ItemGroup>
+    <Error Condition="'$(_TsTomlNamespace)' != '$(ThunderstoreTeam)'"
+           Text="thunderstore.toml: [package] namespace is '$(_TsTomlNamespace)', but ThunderstoreTeam is '$(ThunderstoreTeam)'. They must match." />
+    <Error Condition="'$(_TsTomlName)' != '$(AssemblyName)'"
+           Text="thunderstore.toml: [package] name is '$(_TsTomlName)', but AssemblyName is '$(AssemblyName)'. They must match." />
+    <Error Condition="'$(_TsCategoriesLine)' == '' Or '@(_TsCategory)' == ''"
+           Text="thunderstore.toml: set this mod's Thunderstore categories, e.g. valheim = [&quot;mods&quot;, &quot;server-side&quot;] under [publish.categories]. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
+    <Error Condition="$(_TsCategories.Contains('undefined'))"
+           Text="thunderstore.toml: categories are still 'undefined'. Choose this mod's Thunderstore categories under [publish.categories]. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
+    <Error Condition="'@(_TsCategory)' != '' And !$([System.Text.RegularExpressions.Regex]::IsMatch('%(_TsCategory.Identity)', '^[a-z0-9-]+$'))"
+           Text="thunderstore.toml: '%(_TsCategory.Identity)' isn't a category slug. Use the lowercase slug, e.g. client-side, not Client-side. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
+  </Target>
+
+  <!-- Release builds also check each category against Thunderstore's live list, so a typo fails here rather than
+       at upload. Offline, it warns and carries on: the format checks above still ran. -->
+  <Target Name="CheckThunderstoreCategorySlugs" AfterTargets="CheckThunderstoreToml"
+          Condition="'$(Configuration)' == 'Release' And '$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_TsCategoryListDir>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</_TsCategoryListDir>
+      <_TsCategoryListFile>$(_TsCategoryListDir)thunderstore-categories.json</_TsCategoryListFile>
+    </PropertyGroup>
+    <Delete Files="$(_TsCategoryListFile)" />
+    <DownloadFile SourceUrl="https://thunderstore.io/api/experimental/community/valheim/category/"
+                  DestinationFolder="$(_TsCategoryListDir)" DestinationFileName="thunderstore-categories.json"
+                  Retries="1" ContinueOnError="true" />
+    <Warning Condition="!Exists('$(_TsCategoryListFile)')"
+             Text="Couldn't download Thunderstore's category list, so the categories in thunderstore.toml weren't checked against it." />
+    <Error Condition="Exists('$(_TsCategoryListFile)') And !$([System.IO.File]::ReadAllText('$(_TsCategoryListFile)').Contains('&quot;slug&quot;:&quot;%(_TsCategory.Identity)&quot;'))"
+           Text="thunderstore.toml: '%(_TsCategory.Identity)' isn't a Valheim category on Thunderstore. Slugs: https://thunderstore.io/api/experimental/community/valheim/category/" />
+  </Target>
+
   <!-- Single source of truth for the version: generates PluginInfo.Version from <Version> in the .csproj. -->
   <Target Name="GeneratePluginInfo" BeforeTargets="CoreCompile">
     <PropertyGroup>
