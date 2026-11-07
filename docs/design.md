@@ -599,7 +599,7 @@ The checks below are done on the live server as each feature is switched on.
 ### Live test, 7 Nov 2026 (1.1.0)
 
 Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server with 1.1.0. Logs checked up to
-17:10: no errors from the mod. Paused that evening with 14 and 15 under way; **pick up from "Where it stands"**.
+20:17: no errors from the mod. Open at the end of the day: 19 and 20; **pick up from "Where it stands"**.
 
 **Passed**
 
@@ -625,14 +625,21 @@ Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server
 
 | # | Check | State |
 |---|---|---|
-| 14 | Last to log out with smelters loaded | **Under way.** Quandru logged off at **10:42 am, Day 1026** in game, nobody else on. Ore drawers at logoff (top row left to right: 165, 34, empty, empty; bottom row: 173, 217, 221, 325). Server log should show "Last player left: the world clock keeps running for up to 60 min…" at logoff, then "Empty-server clock stopped…" an hour later. |
+| 14 | Last to log out with smelters loaded | **Passed.** Quandru logged off at 19:02:01 (10:42 am, Day 1026 in game). Server log: "Last player left: the world clock keeps running for up to 60 min while 42 zone(s) are loaded" at 19:02:01, then "Empty-server clock stopped (the window ended); world time advanced 60.0 min with nobody online" at 20:02:01. Summaries in between: about 13,470 objects running on the server, all server-owned. Back at 20:12:50. |
 | 15 | Next login | **Passed.** Back at **11:29 am, Day 1028**: 48 h 47 min of game time, about 61 real minutes (75 s per game hour), so the full hour ran plus a minute of being online. Drawers gained 66 bars: bottom row 173 → 231 and 217 → 225, the rest unchanged. Fewer than the hour allows because the smelters ran out of coal, not the loader: Conversion Size & Speed holds 100 ore but only 20 coal (Smelter 1 coal per bar, so 20 bars a fill; Blast Furnace 2 per bar, so 10), and OttoFuel only refuels with a player near. |
-| 16 | The log through the day | Clean up to 17:10. Check the rest of the day's log. |
+| 16 | The log through the day | **Passed:** no errors from QuanChunkLoader all day (10:26 to 20:17). The errors in the log are other mods': WardIsLove (a NullReferenceException in `BlockUnpermittedDestructibleDamage`) and Zen.ModLib's version check at startup. |
 | 19 | **1.1.1:** hide the dot pins, then turn "Show observers on the map" on | Dots stay hidden; observer icons show. Needs 1.1.1 built and installed. |
 | 20 | Press Shift at an observer while another player stands near, looking away and not pressing Shift | Only you see the grid. A player said they saw Quandru's grid once; by the code only the presser draws it (`ChunkObserver.Update` checks the local player is looking at it; the server's reply goes to the asker only and is drawn only if that client already shows the same grid). Quandru wants it personal, not shared. If 20 fails, find out why. |
 
 **Also seen**
-- "Had to be created again" warning: stopped after 12:30. A 1.1.1 tweak for it isn't urgent.
+- "Had to be created again" warning (20 to 35 objects per 5 minutes): it appears only while Quandru is at his base
+  (10:45–11:50, 17:35–19:01, 20:17), never while he was far away (12:02–17:10), and never during the empty-server
+  hour. So nothing is unloading the base while nobody is there; it's probably a false alarm from what goes on with a
+  player present (items picked up or auto-stored, bars made, objects handed over). For 1.1.1 or later: only count
+  zones with no player near, or log which prefabs they are.
+- Take-backs from Quandru: 27 at 12:06 and 52 at 12:12 (just after he flew 4 km north), 1,702 at 17:36:58 after
+  leaving the base. They look like the first passes after a fast trip away, before his game let go of the objects;
+  the server took them back within seconds.
 - Haudr: "Took back … claimed by players far from them" (726 at 12:54; 424 three times 13:30–13:31). Maybe position
   lag, or a client mod that claims at a distance (FarLands?). Watch for it; ask Haudr about his mods if it recurs.
 
