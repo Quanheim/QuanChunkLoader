@@ -639,6 +639,10 @@ from "Where it stands"**.
   creates them again on the way back. With nobody near, wild creatures are paused and don't move, which is why the
   warning only ever fires with a player at the base. **A false alarm; fix:** don't count characters, players or
   effects, only things that stay put (pieces, stations, items, plants).
+- **8 Nov, test 20 (first half passed):** Val showed his grid and Quandru didn't see it. Val found that Shift
+  pressed while typing in chat, with the cursor over an observer, re-shows the grid: `ChunkObserver.Update` checks
+  `ZInput.GetButtonDown("AltPlace")` with no check for chat or other text input. **Fix for the next version:** skip
+  while chat, the console, a text box or a menu has focus, as vanilla does for player input.
 - **8 Nov:** Val (Valyyn) was refused twice at 11:25 and 11:29: "Missing mod on client: QuanChunkLoader". His Gale
   profile doesn't have it; he needs to sync.
 - "Had to be created again" warning (20 to 35 objects per 5 minutes): it appears only while Quandru is at his base
