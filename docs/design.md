@@ -599,7 +599,8 @@ The checks below are done on the live server as each feature is switched on.
 ### Live test, 7 Nov 2026 (1.1.0)
 
 Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server with 1.1.0. Logs checked up to
-20:17: no errors from the mod. Open at the end of the day: 19 and 20; **pick up from "Where it stands"**.
+20:17: no errors from the mod. Open at the end of 8 Nov: 14 and 15 (re-run under way), 19, 20 and 21; **pick up
+from "Where it stands"**.
 
 **Passed**
 
@@ -625,11 +626,12 @@ Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server
 
 | # | Check | State |
 |---|---|---|
-| 14 | Last to log out with smelters loaded | **Re-opened for an overnight re-run** (Quandru, 7 Nov): Conversion Size & Speed "Fuel space" raised to 100 on each station, to match the ore space. Expect the same two log lines, and the smelters to run the whole hour. First run **passed:** Quandru logged off at 19:02:01 (10:42 am, Day 1026 in game). Server log: "Last player left: the world clock keeps running for up to 60 min while 42 zone(s) are loaded" at 19:02:01, then "Empty-server clock stopped (the window ended); world time advanced 60.0 min with nobody online" at 20:02:01. Summaries in between: about 13,470 objects running on the server, all server-owned. Back at 20:12:50. |
-| 15 | Next login | **Re-opened with 14.** Expect, per station loaded full: Smelter about 100 bars (ore runs out after 50 min; 1 coal per bar); Blast Furnace about 50 (2 coal per bar, so 100 coal lasts 50 bars), unless its "Fuel per product" is set to 1. The window is still 60 min, so a whole night gives the same hour. First run **passed:** back at **11:29 am, Day 1028**: 48 h 47 min of game time, about 61 real minutes (75 s per game hour), so the full hour ran plus a minute of being online. Drawers gained 66 bars: bottom row 173 → 231 and 217 → 225, the rest unchanged. Fewer than the hour allows because the smelters ran out of coal, not the loader: Conversion Size & Speed holds 100 ore but only 20 coal (Smelter 1 coal per bar, so 20 bars a fill; Blast Furnace 2 per bar, so 10), and OttoFuel only refuels with a player near. |
+| 14 | Last to log out with smelters loaded | **Re-run under way, 8 Nov 2026, on 1.1.0** (1.1.1 wasn't in the published Gale modlist yet; the server had its nightly restart first). Conversion Size & Speed "Fuel space" raised to 100 on each station, to match the ore space. Quandru loaded all four stations with 100 ore and 100 coal and logged off at **5:58 pm, Day 1040** (game time). Drawer counts at logoff (screenshot): top row, left to right, 260, 189, empty, empty; bottom row 366, 323, 221, 415. Log detail on Info (1.1.0's Debug floods). Expect the same two log lines, and the stations to run the whole hour. **Next:** the after-screenshot of the same drawers, the server log, and the deer count if Quandru took one. First run **passed:** Quandru logged off at 19:02:01 (10:42 am, Day 1026 in game). Server log: "Last player left: the world clock keeps running for up to 60 min while 42 zone(s) are loaded" at 19:02:01, then "Empty-server clock stopped (the window ended); world time advanced 60.0 min with nobody online" at 20:02:01. Summaries in between: about 13,470 objects running on the server, all server-owned. Back at 20:12:50. |
+| 15 | Next login | **Waiting on the 8 Nov re-run (14).** Compare the drawers with 14's counts. Expect, per station loaded full: Smelter about 100 bars (ore runs out after 50 min; 1 coal per bar); Blast Furnace about 50 (2 coal per bar, so 100 coal lasts 50 bars), unless its "Fuel per product" is set to 1. The window is still 60 min, so a whole night gives the same hour. First run **passed:** back at **11:29 am, Day 1028**: 48 h 47 min of game time, about 61 real minutes (75 s per game hour), so the full hour ran plus a minute of being online. Drawers gained 66 bars: bottom row 173 → 231 and 217 → 225, the rest unchanged. Fewer than the hour allows because the smelters ran out of coal, not the loader: Conversion Size & Speed holds 100 ore but only 20 coal (Smelter 1 coal per bar, so 20 bars a fill; Blast Furnace 2 per bar, so 10), and OttoFuel only refuels with a player near. |
 | 16 | The log through the day | **Passed:** no errors from QuanChunkLoader all day (10:26 to 20:17). The errors in the log are other mods': WardIsLove (a NullReferenceException in `BlockUnpermittedDestructibleDamage`) and Zen.ModLib's version check at startup. |
 | 19 | **1.1.1:** hide the dot pins, then turn "Show observers on the map" on | Dots stay hidden; observer icons show. Needs 1.1.1 built and installed. |
 | 20 | Press Shift at an observer while another player stands near, looking away and not pressing Shift | Only you see the grid. A player said they saw Quandru's grid once; by the code only the presser draws it (`ChunkObserver.Update` checks the local player is looking at it; the server's reply goes to the asker only and is drawn only if that client already shows the same grid). Quandru wants it personal, not shared. If 20 fails, find out why. |
+| 21 | Tame deer outside the pen | **Open.** On returning after the first empty-hour run (7 Nov), three tame deer were outside a pen with no gaps: two a few metres out, one about 40 m east down the hill; a hen was out there too. None were outside before he left. "Simulate tames" is on, so the server runs tames' AI while nobody is near. Not offspring: the deer hadn't been fed, and `Procreation` needs the tame not hungry (Procreation.cs:148). The hen is probably vanilla: the chickens had been fed, and offspring spawn 2 m behind the parent with no wall check (Procreation.cs:95), and an egg hatches where it lies (EggGrow). 1.1.0's log has nothing on tame movement. **Next:** with 1.1.1 or later on the server, set Log detail to Debug for an overnight run, count the deer at logoff, and read the "Tame watch:" lines (moves of 10 m+, jumps of 25 m+ in one 2 s pass, owner changes, with positions). Count the deer at every logoff until then. |
 
 **Also seen**
 - "Had to be created again" warning (20 to 35 objects per 5 minutes): it appears only while Quandru is at his base
@@ -645,9 +647,12 @@ Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server
 
 **To do**
 - 1.1.0: on GitHub (release `v1.1.0`); Quandru uploads it to Thunderstore.
-- 1.1.1: built 7 Nov (version bumped, zip in `dist`, not tagged): the map-pin fix, plus the Debug log checks
-  (`Core/TameWatch.cs` for the deer, `Core/DebugWatch.cs` with the old diagnostic plugin's checks). Install on the
-  server with "Log detail" on Debug for the overnight re-run of 14 and 15, then test 19, then release.
+- 1.1.1 and 1.1.2: released 8 Nov 2026 (tags `v1.1.1`, `v1.1.2`, GitHub releases, Thunderstore). 1.1.1 is the
+  map-pin fix plus the Debug log checks (`Core/TameWatch.cs` for the deer, `Core/DebugWatch.cs` with the old
+  diagnostic plugin's checks, none of it run in game yet). 1.1.2 is the same code with the readme and changelog
+  fixed (1.1.1 went out saying "unreleased"). Once 1.1.2 reaches the published Gale modlist: put it on the server,
+  test 19, and do an overnight run with Log detail on Debug for 21; check the Debug start-up report and that
+  Debug doesn't stall the server.
 
 ## Still open
 
