@@ -14,7 +14,7 @@
            Text="Jotunn.dll not found at '$(JotunnDll)'. Install Jotunn in this mod's Gale profile." />
   </Target>
 
-  <!-- thunderstore.toml (upload settings for the release workflow) must match this project and have real
+  <!-- thunderstore.toml (upload settings for the Publish workflow in .publishing) must match this project and have real
        categories. Runs on every build, Debug included, so an unset file can never reach a release or a tag. -->
   <Target Name="CheckThunderstoreToml" BeforeTargets="ResolveAssemblyReferences"
           Condition="'$(DesignTimeBuild)' != 'true'">

@@ -1,11 +1,11 @@
-# Thunderstore upload settings, in the format of Thunderstore's CLI (tcli), for the release workflow.
+# Thunderstore upload settings, in the format of Thunderstore's CLI (tcli), for the Publish workflow in .publishing.
 # Version, description, website and dependencies are NOT here: they live in the .csproj and go into the
 # generated manifest.json inside the Release zip, which is what gets uploaded.
 #
 # Every build checks this file (docs/DEVELOPMENT.md, section 6): namespace must equal ThunderstoreTeam,
 # name must equal AssemblyName, and the categories must be filled in, never "undefined".
 # Category slugs: https://thunderstore.io/api/experimental/community/valheim/category/
-# Hexium ignores categories on upload; this list is the reference for setting them there by hand.
+# Hexium's categories are in hexium.json. The Publish workflow sets both stores' categories on every publish.
 
 [config]
 schemaVersion = "0.0.1"

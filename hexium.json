@@ -1,8 +1,8 @@
 {
   "$comment": [
-    "Hexium (valheim.hexium.gg) listing settings for the release workflow: the counterpart of thunderstore.toml.",
+    "Hexium (valheim.hexium.gg) listing settings for the Publish workflow in .publishing: the counterpart of thunderstore.toml.",
     "Hexium's upload ignores categories and install location; they're set after upload with",
-    "POST /api/mod/{namespace}/{name}/set-metadata, or by hand on the site. Version, description and dependencies",
+    "POST /api/mod/{namespace}/{name}/set-metadata, which the Publish workflow calls after each upload. Version, description and dependencies",
     "come from the manifest.json in the Release zip, as for Thunderstore.",
     "Every build checks this file (docs/DEVELOPMENT.md, section 6): namespace must equal ThunderstoreTeam, name must",
     "equal AssemblyName, installLocation must be client, server, both or client_opt_server, and categories must be",

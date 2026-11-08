@@ -136,6 +136,7 @@ develop against `Default`**: your server's `BepInEx` folder is a junction into i
      which is the point, but commits don't, so design docs can go in first. When you're ready to build, set them
      (see "Store categories" in section 6).
    - Replace the template's root `README.md` with one about the mod. That's the GitHub page.
+   - Keep `LICENSE` (MIT) as it is.
    - Keep `docs/valheim-dependencies.md`, and add a row to it whenever the mod starts relying on game code or a
      vanilla prefab (see section 10).
 4. Copy `Local.props.example` to `Local.props`, which is gitignored, and set:
@@ -207,8 +208,20 @@ profile and stop running Debug builds there. To go back to Debug builds, remove 
    git tag -a v1.0.1 -m "<ModName> 1.0.1"
    git push --follow-tags
    ```
-6. Upload `dist\<Team>-<ModName>-<version>.zip` to Thunderstore (see section 7). Optionally, attach the same zip to a
-   GitHub release for the tag.
+6. Create the GitHub release for the tag, with the zip attached. Use this version's `CHANGELOG.md` section as the
+   notes. The release must be published (not a draft) and the zip must keep its built name, because that's what the
+   Publish workflow looks for.
+   ```powershell
+   gh release create v1.0.1 "dist\<Team>-<ModName>-1.0.1.zip" --title "<ModName> 1.0.1" --notes "<changelog section>"
+   ```
+7. **Publish** to Thunderstore and Hexium with the Publish workflow in the private `.publishing` repo (see
+   `.publishing/docs/design.md`). Nobody uploads to either store by hand any more. Run it yourself from that repo's
+   Actions tab, or ask Claude, who will first run a check, report exactly what would be uploaded to which store, and
+   publish only after you confirm (the rule is in `.claude/CLAUDE.md`, "Terms, and the publishing gate"). A mod's
+   first publish creates its listing on both stores; see section 7 for the one-off steps.
+
+The words, as used here and in the workspace rules: **commit** is a local git commit, **push** sends it to GitHub,
+**tag / release** is steps 5-6, and **publish** is step 7 only.
 
 How the generated `manifest.json` gets its fields:
 
@@ -222,8 +235,8 @@ How the generated `manifest.json` gets its fields:
 
 ### Store categories (`thunderstore.toml` and `hexium.json`)
 
-Each mod keeps its store listing settings in two files at the repo root, one per store, so the planned release
-workflow can publish the same Release zip to both. They hold only what the manifest doesn't: the team
+Each mod keeps its store listing settings in two files at the repo root, one per store, so the Publish workflow in
+`.publishing` can publish the same Release zip to both. It reads them as they were at the release's tag. They hold only what the manifest doesn't: the team
 (`namespace`), the package `name`, the community and the **categories** (plus Hexium's install location). Version,
 description and dependencies stay in the `.csproj`. Neither file is packed into the zip.
 
@@ -231,7 +244,8 @@ When choosing categories, choose both stores' together, so the two listings desc
 
 #### Thunderstore: `thunderstore.toml`
 
-In the format of Thunderstore's own CLI (`tcli`), which the workflow uploads with.
+In the format of Thunderstore's own CLI (`tcli`). The Publish workflow takes the namespace, name and categories from
+it.
 
 ```toml
 [publish.categories]
@@ -239,8 +253,9 @@ valheim = ["building", "mods", "client-side", "server-side"]
 ```
 
 Categories are Thunderstore's lowercase **slugs** (`client-side`, not `Client-side`), listed at
-<https://thunderstore.io/api/experimental/community/valheim/category/>. Keep them the same as the mod's Thunderstore
-page: change one, change the other.
+<https://thunderstore.io/api/experimental/community/valheim/category/>, and in `.publishing/categories/`, which every
+Publish run refreshes. Each publish sets the mod's Thunderstore categories from this file, so change them here, not
+on the site.
 
 Every build checks the file, Debug included, and fails if it's missing, if `namespace` isn't `ThunderstoreTeam`, if
 `name` isn't `AssemblyName`, if the categories are empty or still `undefined`, or if one isn't written as a slug.
@@ -255,8 +270,8 @@ tagged without them; commits still work.
 "categories": ["Pieces", "Building", "Open Source", "Valheim 1.0"]
 ```
 
-Hexium's upload ignores categories and install location, so they're set after upload (its
-`POST /api/mod/{namespace}/{name}/set-metadata`, or by hand on the site) from this file.
+Hexium's upload ignores categories and install location, so the Publish workflow sets them from this file straight
+after each upload (Hexium's `POST /api/mod/{namespace}/{name}/set-metadata`). Change them here, not on the site.
 
 - **Categories** are Hexium's slugs, which are the display names, capitals and spaces included (`Quality of Life`),
   listed at <https://hexium.gg/api/experimental/community/valheim/category/>. Hexium's list differs from
@@ -275,16 +290,24 @@ like `5.4.2351` (four-digit patch), while BepInEx's own versions look like `5.4.
 `x.y.NNNN` in the file. If that ever picks the wrong one, set `BepInExPackDependency` in `Local.props` and the
 build uses that instead.
 
-## 7. Thunderstore (first release only)
+## 7. The stores (first publish only)
 
-1. Sign in at <https://thunderstore.io> with Discord or GitHub.
-2. Create a **team**. Its name becomes the author prefix, e.g. `Quandru-QuanDupeLightsources`. It must match
-   `ThunderstoreTeam` in `Directory.Build.props`, so dev deploys land in the same folder as installed releases.
-3. Upload at <https://thunderstore.io/c/valheim/create/>, choosing the team and the Valheim community. Tick the
-   same categories as `thunderstore.toml`.
+**Once per team, already done for `Quandru`:** a team on Thunderstore and one on Hexium, both named exactly as
+`ThunderstoreTeam` in `Directory.Build.props`. The name is the author prefix (`Quandru-QuanDupeLightsources`) and the
+namespace in `thunderstore.toml` and `hexium.json`, and dev deploys use it so they land in the same folder as
+installed releases. Each team has an API token stored as a secret in `.publishing` (`.publishing/docs/tokens.md`).
 
-Thunderstore packages are public; there's no private option. Once a mod is published, add it to the synced
-server profile in Gale like any other mod.
+**Each new mod:** nothing to upload by hand. Its first publish (section 6, step 7) creates the listing on both
+stores, with the categories from its store files. Afterwards:
+1. On Hexium, set the mod's licence to **MIT** on its page. Hexium's API has no licence field. Thunderstore has no
+   licence setting; the `LICENSE` file in the repo covers it.
+2. Check both listings look right (icon, README, categories).
+3. Add the mod to the synced server profile in Gale like any other mod.
+
+Both stores are public; there's no private option.
+
+**Licence:** every mod is MIT-licensed (`LICENSE` at the repo root, from this template). Keep it: it's what lets us
+tag listings `Open Source`.
 
 ## 8. Troubleshooting
 
@@ -318,7 +341,7 @@ difference found between a mod and the template is a learning to share, not some
 3. **Check every mod, not just the ones cloned here.** Start with the local folders, then list the Quanheim GitHub
    organisation (`gh repo list Quanheim`) for mod repos that aren't cloned yet.
 
-Template-derived files to compare: `.gitignore`, `Directory.Build.props`, `Directory.Build.targets`,
+Template-derived files to compare: `LICENSE`, `.gitignore`, `Directory.Build.props`, `Directory.Build.targets`,
 `Local.props.example`, `docs/DEVELOPMENT.md`, the layout of `thunderstore.toml` and `hexium.json` (comments, keys), the
 section layout of `docs/valheim-dependencies.md`, and the shape of
 `.vscode/` (which the template no longer tracks).
