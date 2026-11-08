@@ -168,7 +168,9 @@ farm over water and the coal piles up while you're away.
 - **The awkward moments fixed.** Picking a crop or changing a ship's sail where the server is running things no
   longer fails or throws errors.
 - **Logs worth reading.** Every switch, every change to the loaded zones and a 5-minute summary of who owns what,
-  with warnings if something looks wrong. A few lines a minute at most.
+  with warnings if something looks wrong. A few lines a minute at most. Set "Log detail" to Debug when something
+  needs chasing: it adds a tame watch (tames that move, jump or change who runs them), owner changes, players coming
+  and going, ships' buoyancy, plants overdue to regrow and every station's capacity at start.
 
 Everything is adjustable in the mod's config, and the server's settings apply to everyone.
 

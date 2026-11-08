@@ -5,7 +5,7 @@
     <RootNamespace>QuanChunkLoader</RootNamespace>
 
     <!-- The ONLY place to bump the version: feeds the plugin attribute and the generated manifest.json -->
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
 
     <!-- Thunderstore manifest description: max 250 characters, no double quotes. -->
     <ThunderstoreDescription>Chunk loader that keeps bases producing while you are away, even after the last logout, hands ownership back to nearby players, keeps moored boats afloat and runs surtling farms. Replaces ChunkLoader and ChunkLoaderFix.</ThunderstoreDescription>

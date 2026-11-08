@@ -1,6 +1,11 @@
 # Changelog
 
-## 1.1.1 - unreleased
+## 1.1.2 - 2026-11-08
+
+- Readme and changelog only: 1.1.1 went out with its changelog still marked "unreleased" and the readme not
+  mentioning the Debug log checks. No change to the mod itself.
+
+## 1.1.1 - 2026-11-08
 
 - "Show observers on the map" no longer turns the map's dot-pin filter back on. Observer pins now have no filter
   of their own, like the map's location icons.
