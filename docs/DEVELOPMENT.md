@@ -299,14 +299,13 @@ installed releases. Each team has an API token stored as a secret in `.publishin
 
 **Each new mod:** nothing to upload by hand. Its first publish (section 6, step 7) creates the listing on both
 stores, with the categories from its store files. Afterwards:
-1. On Hexium, set the mod's licence to **MIT** on its page. Hexium's API has no licence field. Thunderstore has no
-   licence setting; the `LICENSE` file in the repo covers it.
-2. Check both listings look right (icon, README, categories).
-3. Add the mod to the synced server profile in Gale like any other mod.
+1. Check both listings look right (icon, README, categories).
+2. Add the mod to the synced server profile in Gale like any other mod.
 
 Both stores are public; there's no private option.
 
-**Licence:** every mod is MIT-licensed (`LICENSE` at the repo root, from this template). Keep it: it's what lets us
+**Licence:** every mod is MIT-licensed (`LICENSE` at the repo root, from this template). Neither store has a licence
+setting that we've found; the repo's `LICENSE` is what counts. Keep it: it's what lets us
 tag listings `Open Source`.
 
 ## 8. Troubleshooting
