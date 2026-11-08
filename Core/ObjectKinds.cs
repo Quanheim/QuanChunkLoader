@@ -61,6 +61,33 @@ namespace QuanChunkLoader.Core
             return Kind.Other;
         }
 
+        private static readonly Dictionary<int, bool> StaysPutCache = new Dictionary<int, bool>();
+
+        /// <summary>
+        /// Whether the object stays where it is: saved with the world and its prefab has no ZSyncTransform (the
+        /// component that sends a moving object's position). Pieces, stations, containers and plants do.
+        /// </summary>
+        internal static bool StaysPut(ZDO zdo)
+        {
+            if (!zdo.Persistent)
+            {
+                return false;
+            }
+            var hash = zdo.GetPrefab();
+            if (StaysPutCache.TryGetValue(hash, out var staysPut))
+            {
+                return staysPut;
+            }
+            var prefab = ZNetScene.instance != null ? ZNetScene.instance.GetPrefab(hash) : null;
+            if (prefab == null)
+            {
+                return false;
+            }
+            staysPut = prefab.GetComponent<ZSyncTransform>() == null;
+            StaysPutCache[hash] = staysPut;
+            return staysPut;
+        }
+
         internal static bool IsTame(ZDO zdo) => zdo.GetBool(ZDOVars.s_tamed);
 
         /// <summary>A short category for logs: tames are told apart from wild creatures.</summary>

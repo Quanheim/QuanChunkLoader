@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.3 - 2026-11-08
+
+- Pressing Shift while typing (in chat, the console, a sign or a menu) no longer shows the zone grid of the observer
+  under your cursor.
+- The "had to be created again" warning no longer counts things that move (creatures, players, birds, fish, items,
+  effects). They cross the edge of the loaded area and come back as normal, so the warning was a false alarm with a
+  player at the base. It now counts only things that stay put, such as buildings, stations, containers and plants.
+
 ## 1.1.2 - 2026-11-08
 
 - Readme and changelog only: 1.1.1 went out with its changelog still marked "unreleased" and the readme not

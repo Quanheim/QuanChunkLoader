@@ -109,7 +109,7 @@ namespace QuanChunkLoader
         // Reads the synced state every frame, so the glow changes for everyone nearby as soon as the data arrives.
         private void Update()
         {
-            if (ZInput.GetButtonDown("AltPlace") && LookedAtByLocalPlayer())
+            if (ZInput.GetButtonDown("AltPlace") && !Typing() && LookedAtByLocalPlayer())
             {
                 ShowZones();
             }
@@ -119,6 +119,15 @@ namespace QuanChunkLoader
                 _shownOn = on;
                 ShowState(on);
             }
+        }
+
+        // Shift typed in chat, the console, a sign or a map pin name isn't a key press at the observer.
+        // The same checks the game makes before it takes player input (Player.TakeInput).
+        private static bool Typing()
+        {
+            return (Chat.instance != null && Chat.instance.HasFocus()) || Console.IsVisible() ||
+                   TextInput.IsVisible() || Menu.IsVisible() || InventoryGui.IsVisible() || Minimap.IsOpen() ||
+                   (Hud.instance != null && Hud.instance.m_buildUi.SearchFieldFocused);
         }
 
         private void ShowState(bool on)

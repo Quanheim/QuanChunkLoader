@@ -65,7 +65,8 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZNetScene.GetPrefab` | Classifying objects by prefab (`ObjectKinds`). |
 | `ZDO.TempRemoveEarmark` | Keeping forced-zone instances (see `ZNetScene.RemoveObjects`). |
 | `ZDO.Created` | Which forced-zone objects still need creating. |
-| `ZDO.Persistent` | Only persistent objects are claimed, as vanilla's own ownership pass does. |
+| `ZDO.Persistent` | Only persistent objects are claimed, as vanilla's own ownership pass does. The "had to be created again" warning counts only persistent objects. |
+| `ZSyncTransform` | A prefab with one moves (creatures, players, birds, fish, items, ships, wisps): the "had to be created again" warning doesn't count it, as it crosses the loaded-area edge legitimately (1.1.3). |
 | `ZDO.GetSector` | An object's zone. |
 | `ZDO.SetOwner` | Claiming, handing back and releasing objects. |
 | `ZDOMan.FindSectorObjects` | Objects in one zone, called with `SimulationDistance(0, 0)`. |
@@ -157,6 +158,7 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Utils.GetPrefabName` | Prefab names in logs; matching creature spawners against the phantom allowlist. |
 | `Pickable.GetPicked` | The pick fix only acts on unpicked plants. |
 | `ZInput.GetButtonDown` | Tapping `AltPlace` while looking at an observer shows its zones. |
+| `Chat.instance`, `Chat.HasFocus`, `Console.IsVisible`, `TextInput.IsVisible`, `Menu.IsVisible`, `InventoryGui.IsVisible`, `Minimap.IsOpen`, `Hud.instance.m_buildUi.SearchFieldFocused` | `AltPlace` is ignored while typing or in a menu: the same checks as `Player.TakeInput` (1.1.3; Shift in chat re-showed the grid). QuanChat uses vanilla's chat box, so `HasFocus` covers it. |
 | `Player.GetHoverObject` | Whether the local player is looking at this observer. |
 | `Heightmap.GetHeight` | The zone grid's lines and posts follow the ground. |
 | `ZNetScene.m_prefabs` | The spawner reference list: every prefab with a `CreatureSpawner`. *Diagnostic* too: startup report. |

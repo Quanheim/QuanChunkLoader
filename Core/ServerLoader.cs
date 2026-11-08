@@ -229,7 +229,9 @@ namespace QuanChunkLoader.Core
                     {
                         continue; // never destroyed: the safety rule for unknown objects
                     }
-                    if (!_createdOnce.Add(zdo.m_uid))
+                    // Things that move (creatures, players, birds, fish, wisps, effects) cross the edge of the
+                    // loaded area and come back legitimately; only objects that stay put show something unloading.
+                    if (!_createdOnce.Add(zdo.m_uid) && ObjectKinds.StaysPut(zdo))
                     {
                         _recreated++;
                         var name = Utils.GetPrefabName(go);

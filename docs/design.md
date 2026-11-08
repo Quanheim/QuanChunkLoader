@@ -632,17 +632,18 @@ from "Where it stands"**.
 | 19 | **1.1.1:** hide the dot pins, then turn "Show observers on the map" on | **Passed (8 Nov, 1.1.2):** dots stay hidden; observer icons show. |
 | 20 | Press Shift at an observer while another player stands near, looking away and not pressing Shift | Only you see the grid. A player said they saw Quandru's grid once; by the code only the presser draws it (`ChunkObserver.Update` checks the local player is looking at it; the server's reply goes to the asker only and is drawn only if that client already shows the same grid). Quandru wants it personal, not shared. If 20 fails, find out why. |
 | 21 | Tame deer outside the pen | **Open.** On returning after the first empty-hour run (7 Nov), three tame deer were outside a pen with no gaps: two a few metres out, one about 40 m east down the hill; a hen was out there too. None were outside before he left. "Simulate tames" is on, so the server runs tames' AI while nobody is near. Not offspring: the deer hadn't been fed, and `Procreation` needs the tame not hungry (Procreation.cs:148). The hen is probably vanilla: the chickens had been fed, and offspring spawn 2 m behind the parent with no wall check (Procreation.cs:95), and an egg hatches where it lies (EggGrow). 1.1.0's log has nothing on tame movement. **Next:** with 1.1.1 or later on the server, set Log detail to Debug for an overnight run, count the deer at logoff, and read the "Tame watch:" lines (moves of 10 m+, jumps of 25 m+ in one 2 s pass, owner changes, with positions). Count the deer at every logoff until then. |
+| 23 | **1.1.3:** type in chat with a capital letter while the cursor is over an observer | The grid doesn't appear. With 1.1.3 on the server, also: no "had to be created again" warning while at the base. |
 
 **Also seen**
 - **8 Nov, with 1.1.2 naming the objects:** "created again" is Seagal, Wolf, Fish2/3/5, Player, demister_ball,
   vfx_Wet: things that move. They cross the edge of a loaded area, so the server drops them on the way out and
   creates them again on the way back. With nobody near, wild creatures are paused and don't move, which is why the
-  warning only ever fires with a player at the base. **A false alarm; fix:** don't count characters, players or
-  effects, only things that stay put (pieces, stations, items, plants).
+  warning only ever fires with a player at the base. **A false alarm; fixed in 1.1.3:** it counts only persistent
+  objects whose prefab has no `ZSyncTransform` (pieces, stations, containers, plants).
 - **8 Nov, test 20 passed:** Val showed his grid and Quandru didn't see it, and the other way round. Val found that Shift
   pressed while typing in chat, with the cursor over an observer, re-shows the grid: `ChunkObserver.Update` checks
-  `ZInput.GetButtonDown("AltPlace")` with no check for chat or other text input. **Fix for the next version:** skip
-  while chat, the console, a text box or a menu has focus, as vanilla does for player input.
+  `ZInput.GetButtonDown("AltPlace")` with no check for chat or other text input. **Fixed in 1.1.3:** skipped while
+  chat, the console, a text box, a menu, the inventory or the map is open, as `Player.TakeInput` does (test 23).
 - **8 Nov:** Val (Valyyn) was refused twice at 11:25 and 11:29: "Missing mod on client: QuanChunkLoader". His Gale
   profile doesn't have it; he needs to sync.
 - "Had to be created again" warning (20 to 35 objects per 5 minutes): it appears only while Quandru is at his base
@@ -664,6 +665,9 @@ from "Where it stands"**.
   fixed (1.1.1 went out saying "unreleased"). Once 1.1.2 reaches the published Gale modlist: put it on the server,
   test 19, and do an overnight run with Log detail on Debug for 21; check the Debug start-up report and that
   Debug doesn't stall the server.
+- 1.1.3: released 8 Nov 2026 (tag `v1.1.3`, GitHub release): Shift while typing ignored, and the recreation warning
+  counts only things that stay put. Quandru uploads it to Thunderstore; put it on the server after the row 21
+  overnight run, then test 23.
 
 ## Still open
 
