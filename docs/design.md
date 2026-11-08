@@ -639,7 +639,7 @@ from "Where it stands"**.
   creates them again on the way back. With nobody near, wild creatures are paused and don't move, which is why the
   warning only ever fires with a player at the base. **A false alarm; fix:** don't count characters, players or
   effects, only things that stay put (pieces, stations, items, plants).
-- **8 Nov, test 20 (first half passed):** Val showed his grid and Quandru didn't see it. Val found that Shift
+- **8 Nov, test 20 passed:** Val showed his grid and Quandru didn't see it, and the other way round. Val found that Shift
   pressed while typing in chat, with the cursor over an observer, re-shows the grid: `ChunkObserver.Update` checks
   `ZInput.GetButtonDown("AltPlace")` with no check for chat or other text input. **Fix for the next version:** skip
   while chat, the console, a text box or a menu has focus, as vanilla does for player input.
