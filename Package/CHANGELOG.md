@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.2.0 - unreleased
+
+- **Eitr radiation pauses while nobody is near.** Dropped Refined Eitr and running eitr refineries fire radiation
+  bolts (30 lightning + 30 poison, in random directions) on whichever machine runs them. In a loaded base with nobody
+  there, the server ran them all night: on 9 Nov 2026 a pile of over 100 dropped Eitr wrecked much of a base. Now,
+  in loaded zones with no player near, they hold their fire, as if the zone were unloaded. A player arriving brings
+  back the vanilla sparks and damage. New section `8 - Unattended bases`, "Pause Eitr radiation while nobody is
+  near", on by default. The 5-minute summary counts the bolts held back.
+- **New section `9 - Known error suppression (personal)`**, with one switch so far, "Vanilla default model collider
+  no read access" (off by default). On, it stops the repeated "RuntimeNavMeshBuilder: Source mesh default is skipped
+  because it does not allow read access" lines. They come from about 800 vanilla models (cart wheels, ship hulls,
+  logs, stones) the navmesh build can't read and skips anyway; a loaded base rebuilds its navmesh far more often, so
+  it logs far more of them. This leaves those models out before the build, so creatures path exactly as before.
+- Both are applied on their own: if a game update breaks either, the log says so and only that feature turns off.
+
 ## 1.1.3 - 2026-11-08
 
 - Pressing Shift while typing (in chat, the console, a sign or a menu) no longer shows the zone grid of the observer

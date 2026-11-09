@@ -46,6 +46,12 @@ namespace QuanChunkLoader
         internal static ConfigEntry<bool> DailyFile;
         internal static ConfigEntry<int> DaysToKeep;
 
+        // 8 - Unattended bases
+        internal static ConfigEntry<bool> PauseRadiation;
+
+        // 9 - Known error suppression (personal)
+        internal static ConfigEntry<bool> SuppressUnreadableNavMesh;
+
         private static ConfigDescription Enforced(string text, AcceptableValueBase values = null) =>
             new ConfigDescription(text + " Synced from the server; admins only.", values,
                 new ConfigurationManagerAttributes { IsAdminOnly = true });
@@ -126,6 +132,22 @@ namespace QuanChunkLoader
                 Enforced("Also write this mod's log lines to BepInEx/QuanChunkLoaderLogs, one file per day."));
             DaysToKeep = config.Bind(logging, "Days of daily files to keep", 14,
                 Enforced("Older daily files are deleted.", new AcceptableValueRange<int>(1, 365)));
+
+            // Appended after release rather than renumbering: saved values sit under the section names.
+            const string unattended = "8 - Unattended bases";
+            PauseRadiation = config.Bind(unattended, "Pause Eitr radiation while nobody is near", true,
+                Enforced("On: dropped Refined Eitr and running eitr refineries in loaded zones stop firing their " +
+                         "radiation bolts (30 lightning + 30 poison, in random directions) while no player is near, " +
+                         "as if the zone were unloaded. A player arriving brings back the vanilla sparks and damage. " +
+                         "Off: they keep firing with nobody there, and a pile of dropped Eitr can wreck a base."));
+
+            const string suppression = "9 - Known error suppression (personal)";
+            SuppressUnreadableNavMesh = config.Bind(suppression, "Vanilla default model collider no read access", false,
+                new ConfigDescription("Personal: this machine's log only. On: stops the repeated \"RuntimeNavMeshBuilder: " +
+                                      "Source mesh default is skipped because it does not allow read access\" lines. " +
+                                      "They come from vanilla models (cart wheels, ship hulls, logs) the navmesh can't " +
+                                      "read; this leaves them out before the build instead of after, so creatures " +
+                                      "path exactly as before."));
         }
     }
 }

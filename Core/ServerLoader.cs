@@ -294,6 +294,23 @@ namespace QuanChunkLoader.Core
             return false;
         }
 
+        /// <summary>
+        /// Is any player's vanilla area over this point right now: a connected peer, or the host in a local game.
+        /// Read live (not from the 2 s pass) for callers outside the pass.
+        /// </summary>
+        internal static bool PlayerNear(Vector3 pos)
+        {
+            foreach (var peer in ZNet.instance.GetPeers())
+            {
+                if (peer.IsReady() && ZNetScene.InActiveArea(pos, peer.GetRefPos()))
+                {
+                    return true;
+                }
+            }
+            return !ZNet.instance.IsDedicated() && Player.m_localPlayer != null &&
+                   ZNetScene.InActiveArea(pos, ZNet.instance.GetReferencePosition());
+        }
+
         private sealed class Tally
         {
             private readonly Dictionary<string, int> _counts = new Dictionary<string, int>();
@@ -467,12 +484,14 @@ namespace QuanChunkLoader.Core
             watch.Stop();
             Log.Trace($"Ownership pass: {_lastPass.Count} objects in {Observers.Forced.Count} zones, {watch.Elapsed.TotalMilliseconds:0.0} ms.");
 
+            var heldBack = summary ? RadiationPause.TakeHeldBack() : 0;
             if (summary && Observers.Forced.Count > 0)
             {
                 var active = Observers.All.Values.Count(o => o.On);
                 Log.Info($"Summary: {Observers.Forced.Count} zone(s) loaded by {active} observer(s); {objects} objects, " +
                          $"owners: {owners}; {instantiated} running on the server; " +
-                         $"{tamesPaused} tame(s) and {wildPaused} wild creature(s) paused.");
+                         $"{tamesPaused} tame(s) and {wildPaused} wild creature(s) paused" +
+                         (heldBack > 0 ? $"; {heldBack} Eitr radiation bolt(s) held back." : "."));
                 TameWatch.Summary();
                 DebugWatch.Heartbeat();
             }

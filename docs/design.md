@@ -347,6 +347,35 @@ here") and is left alone, so beached and docked ships behave exactly as in vanil
   simulating where it is rather than sinking, and loads normally when a player arrives.
 - Runs on the server only. Players' own areas are vanilla.
 
+## Unattended bases: Eitr radiation (1.2.0, on by default)
+
+**Found 9 Nov 2026.** After a server restart the eitr refinery at Quandru's base caught up and dropped 100+ Refined
+Eitr on the ground, and the base was wrecked overnight. Vanilla's Eitr item has a child `Eitr/attach/Radiator`
+(`Radiator.cs`): every 5–20 s, on the object's owner, it fires a `radiation` projectile (20 m/s, 2 s life, 30 lightning
++ 30 poison, no owner) in a random upward direction. The running refinery has two more (`_enabled/Radiator (2)/(3)`,
+1–5 s). Without a chunk loader that only happens with a player there; with one, the server ran it all night. The
+ownerless bolts hitting rocks and bushes inside a ward were also what set off WardIsLove 4.0.9's null-player error
+spam on the server (reported by Quandru on Hexium).
+
+**Design (Quandru, 9 Nov 2026): a feature, not a suppression.** It blocks damage that exists only because the loader
+keeps the zone running. A transpiler on `Radiator.UpdateLoop` swaps its one `ZNetView.IsOwner()` for a gate that
+also says no when the loader is running, the setting is on, the radiator is in a forced zone and no player's vanilla
+area covers it (read live from the peers, plus the host in a local game). Nothing is disabled or hidden: a player who
+comes near takes ownership within about 2 s and their own game fires as vanilla, sparks and damage included. Covers
+the refinery too. Applied on its own, outside the core patch set: if it fails, only this feature is off.
+
+## Known error suppression (personal, off by default)
+
+A section for harmless vanilla log noise the loader makes more of; each switch off by default (Quandru, 9 Nov 2026).
+One so far: "RuntimeNavMeshBuilder: Source mesh default is skipped because it does not allow read access". About 800
+vanilla collider meshes named `default` (cart wheels, ship hulls, Hildir's chests, logs, stones) aren't readable, so
+Unity skips them in the navmesh build and warns at every tile rebuild. A scan of the Quanheim profile's mod bundles
+found none of their unreadable `default` meshes used as colliders. A prefix on `NavMeshBuilder.UpdateNavMeshDataAsync`
+removes unreadable mesh sources from the list `Pathfinding.BuildTile` passes it: the same navmesh, without the line.
+Unity's native warning can't be filtered from the log by a managed mod. Personal, since it only changes the machine's
+own log. **Test:** confirm the line stops; if Unity turns out to warn while collecting rather than building, the
+prefix has to move to `CollectSources`.
+
 ## Safety rules
 
 Nothing this mod does may permanently remove or damage anything. These rules hold throughout the code:
@@ -385,7 +414,7 @@ Normally the ownership rule means these situations don't arise. The patches cove
 ## Limits and admin controls
 
 Config file layout (`quandru.QuanChunkLoader.cfg`), following the numbered-section convention in
-`docs/DEVELOPMENT.md`. Enforced settings sync from the server through Jotunn and only admins can change them; personal ones are each player's own. Sections 0–6 and 8 are enforced; section 7 is personal and named so.
+`docs/DEVELOPMENT.md`. Enforced settings sync from the server through Jotunn and only admins can change them; personal ones are each player's own. Sections 0–5, 7 and 8 are enforced; 6 and 9 are personal and named so.
 Settings are listed in the order they're bound.
 
 | Section | Setting | Default | Enforced or personal |
@@ -405,8 +434,12 @@ Settings are listed in the order they're bound.
 | `7 - Logging` | Log detail | Info (Info, Debug or Trace) | Enforced |
 | | Write a daily log file | Off | Enforced |
 | | Days of daily files to keep | 14 | Enforced |
+| `8 - Unattended bases` | Pause Eitr radiation while nobody is near | On | Enforced |
+| `9 - Known error suppression (personal)` | Vanilla default model collider no read access | Off | Personal |
 
-`7 - Logging` is a server setting too (the server is what logs); it sits last so the everyday sections come first.
+`7 - Logging` is a server setting too (the server is what logs); it sat last so the everyday sections came first.
+Sections 8 and 9 were appended in 1.2.0 rather than renumbering, because renaming a released section loses players'
+saved values.
 **Gone (5 Nov 2026):** "Area size" (replaced by the two observer pieces) and the whole `6 - Pieces` section with
 "Stone cost" (costs are fixed: 10 Stone, 30 for the cluster, 10 for the phantom). The sections were renumbered to
 close the gap, and `2 - Loading` became `2 - Tamed Creatures` (Quandru, 6 Nov 2026), since only the tame setting

@@ -160,6 +160,10 @@ farm over water and the coal piles up while you're away.
   support while nobody is near, so nothing collapses because its neighbour wasn't loaded.
 - **Your base stays quiet.** Wild creatures in a loaded base wait where they were until someone comes back, and nests
   and spawners there don't run, so nothing wanders through or attacks an empty base.
+- **Eitr doesn't wreck an empty base.** Dropped Refined Eitr and a running eitr refinery fire radiation bolts
+  (lightning and poison, in random directions) whenever the game runs them. Normally that only happens with a player
+  there; in a loaded base it would go on all night. With nobody near, they're held quiet, and the sparks and damage
+  come back the moment someone arrives. On by default.
 - **Nothing gets deleted by a missing mod.** If the server doesn't have a mod that something in a base came from,
   the game would delete it the moment the server loads it. This mod leaves those objects alone and names them in the
   log.
@@ -171,6 +175,9 @@ farm over water and the coal piles up while you're away.
   with warnings if something looks wrong. A few lines a minute at most. Set "Log detail" to Debug when something
   needs chasing: it adds a tame watch (tames that move, jump or change who runs them), owner changes, players coming
   and going, ships' buoyancy, plants overdue to regrow and every station's capacity at start.
+- **Optional log clean-up.** "Known error suppression" has a switch for a harmless vanilla warning a loaded base
+  makes far more of: "Source mesh default is skipped because it does not allow read access". Off by default; it
+  changes only your own log.
 
 Everything is adjustable in the mod's config, and the server's settings apply to everyone.
 

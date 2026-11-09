@@ -5,7 +5,7 @@
     <RootNamespace>QuanChunkLoader</RootNamespace>
 
     <!-- The ONLY place to bump the version: feeds the plugin attribute and the generated manifest.json -->
-    <Version>1.1.3</Version>
+    <Version>1.2.0</Version>
 
     <!-- Thunderstore manifest description: max 250 characters, no double quotes. -->
     <ThunderstoreDescription>Chunk loader that keeps bases producing while you are away, even after the last logout, hands ownership back to nearby players, keeps moored boats afloat and runs surtling farms. Replaces ChunkLoader and ChunkLoaderFix.</ThunderstoreDescription>
@@ -18,12 +18,13 @@
   </PropertyGroup>
 
   <!-- Zone coordinates (Vector2s) live in assembly_utils, Localization in assembly_guiutils; the observer
-       model's sparks need the particle module, the phantom's clean-up the audio module, and map pins Splatform. -->
+       model's sparks need the particle module, the phantom's clean-up the audio module, map pins Splatform, and the navmesh filter the AI module. -->
   <ItemGroup>
     <Reference Include="assembly_utils"><HintPath>$(ManagedDir)\assembly_utils.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="assembly_guiutils"><HintPath>$(ManagedDir)\assembly_guiutils.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(ManagedDir)\UnityEngine.ParticleSystemModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.AudioModule"><HintPath>$(ManagedDir)\UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AIModule"><HintPath>$(ManagedDir)\UnityEngine.AIModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Splatform"><HintPath>$(ManagedDir)\Splatform.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 

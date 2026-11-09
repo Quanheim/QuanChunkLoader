@@ -37,6 +37,8 @@ namespace QuanChunkLoader
         /// <summary>The plugin's own object, for coroutines.</summary>
         internal static QuanChunkLoaderPlugin Instance { get; private set; }
 
+        private static readonly Harmony _harmony = new Harmony(PluginGuid);
+
         private void Awake()
         {
             Instance = this;
@@ -60,6 +62,10 @@ namespace QuanChunkLoader
                 Log.Error("Not every patch applied (see above), so chunk loading is off. Check for a game update.");
                 return;
             }
+            // Optional features, each applied on its own: a failure turns off only that feature.
+            RadiationPause.Apply(_harmony);
+            NavMeshUnreadable.Apply(_harmony);
+
             PrefabManager.OnVanillaPrefabsAvailable += AddPieces;
             Settings.ExpireAfterHours.SettingChanged += (_, __) => Observers.ExpiryChanged();
             BuildPermission.Hook();
@@ -77,7 +83,7 @@ namespace QuanChunkLoader
         private static bool ApplyPatches()
         {
             var allApplied = true;
-            var harmony = new Harmony(PluginGuid);
+            var harmony = _harmony;
             foreach (var type in typeof(QuanChunkLoaderPlugin).Assembly.GetTypes())
             {
                 if (!type.IsDefined(typeof(HarmonyPatch), false))

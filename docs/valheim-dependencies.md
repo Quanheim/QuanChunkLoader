@@ -42,6 +42,9 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `Ship.CustomFixedUpdate` | Prefix and Finalizer (`BoatContextScope`) | Boat context while a ship in a forced zone runs physics on the server. | Still samples `Floating.GetWaterLevel` five times, centre first? |
 | `Floating.GetWaterLevel` | Postfix (`BoatIgnoresUnloadedWater`), overload `(Vector3, ref WaterVolume)` | In boat context, replaces a -10000 side sample from an unloaded zone with the centre sample. | Still returns -10000 for no water? Still static with this signature? |
 
+| `Radiator.UpdateLoop` (coroutine `MoveNext`) | Transpiler (`RadiationPause`), applied on its own | Replaces its one `ZNetView.IsOwner()` call with a gate: also false on the server while "Pause Eitr radiation" is on, the radiator is in a forced zone and no player's area covers it. Throws (feature off, warning logged) unless exactly one `IsOwner` call is found. | Still one `IsOwner()` check before spawning `m_projectile`? Still a coroutine named `UpdateLoop`? Dropped Eitr (`Eitr/attach/Radiator`) and the refinery (`_enabled/Radiator (2)/(3)`) still the radiators? |
+| `UnityEngine.AI.NavMeshBuilder.UpdateNavMeshDataAsync` `(NavMeshData, NavMeshBuildSettings, List<NavMeshBuildSource>, Bounds)` | Prefix (`NavMeshUnreadable`), applied on its own | With the personal suppression on, removes `Mesh` sources whose mesh isn't readable, before Unity skips them with a warning. Takes the list by position (`__2`). | Unity engine, not Valheim: still the build `Pathfinding.BuildTile` uses? Unity upgrade changes the overload? |
+
 ### Private members reached by reflection
 
 | Game code | Kind | Used for |
@@ -60,7 +63,9 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 
 | Game code | Used for |
 |---|---|
-| `ZNetScene.InActiveArea` | The ownership rule's "is a player near": vanilla's own test, never patched. |
+| `ZNetScene.InActiveArea` | The ownership rule's "is a player near": vanilla's own test, never patched. Also the radiation gate's live check (`ServerLoader.PlayerNear`, peers' `GetRefPos` plus the host in a local game). |
+| `ZoneSystem.GetZone` | The radiation gate: which zone a radiator is in. |
+| `Mesh.isReadable`, `NavMeshBuildSource.shape` / `sourceObject` | The navmesh suppression: which sources Unity would skip. |
 | `ZNetScene.FindInstance` | Is an object instantiated on the server (summaries). |
 | `ZNetScene.GetPrefab` | Classifying objects by prefab (`ObjectKinds`). |
 | `ZDO.TempRemoveEarmark` | Keeping forced-zone instances (see `ZNetScene.RemoveObjects`). |
@@ -206,6 +211,8 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `SpawnArea.GetInstances` | Counts only running creatures (`BaseAI.BaseAIInstances`), so paused ones don't cap a spawner area: why server-run spawners without a phantom are skipped in forced zones. |
 | `ZNet.UpdateNetTime` | On the server, adds time only while `GetNrOfPlayers() > 0`, so the empty-server hour adds its own and they never overlap. |
 | `Smelter.UpdateSmelter` | Catches up on up to an hour of elapsed world time when next loaded, so a smelter can't show whether its zone stayed loaded (tests use the log's Summary instead). |
+| `Radiator.UpdateLoop` | Fires only on the owner (`m_nview.IsOwner()`, `m_nview` from the parent `ZNetView`), so pausing the server's copy is enough: a player near owns it and fires on their own game. |
+| `Pathfinding.BuildTile` | Collects collider sources with `NavMeshBuilder.CollectSources` (`PhysicsColliders` only) and builds with `UpdateNavMeshDataAsync`; Unity's "Source mesh … does not allow read access" warning is assumed to come from the build step (1.2.0 test). |
 | `WearNTear.Highlight` | The hammer's hover highlight writes `_EmissionColor` through `MaterialMan` property blocks and then clears it. So the observer changes its rune colour on its own material copy, which the highlight's reset doesn't undo. |
 
 ## Other mods' code
@@ -227,3 +234,5 @@ Not game code, so not in the tables the update script reads. Check these when th
 | `Spawner_imp_respawn` | Default phantom allowlist entry (the surtling spawner), by prefab name. | Renamed: surtling farms stop until the setting is updated. |
 | Old loader prefab (`StartupReport.OldLoaderPrefab`) | *Diagnostic:* finding old loaders in the world. | The old mod renames it. |
 | Surtling prefab names | *Debug:* counts surtlings in loaded zones by name (`Surtling*`). | Renamed. |
+| `Eitr` (child `attach/Radiator`), `eitrrefinery` (`_enabled/Radiator (2)`, `(3)`), projectile `radiation` | Not referenced by name: every `Radiator` is paused alike. Listed because they're what the radiation pause is for. | A new prefab gets a `Radiator`: it's paused too (intended). |
+| ~800 vanilla meshes named `default`, unreadable, used by `MeshCollider`s (cart wheels, ship hulls, Hildir's chests, logs, stones) | What the navmesh suppression removes (by readability, not name). | Made readable by a game update: nothing to remove, no warning. |
