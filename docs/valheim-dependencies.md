@@ -212,7 +212,8 @@ parent's name, e.g. `Player.PlacementStatus`. Only the first column is read by t
 | `ZNet.UpdateNetTime` | On the server, adds time only while `GetNrOfPlayers() > 0`, so the empty-server hour adds its own and they never overlap. |
 | `Smelter.UpdateSmelter` | Catches up on up to an hour of elapsed world time when next loaded, so a smelter can't show whether its zone stayed loaded (tests use the log's Summary instead). |
 | `Radiator.UpdateLoop` | Fires only on the owner (`m_nview.IsOwner()`, `m_nview` from the parent `ZNetView`), so pausing the server's copy is enough: a player near owns it and fires on their own game. |
-| `Pathfinding.BuildTile` | Collects collider sources with `NavMeshBuilder.CollectSources` (`PhysicsColliders` only) and builds with `UpdateNavMeshDataAsync`; Unity's "Source mesh … does not allow read access" warning is assumed to come from the build step (1.2.0 test). |
+| `Pathfinding.BuildTile` | Collects collider sources with `NavMeshBuilder.CollectSources` (`PhysicsColliders` only) and builds with `UpdateNavMeshDataAsync`. Unity's "Source mesh … does not allow read access" warning comes from the build call (`UpdateNavMeshData[Async]ListInternal`), not `CollectSourcesInternal`: checked in `UnityPlayer.dll` on 9 Nov 2026. Re-check after a Unity upgrade if the suppression's "still seen" warning appears. |
+| `Application.logMessageReceivedThreaded` (Unity) | Native warnings reach it with their text, so the mod can spot "RuntimeNavMeshBuilder: Source mesh … does not allow read access" (prefix and suffix matched) and say once how to stop it. |
 | `WearNTear.Highlight` | The hammer's hover highlight writes `_EmissionColor` through `MaterialMan` property blocks and then clears it. So the observer changes its rune colour on its own material copy, which the highlight's reset doesn't undo. |
 
 ## Other mods' code

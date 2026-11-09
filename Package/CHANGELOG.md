@@ -13,6 +13,9 @@
   because it does not allow read access" lines. They come from about 800 vanilla models (cart wheels, ship hulls,
   logs, stones) the navmesh build can't read and skips anyway; a loaded base rebuilds its navmesh far more often, so
   it logs far more of them. This leaves those models out before the build, so creatures path exactly as before.
+- **The log says what it knows, once per session**, for whoever reads it (you or an AI): when that warning appears
+  with the switch off, a line names it as harmless and points to the switch; with the switch on, a line says the
+  warnings are being suppressed and by which setting.
 - Both are applied on their own: if a game update breaks either, the log says so and only that feature turns off.
 
 ## 1.1.3 - 2026-11-08

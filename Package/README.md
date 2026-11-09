@@ -177,7 +177,8 @@ farm over water and the coal piles up while you're away.
   and going, ships' buoyancy, plants overdue to regrow and every station's capacity at start.
 - **Optional log clean-up.** "Known error suppression" has a switch for a harmless vanilla warning a loaded base
   makes far more of: "Source mesh default is skipped because it does not allow read access". Off by default; it
-  changes only your own log.
+  changes only your own log. Either way the log says once what's going on: that the warning is harmless and which
+  switch stops it, or that it's being suppressed and by which switch.
 
 Everything is adjustable in the mod's config, and the server's settings apply to everyone.
 

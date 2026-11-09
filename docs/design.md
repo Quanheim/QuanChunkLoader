@@ -373,8 +373,22 @@ Unity skips them in the navmesh build and warns at every tile rebuild. A scan of
 found none of their unreadable `default` meshes used as colliders. A prefix on `NavMeshBuilder.UpdateNavMeshDataAsync`
 removes unreadable mesh sources from the list `Pathfinding.BuildTile` passes it: the same navmesh, without the line.
 Unity's native warning can't be filtered from the log by a managed mod. Personal, since it only changes the machine's
-own log. **Test:** confirm the line stops; if Unity turns out to warn while collecting rather than building, the
-prefix has to move to `CollectSources`.
+own log.
+
+**Build, not collect: confirmed from `UnityPlayer.dll` (9 Nov 2026).** The native function holding the message
+(alongside "has invalid vertex data", "is too large" and "Source Mesh missing at index") is entered only from two
+functions, and both are reached only through Unity's binding table, whose parallel name list (197 entries each)
+names them `NavMeshBuilder::UpdateNavMeshDataListInternal_Injected` and
+`UpdateNavMeshDataAsyncListInternal_Injected`. `CollectSourcesInternal_Injected` never reaches it. So the prefix on
+`UpdateNavMeshDataAsync` is the right place, and the warning is raised on the main thread during that call.
+
+**Log notices for readers, human or AI (Quandru, 9 Nov 2026).** People increasingly have an AI read their logs, so
+the mod says once per session what it knows about this line:
+- setting off and the warning seen (watched through `Application.logMessageReceivedThreaded`, then unhooked): an Info
+  line naming the warning as harmless vanilla noise and the setting that stops it;
+- setting on and something actually removed: an Info line saying these warnings are being suppressed, by which
+  setting, and how to see them again;
+- setting on but the warning still seen: a Warning that the suppression isn't catching it, to report.
 
 ## Safety rules
 

@@ -124,6 +124,10 @@ namespace QuanChunkLoader
             }
         }
 
-        private void Update() => ObserverMap.ClientUpdate();
+        private void Update()
+        {
+            ObserverMap.ClientUpdate();
+            NavMeshUnreadable.Tick();
+        }
     }
 }
