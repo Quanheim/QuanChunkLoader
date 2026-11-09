@@ -15,6 +15,10 @@
 
     <!-- Keep other projects and reference material out of the mod's compile glob. -->
     <DefaultItemExcludes>$(DefaultItemExcludes);Diagnostics/**;Upstream Previous Mods/**;research/**</DefaultItemExcludes>
+
+    <!-- Unity's DLLs target netstandard 2.1, newer than net462's 2.0 facade; the game provides it at runtime. Surfaced
+         in 1.2.0 when the navmesh patch passed a List<NavMeshBuildSource> to a Unity method (as in Diagnostics). -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <!-- Zone coordinates (Vector2s) live in assembly_utils, Localization in assembly_guiutils; the observer
