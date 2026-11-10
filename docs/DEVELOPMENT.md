@@ -79,6 +79,26 @@ server's settings are authoritative wherever they affect other players.
 - **Timing:** data that changes how prefabs are set up (which creatures are tameable, say) must be applied before the
   world's objects load, or objects that load first behave as vanilla. Design for that whichever way the data travels.
 
+**Logs that explain themselves.** Players increasingly hand their logs to an AI, so write log lines that a reader
+with no context, human or AI, can act on.
+- **When a mod knows something about a log line, it says so.** If a mod fixes, suppresses or causes a known warning
+  or error (its own, vanilla's or another mod's), it writes one plain line next to it: what the line means, whether
+  it's harmless, and what to do. Name the exact setting as `"Setting name" in [Section] of <guid>.cfg`.
+- **Spotted, not ticked:** when the mod has an optional fix for a line it sees, it says once that the line was
+  spotted and which setting fixes it.
+- **Suppressed:** when a setting hides or prevents a line, the mod says once that lines of that kind would have
+  appeared, that they're being suppressed, by which setting, and how to see them again. A log should never look
+  cleaner than the game really is without saying why.
+- **Still seen despite the fix:** a Warning that the fix isn't catching it, asking for a report.
+- **Once per session per kind,** at Info (or Warning for a failed fix). Never repeat, and never add noise to save
+  noise. End the line with "Said once per session." so a reader knows not to look for more.
+- **Suppressions and log-only fixes sit in their own section, off by default.** A suppression is personal unless it
+  changes gameplay. Each is applied on its own, so if a game update breaks one, the log says so and only that feature
+  turns off. (Protective fixes that change gameplay are features and can default on.)
+- **Spotting other lines:** listen on `Application.logMessageReceivedThreaded`, match on a fixed start and end of the
+  message (not a regex), note it in a flag, write from the main thread, then unhook. Reference implementation:
+  QuanChunkLoader's `Patches/NavMeshUnreadable.cs`.
+
 ## 1. Install the tools (once per machine)
 
 1. **Git for Windows**: <https://git-scm.com/download/win>. The default install options are fine.
