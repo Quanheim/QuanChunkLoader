@@ -714,8 +714,8 @@ is in "Next run" below it.
 | ✅ | ✅ | 18 | 1.1.0 in the "QCL Test" profile | **Passed:** works |
 | ✅ | ✅ | 19 | Hide the dot pins, then turn "Show observers on the map" on | **Passed (8 Nov, 1.1.2):** dots stay hidden; observer icons show |
 | ✅ | ✅ | 20 | Press Shift at an observer while another player stands near, looking away | **Passed (8 Nov):** only the presser sees the grid. Val's Shift-while-typing find became 23 |
-| ✅ | ✅ | 24 | Send the server's LogOutput.log from the 1.2.0 start | **Passed (10 Nov 00:11):** "QuanChunkLoader 1.2.0 loaded"; no "Couldn't patch" warning, so both patches applied |
 | ✅ | ✅ | 21 | Tame deer outside the pen | **Passed, closed 10 Nov: not the loader.** No jumps in 67,084 tame-watch lines (8–9 Nov, Debug); the deer left through the pen's gate under ordinary AI, one on Val's game. Not chased further |
+| ✅ | ✅ | 24 | Send the server's LogOutput.log from the 1.2.0 start | **Passed (10 Nov 00:11):** "QuanChunkLoader 1.2.0 loaded"; no "Couldn't patch" warning, so both patches applied |
 | | | | &nbsp; | |
 | | | | **Remaining** | |
 | ⬜ | ⬜ | 23 | Type in chat with a capital letter while the cursor is over an observer | The grid doesn't appear. Also: no "had to be created again" warning while at the base |
