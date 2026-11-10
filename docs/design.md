@@ -646,8 +646,9 @@ The checks below are done on the live server as each feature is switched on.
 ### Live test, 7 Nov 2026 (1.1.0)
 
 Quandru, with Nige (Tech'kai), Haudr and Val online at times, on the live server with 1.1.0. Logs checked up to
-20:17: no errors from the mod. Open at the end of 8 Nov: 14 and 15 (re-run under way), 19, 20 and 21; **pick up
-from "Where it stands"**.
+20:17: no errors from the mod. **Open at the end of 10 Nov: 23 to 30, all on 1.2.0 (live on the server since 10
+Nov); 14, 15, 16, 19, 20 and 21 are closed.** Pick up from "Where it stands"; the next run's table, ready to show,
+is in "Next run" below it.
 
 **Passed**
 
@@ -678,8 +679,55 @@ from "Where it stands"**.
 | 16 | The log through the day | **Passed:** no errors from QuanChunkLoader all day (10:26 to 20:17). The errors in the log are other mods': WardIsLove (a NullReferenceException in `BlockUnpermittedDestructibleDamage`) and Zen.ModLib's version check at startup. |
 | 19 | **1.1.1:** hide the dot pins, then turn "Show observers on the map" on | **Passed (8 Nov, 1.1.2):** dots stay hidden; observer icons show. |
 | 20 | Press Shift at an observer while another player stands near, looking away and not pressing Shift | Only you see the grid. A player said they saw Quandru's grid once; by the code only the presser draws it (`ChunkObserver.Update` checks the local player is looking at it; the server's reply goes to the asker only and is drawn only if that client already shows the same grid). Quandru wants it personal, not shared. If 20 fails, find out why. |
-| 21 | Tame deer outside the pen | **Open.** On returning after the first empty-hour run (7 Nov), three tame deer were outside a pen with no gaps: two a few metres out, one about 40 m east down the hill; a hen was out there too. None were outside before he left. "Simulate tames" is on, so the server runs tames' AI while nobody is near. Not offspring: the deer hadn't been fed, and `Procreation` needs the tame not hungry (Procreation.cs:148). The hen is probably vanilla: the chickens had been fed, and offspring spawn 2 m behind the parent with no wall check (Procreation.cs:95), and an egg hatches where it lies (EggGrow). 1.1.0's log has nothing on tame movement. **Next:** with 1.1.1 or later on the server, set Log detail to Debug for an overnight run, count the deer at logoff, and read the "Tame watch:" lines (moves of 10 m+, jumps of 25 m+ in one 2 s pass, owner changes, with positions). Count the deer at every logoff until then. **8 Nov, about 22:13 to 22:16 (local time, with a player online, 1.1.2 on Debug):** Quandru found a tame deer out of the deer pen, further south at the boar pen, and killed it. In the morning's log, look for its "Tame watch:" lines before then (moves, jumps, owner changes, position near the boar pen), and allow for one fewer deer in the logoff count. **Read 10 Nov (server log 8 Nov 11:13 to 9 Nov 20:21, 1.1.2 on Debug, 67,084 tame-watch lines): not the loader.** No jumps at all. The killed deer was `1:18837`: at 18:12:06–18:12:31 on 8 Nov it walked out of the pen's south side, (-250,-256) to (-281,-289), at walking pace (about 11 m per 8 s), **run by Valyyn's game** (vanilla AI on a client), then stayed there until its last line at 22:06:52. A second deer, `1:18377`, walked straight out south at 14:38:49–14:39:29 (to (-242,-323), 81 m out) **run by the server** with only Haudr online at his own base, and walked back in by itself at 14:49. So the pen has a way out on its south side (both left around x -258 to -242, z -255 to -264): a gap, gate or terrain step. "Simulate tames" only gives deer the time to find it. **Correction (Quandru, 10 Nov): that stretch is the pen's gate.** He took the walk back for one he'd led on follow, but no player was near (summaries 14:40–14:50: every object server-owned except Haudr's at his own base), and a led deer would be "run by Quandru". Vanilla explains it: an idle tame more than 8 m from its home point (spawn point, or where it was left after a follow) picks targets straight back towards it and runs (`BaseAI.RandomMovement`, BaseAI.cs:504-510, 534), routing on the navmesh. So the likeliest cause is the gate open, or not fully closing, on 8 Nov; Valyyn was in and around the pen that day (deer handed to his game from 12:41 to 22:06, and the 18:12 escape ran on his game). **Next:** Quandru checks the gate closes fully and asks Val whether he left it open. |
-| 23 | **1.1.3:** type in chat with a capital letter while the cursor is over an observer | The grid doesn't appear. With 1.1.3 on the server, also: no "had to be created again" warning while at the base. |
+| 21 | Tame deer outside the pen | **Closed, passed (Quandru, 10 Nov): not the loader.** No jumps in the Debug log, and the escapes ran under ordinary AI (one on a player's game), so nothing was moved by the mod; what else let them out isn't being chased. Record follows. On returning after the first empty-hour run (7 Nov), three tame deer were outside a pen with no gaps: two a few metres out, one about 40 m east down the hill; a hen was out there too. None were outside before he left. "Simulate tames" is on, so the server runs tames' AI while nobody is near. Not offspring: the deer hadn't been fed, and `Procreation` needs the tame not hungry (Procreation.cs:148). The hen is probably vanilla: the chickens had been fed, and offspring spawn 2 m behind the parent with no wall check (Procreation.cs:95), and an egg hatches where it lies (EggGrow). 1.1.0's log has nothing on tame movement. **Next:** with 1.1.1 or later on the server, set Log detail to Debug for an overnight run, count the deer at logoff, and read the "Tame watch:" lines (moves of 10 m+, jumps of 25 m+ in one 2 s pass, owner changes, with positions). Count the deer at every logoff until then. **8 Nov, about 22:13 to 22:16 (local time, with a player online, 1.1.2 on Debug):** Quandru found a tame deer out of the deer pen, further south at the boar pen, and killed it. In the morning's log, look for its "Tame watch:" lines before then (moves, jumps, owner changes, position near the boar pen), and allow for one fewer deer in the logoff count. **Read 10 Nov (server log 8 Nov 11:13 to 9 Nov 20:21, 1.1.2 on Debug, 67,084 tame-watch lines): not the loader.** No jumps at all. The killed deer was `1:18837`: at 18:12:06–18:12:31 on 8 Nov it walked out of the pen's south side, (-250,-256) to (-281,-289), at walking pace (about 11 m per 8 s), **run by Valyyn's game** (vanilla AI on a client), then stayed there until its last line at 22:06:52. A second deer, `1:18377`, walked straight out south at 14:38:49–14:39:29 (to (-242,-323), 81 m out) **run by the server** with only Haudr online at his own base, and walked back in by itself at 14:49. So the pen has a way out on its south side (both left around x -258 to -242, z -255 to -264): a gap, gate or terrain step. "Simulate tames" only gives deer the time to find it. **Correction (Quandru, 10 Nov): that stretch is the pen's gate.** He took the walk back for one he'd led on follow, but no player was near (summaries 14:40–14:50: every object server-owned except Haudr's at his own base), and a led deer would be "run by Quandru". Vanilla explains it: an idle tame more than 8 m from its home point (spawn point, or where it was left after a follow) picks targets straight back towards it and runs (`BaseAI.RandomMovement`, BaseAI.cs:504-510, 534), routing on the navmesh. So the likeliest cause is the gate open, or not fully closing, on 8 Nov; Valyyn was in and around the pen that day (deer handed to his game from 12:41 to 22:06, and the 18:12 escape ran on his game). **Next:** Quandru checks the gate closes fully and asks Val whether he left it open. |
+| 23 | Type in chat with a capital letter while the cursor is over an observer | Open. The grid doesn't appear; also no "had to be created again" warning while at the base. 1.1.3 never went on the server; its fixes are in 1.2.0, live since 10 Nov. |
+| 24 | 1.2.0 start-up | Open. 1.2.0 live on the server 10 Nov (Quandru). Check the server log from that start: "QuanChunkLoader 1.2.0 loaded", and no "Couldn't patch Radiator" or "Couldn't patch the navmesh build" warning. |
+| 25 | Config sections | Open. `8 - Unattended bases` (pause on) and `9 - Known error suppression (personal)` (off) are in the config. |
+| 26 | Eitr radiation with a player near | Open. 5–10 single Eitr dropped on open ground in a loaded base, 40 m+ from anything valuable: bolts fly as vanilla while someone is there. |
+| 27 | Eitr radiation with nobody near | Open. Away 5 min+: the summary ends "…N Eitr radiation bolt(s) held back"; no WardIsLove `BlockUnpermittedDestructibleDamage` errors. |
+| 28 | Coming back to the Eitr | Open. Bolts start again within a few seconds; then pick the Eitr up. |
+| 29 | Navmesh notice, setting off | Open. With setting 9 off, the server log has one "Spotted Unity's \"RuntimeNavMeshBuilder…\" warning above… tick…" line and the warnings carry on. |
+| 30 | Navmesh suppression, setting on | Open. Tick it on the server, restart, a cart or ship in a loaded base: one "…being suppressed…" line, and the "Source mesh default is skipped…" lines stop. |
+
+**Next run** (written 10 Nov 2026; show it in this layout, see the workspace memory on Quandru's test table)
+
+| Test | OK | # | Do | Expect / Result |
+|---|---|---|---|---|
+| | | | **Done** | |
+| ✅ | ✅ | 1 | At the tamed base, go 300 m+ away and wait for a summary | **Passed:** 6,461 to 6,470 objects running on the server |
+| ✅ | ✅ | 2 | Come back to the base | **Passed:** nothing missing or doubled |
+| ✅ | ✅ | 3 | Load the kiln, go 300 m+ away, come back (redone) | **Passed:** coal 576 → 694 while away. The pauses at 500+ coal were OttoFuel's "Restrict kiln output", not the loader |
+| ✅ | ✅ | 4 | Come back and pick crops or berries by hand at once | **Passed:** works |
+| ✅ | ✅ | 5 | Longship moored across a loaded-area edge | **Passed:** Val's longship afloat and undamaged after time away |
+| ✅ | ✅ | 6 | Building across the edge | **Passed:** boathouse and dock intact |
+| ✅ | ✅ | 7 | AzuAutoStore and OttoFuel with a player present | **Passed:** both work |
+| ✅ | ✅ | 8 | Phantom Spawners at the surtling flames | **Passed:** "Active" in a loaded zone, "Dormant" outside; 129 cores and 807 coal from one pool after ~4 h |
+| ✅ | ✅ | 9 | Drops left for an hour+ of world time, approached from 25 m+ | **Passed:** cores and coal still there after ~4 h |
+| ✅ | ✅ | 10 | Another player tries to switch your observer | **Passed:** with "only builder or admin" on, Nige got no switch option. Check the restriction is on in the server's Gale profile and pushed |
+| ✅ | ✅ | 11 | Another player builds and switches on observers | **Passed:** Haudr's worked; one that would have made 27 zones was refused (limit 18) |
+| ✅ | ✅ | 12 | "Show observers on the map" (admin) | **Passed:** icons only. The dot-filter bug it found was fixed in 1.1.1 (see 19) |
+| ✅ | ✅ | 13 | Seed Totem in a loaded base with a player near | **Passed:** works |
+| ✅ | ✅ | 14 | Last to log out with smelters loaded | **Passed (re-run 8 Nov):** "Last player left…" at 04:56:50, "Empty-server clock stopped… 60.0 min" at 05:56:50 |
+| ✅ | ✅ | 15 | Next login | **Passed:** +320 bars, all from the empty hour (it ended five hours before anyone joined) |
+| ✅ | ✅ | 16 | The log through the day | **Passed:** no errors from QuanChunkLoader. The WardIsLove error is explained (Eitr radiation, reported on Hexium; 1.2.0 stops the cause) |
+| ✅ | ✅ | 17 | Named chickens put back on the coop floor, away 10 min+ | **Passed:** stayed put |
+| ✅ | ✅ | 18 | 1.1.0 in the "QCL Test" profile | **Passed:** works |
+| ✅ | ✅ | 19 | Hide the dot pins, then turn "Show observers on the map" on | **Passed (8 Nov, 1.1.2):** dots stay hidden; observer icons show |
+| ✅ | ✅ | 20 | Press Shift at an observer while another player stands near, looking away | **Passed (8 Nov):** only the presser sees the grid. Val's Shift-while-typing find became 23 |
+| ✅ | ✅ | 21 | Tame deer outside the pen | **Passed, closed 10 Nov: not the loader.** No jumps in 67,084 tame-watch lines (8–9 Nov, Debug); the deer left through the pen's gate under ordinary AI, one on Val's game. Not chased further |
+| | | | &nbsp; | |
+| | | | **Remaining** | |
+| ⬜ | ⬜ | 23 | Type in chat with a capital letter while the cursor is over an observer | The grid doesn't appear. Also: no "had to be created again" warning while at the base |
+| ⬜ | ⬜ | 24 | Send the server's LogOutput.log from the 1.2.0 start | "QuanChunkLoader 1.2.0 loaded"; no "Couldn't patch Radiator" or "Couldn't patch the navmesh build" warning |
+| ⬜ | ⬜ | 25 | Open the config in Gale | `8 - Unattended bases` (pause on) and `9 - Known error suppression (personal)` (off) are there |
+| ⬜ | ⬜ | 26 | In a loaded base, drop 5–10 single Eitr on open ground, at least 40 m from anything you care about, and stand nearby | Bolts fly from them as before (vanilla while you're there) |
+| ⬜ | ⬜ | 27 | Go far away (teleport out) and wait at least 5 minutes | Server summary ends "…N Eitr radiation bolt(s) held back"; no WardIsLove `BlockUnpermittedDestructibleDamage` errors |
+| ⬜ | ⬜ | 28 | Come back to the Eitr | Bolts start again within a few seconds; then pick the Eitr up |
+| ⬜ | ⬜ | 29 | With setting 9 still off, watch the server log after start | One line: "Spotted Unity's \"RuntimeNavMeshBuilder…\" warning above… tick…", and the warnings carry on |
+| ⬜ | ⬜ | 30 | On the server, tick "Vanilla default model collider no read access", restart, watch the console with a cart or ship in a loaded base | One line saying the warnings are being suppressed by that setting; the "Source mesh default is skipped…" lines stop |
+| | | | &nbsp; | |
+| | | | **In progress** | |
+| | | | *(nothing under way)* | |
 
 **Also seen**
 - **8 Nov, with 1.1.2 naming the objects:** "created again" is Seagal, Wolf, Fish2/3/5, Player, demister_ball,
@@ -704,17 +752,13 @@ from "Where it stands"**.
 - Haudr: "Took back … claimed by players far from them" (726 at 12:54; 424 three times 13:30–13:31). Maybe position
   lag, or a client mod that claims at a distance (FarLands?). Watch for it; ask Haudr about his mods if it recurs.
 
-**To do**
-- 1.1.0: on GitHub (release `v1.1.0`); Quandru uploads it to Thunderstore.
-- 1.1.1 and 1.1.2: released 8 Nov 2026 (tags `v1.1.1`, `v1.1.2`, GitHub releases, Thunderstore). 1.1.1 is the
-  map-pin fix plus the Debug log checks (`Core/TameWatch.cs` for the deer, `Core/DebugWatch.cs` with the old
-  diagnostic plugin's checks, none of it run in game yet). 1.1.2 is the same code with the readme and changelog
-  fixed (1.1.1 went out saying "unreleased"). Once 1.1.2 reaches the published Gale modlist: put it on the server,
-  test 19, and do an overnight run with Log detail on Debug for 21; check the Debug start-up report and that
-  Debug doesn't stall the server.
-- 1.1.3: released 8 Nov 2026 (tag `v1.1.3`, GitHub release): Shift while typing ignored, and the recreation warning
-  counts only things that stay put. Quandru uploads it to Thunderstore; put it on the server after the row 21
-  overnight run, then test 23.
+**To do** (as of 10 Nov 2026)
+- Releases: 1.1.0 to 1.1.3 are on GitHub and Thunderstore. **1.2.0 released and published 10 Nov 2026** (tag
+  `v1.2.0`, Thunderstore and Hexium via the `.publishing` workflow), untested before release because Quandru can't
+  test remotely; **live on the server since 10 Nov**. Rows 23 to 30 are its test. It also carries 1.1.3's fixes,
+  which never went on the server.
+- Row 21 is closed, so **Log detail can go back to Info** on the server (Debug was on for the deer watch, and the
+  design says not to leave it on).
 
 ## Still open
 
