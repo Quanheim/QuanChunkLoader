@@ -6,7 +6,7 @@
 
     <!-- This mod's own Gale test profile (the folder containing BepInEx), e.g.
          %APPDATA%\com.kesomannen.gale\valheim\profiles\<ProfileName> -->
-    <GaleProfileDir>C:\Users\Andy\AppData\Roaming\com.kesomannen.gale\valheim\profiles\MyMod</GaleProfileDir>
+    <GaleProfileDir>C:\Users\YOUR-WINDOWS-USER\AppData\Roaming\com.kesomannen.gale\valheim\profiles\MyMod</GaleProfileDir>
 
     <!-- Optional override if the changelog heuristic ever picks the wrong BepInExPack version:
     <BepInExPackDependency>denikson-BepInExPack_Valheim-5.4.2351</BepInExPackDependency>
