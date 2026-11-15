@@ -1,5 +1,9 @@
-<!-- Shared settings and references. Machine-specific paths live in Local.props (gitignored). -->
+<!-- Shared settings and references. Machine-specific paths come from two gitignored files, both optional:
+     - ..\.claude\.local\Machine.props: this machine's Valheim and Gale folders, shared by every mod in the
+       Quanheim workspace (see .claude\Machine.props.example);
+     - Local.props: anything this one mod needs differently (see Local.props.example). It's read second, so it wins. -->
 <Project>
+  <Import Project="$(MSBuildThisFileDirectory)..\.claude\.local\Machine.props" Condition="Exists('$(MSBuildThisFileDirectory)..\.claude\.local\Machine.props')" />
   <Import Project="$(MSBuildThisFileDirectory)Local.props" Condition="Exists('$(MSBuildThisFileDirectory)Local.props')" />
 
   <PropertyGroup>
@@ -14,6 +18,12 @@
 
     <ValheimDir Condition="'$(ValheimDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
     <ManagedDir>$(ValheimDir)\valheim_Data\Managed</ManagedDir>
+    <!-- Gale's Valheim data folder, which holds profiles\. Gale's settings can move it. -->
+    <GaleDir Condition="'$(GaleDir)' == ''">$(APPDATA)\com.kesomannen.gale\valheim</GaleDir>
+    <!-- Each mod's own Gale profile, named exactly like the mod's repo folder unless Local.props sets GaleProfile
+         (or a full GaleProfileDir). -->
+    <GaleProfile Condition="'$(GaleProfile)' == ''">$([System.IO.Path]::GetFileName($([System.IO.Path]::GetDirectoryName($(MSBuildThisFileDirectory)))))</GaleProfile>
+    <GaleProfileDir Condition="'$(GaleProfileDir)' == ''">$(GaleDir)\profiles\$(GaleProfile)</GaleProfileDir>
     <BepInExDir>$(GaleProfileDir)\BepInEx</BepInExDir>
 
     <JotunnDll Condition="'$(JotunnDll)' == ''">$(BepInExDir)\plugins\ValheimModding-Jotunn\Jotunn.dll</JotunnDll>

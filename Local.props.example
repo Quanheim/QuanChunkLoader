@@ -1,12 +1,16 @@
-<!-- Copy to Local.props (gitignored) and point these at your own machine. -->
+<!-- Optional. Copy to Local.props (gitignored) only when this mod needs something different on your machine.
+     The Valheim and Gale folders are set once per machine for every mod, in ..\.claude\.local\Machine.props
+     (see .claude\Machine.props.example). Anything set here wins over that file. -->
 <Project>
   <PropertyGroup>
-    <!-- Valheim game install (the folder containing valheim.exe). Omit to use the default Steam path. -->
-    <ValheimDir>D:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+    <!-- The Gale profile this mod builds against (and deploys Debug builds into). Defaults to the repo folder's
+         name, e.g. QuanDupeLightsources. Set it to borrow another mod's profile:
+    <GaleProfile>QuanChunkLoader</GaleProfile>
+    -->
 
-    <!-- This mod's own Gale test profile (the folder containing BepInEx), e.g.
-         %APPDATA%\com.kesomannen.gale\valheim\profiles\<ProfileName> -->
-    <GaleProfileDir>C:\Users\YOUR-WINDOWS-USER\AppData\Roaming\com.kesomannen.gale\valheim\profiles\MyMod</GaleProfileDir>
+    <!-- Only when this repo is cloned outside the Quanheim workspace (no Machine.props beside it):
+    <ValheimDir>C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+    -->
 
     <!-- Optional override if the changelog heuristic ever picks the wrong BepInExPack version:
     <BepInExPackDependency>denikson-BepInExPack_Valheim-5.4.2351</BepInExPackDependency>

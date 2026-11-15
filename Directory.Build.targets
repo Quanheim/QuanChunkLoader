@@ -5,11 +5,10 @@
        real builds still fail with a readable message. -->
   <Target Name="CheckValheimReferences" BeforeTargets="ResolveAssemblyReferences"
           Condition="'$(DesignTimeBuild)' != 'true'">
-    <Error Condition="'$(GaleProfileDir)' == ''" Text="GaleProfileDir isn't set. Copy Local.props.example to Local.props and fill it in." />
     <Error Condition="!Exists('$(ManagedDir)\assembly_valheim.dll')"
-           Text="assembly_valheim.dll not found in '$(ManagedDir)'. Set ValheimDir in Local.props." />
+           Text="assembly_valheim.dll not found in '$(ManagedDir)'. Set ValheimDir in ..\.claude\.local\Machine.props (copy .claude\Machine.props.example), or in this mod's Local.props." />
     <Error Condition="!Exists('$(BepInExDir)\core\BepInEx.dll')"
-           Text="BepInEx.dll not found in '$(BepInExDir)\core'. Check GaleProfileDir and launch the profile once." />
+           Text="BepInEx.dll not found in '$(BepInExDir)\core'. Create a Gale profile named '$(GaleProfile)' with Jotunn and launch it once, or point GaleProfile in Local.props at another profile. If Gale keeps its data elsewhere, set GaleDir in Machine.props." />
     <Error Condition="!Exists('$(JotunnDll)')"
            Text="Jotunn.dll not found at '$(JotunnDll)'. Install Jotunn in this mod's Gale profile." />
   </Target>

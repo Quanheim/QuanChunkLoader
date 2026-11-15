@@ -1,6 +1,7 @@
 <!-- Build settings for the throwaway diagnostic plugins in this folder. Deliberately does NOT inherit the
      repo root's Directory.Build.props/.targets: no Jotunn, no Thunderstore packaging, no Gale deploy. -->
 <Project>
+  <Import Project="$(MSBuildThisFileDirectory)..\..\.claude\.local\Machine.props" Condition="Exists('$(MSBuildThisFileDirectory)..\..\.claude\.local\Machine.props')" />
   <Import Project="$(MSBuildThisFileDirectory)..\Local.props" Condition="Exists('$(MSBuildThisFileDirectory)..\Local.props')" />
 
   <PropertyGroup>
@@ -13,6 +14,10 @@
 
     <ValheimDir Condition="'$(ValheimDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
     <ManagedDir>$(ValheimDir)\valheim_Data\Managed</ManagedDir>
+    <!-- Same defaults as the mod's own Directory.Build.props: the QuanChunkLoader profile in Gale's data folder. -->
+    <GaleDir Condition="'$(GaleDir)' == ''">$(APPDATA)\com.kesomannen.gale\valheim</GaleDir>
+    <GaleProfile Condition="'$(GaleProfile)' == ''">QuanChunkLoader</GaleProfile>
+    <GaleProfileDir Condition="'$(GaleProfileDir)' == ''">$(GaleDir)\profiles\$(GaleProfile)</GaleProfileDir>
     <!-- Any Gale profile's BepInEx\core will do: diagnostics only need BepInEx.dll to compile. -->
     <DiagBepInExCoreDir Condition="'$(DiagBepInExCoreDir)' == '' And '$(GaleProfileDir)' != ''">$(GaleProfileDir)\BepInEx\core</DiagBepInExCoreDir>
   </PropertyGroup>

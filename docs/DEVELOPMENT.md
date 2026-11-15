@@ -114,15 +114,24 @@ git --version
 dotnet --version
 ```
 
+**Tell the builds where the game and Gale are.** In the Quanheim workspace, copy `.claude\Machine.props.example`
+to `.claude\.local\Machine.props` (gitignored) and set `ValheimDir` to this machine's Valheim folder (the one
+with `valheim.exe`). Set `GaleDir` too if Gale keeps its data somewhere other than
+`%APPDATA%\com.kesomannen.gale\valheim`. Every mod's build and the `.decompiles` scripts read this one file, so
+nothing machine-specific is ever committed. A repo cloned on its own, outside the workspace, sets `ValheimDir` in
+its `Local.props` instead.
+
 ## 2. Create the mod's Gale profile (once per mod)
 
 Each mod gets its own profile, so a test contains only that mod and what it really depends on. **Never
 develop against `Default`**: your server's `BepInEx` folder is a junction into it.
 
-1. In Gale, create a profile named after the mod, e.g. `QuanDupeLightsources`.
+1. In Gale, create a profile named exactly like the mod's repo, e.g. `QuanDupeLightsources`. The build finds
+   the profile by that name. To borrow another profile instead, set `GaleProfile` in the mod's `Local.props`.
 2. Install **Jotunn**, which pulls in BepInExPack, plus any mods yours depends on or is tested alongside.
 3. Launch Valheim once from that profile and quit, so BepInEx creates its folders and config.
-4. The profile folder is `%APPDATA%\com.kesomannen.gale\valheim\profiles\<ProfileName>`. Check that it contains:
+4. The profile folder is `<GaleDir>\profiles\<ProfileName>`, by default
+   `%APPDATA%\com.kesomannen.gale\valheim\profiles\<ProfileName>`. Check that it contains:
    - `changelog.txt`, which is BepInExPack's and is where the build reads the pack version
    - `BepInEx\core\BepInEx.dll` and `BepInEx\core\0Harmony.dll`
    - `BepInEx\plugins\ValheimModding-Jotunn\Jotunn.dll` and `manifest.json`
@@ -159,9 +168,9 @@ develop against `Default`**: your server's `BepInEx` folder is a junction into i
    - Keep `LICENSE` (MIT) as it is.
    - Keep `docs/valheim-dependencies.md`, and add a row to it whenever the mod starts relying on game code or a
      vanilla prefab (see section 10).
-4. Copy `Local.props.example` to `Local.props`, which is gitignored, and set:
-   - `GaleProfileDir`: this mod's Gale profile from step 2.
-   - `ValheimDir`, only if Valheim isn't in the default Steam location.
+4. Usually nothing to set: the paths come from `Machine.props` (section 1) and the profile from step 2's name.
+   Only if this mod needs something different on your machine (another profile, or no workspace), copy
+   `Local.props.example` to `Local.props`, which is gitignored, and set what it says.
 5. First commit:
    ```powershell
    git add .
@@ -332,10 +341,10 @@ tag listings `Open Source`.
 
 | Symptom | Likely cause |
 |---|---|
-| `GaleProfileDir isn't set` | There's no `Local.props`. Copy it from `Local.props.example`. |
-| `... not found in ...` | A path in `Local.props` is wrong, or the profile hasn't been launched once. |
+| `assembly_valheim.dll not found` | `ValheimDir` in `.claude\.local\Machine.props` is wrong or missing (section 1). |
+| `BepInEx.dll not found` | No Gale profile named like the repo, or it hasn't been launched once (section 2). Or `GaleProfile` in `Local.props`, or `GaleDir` in `Machine.props`, is wrong. |
 | `CS0012: The type 'X' is defined in an assembly that is not referenced` | The code uses a game type from another DLL. Add that DLL from `valheim_Data\Managed` in `Directory.Build.props`, following the existing pattern. |
-| `CS0246: 'Piece' could not be found` | `assembly_valheim` isn't resolving. Check `ValheimDir`. |
+| `CS0246: 'Piece' could not be found` | `assembly_valheim` isn't resolving. Check `ValheimDir` in `Machine.props`. |
 | `PluginInfo` doesn't exist | It's generated during the build. Build once. |
 | Release: `Couldn't find a BepInExPack version` | The pack's changelog format changed. Set `BepInExPackDependency` in `Local.props`. |
 | BepInEx warns about a duplicate plugin GUID | There's an old dev folder alongside the current one, e.g. one from before `ThunderstoreTeam` was set, or a Gale local import (`<ModName>`) next to a Debug deploy (`<Team>-<ModName>`). Delete the stale folder. |
