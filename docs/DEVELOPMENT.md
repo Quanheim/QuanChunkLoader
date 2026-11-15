@@ -66,6 +66,14 @@ server's settings are authoritative wherever they affect other players.
 - **Challenge each setting:** does it affect other players, fairness or the server's experience? Then it's
   enforced. Is it about the player's own view or comfort? Then it's personal. For example, a map mod enforces the
   exploration radius and forced position sharing, while which pin types show is personal.
+- **One config file: enforced settings go in the mod's main config, not a second file** (our preference wherever the
+  use case allows; Quandru, 15 Nov 2026). Admins then change them live in F1 and Jotunn sends the change to the
+  server and every player; non-admins see them locked. This holds even when the main file is **excluded from the
+  Gale profile's export** because its other settings are personal: Jotunn sends enforced values from the server's
+  own copy on connect, and ignores a connected player's copy, so they never need Gale to travel. A second file
+  registered with `RegisterCustomConfig` doesn't show in F1 at all, so it can only be changed by editing the
+  server's file and restarting (QuanChat's 1.0.99 test, 15 Nov 2026). Use one only for data that isn't a setting
+  (below), or where a real need outweighs losing F1.
 - **Keep enforced and personal settings in separate sections** where possible, and mark personal ones in the section
   name, e.g. `8 - Map (personal)`.
 - **Say it in every description:** "Synced from the server; admins only." or "Personal." Gale shows descriptions but
