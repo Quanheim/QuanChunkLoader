@@ -92,9 +92,11 @@ item. That fits stalls rising far faster than the item count (+23% items, about 
 near, the server owns the drops and does that physics on its main thread. The 3,563 counts item *objects*;
 nearby identical drops merge into stacks, so the coal underneath was probably far more.
 
-On returning to the area after the clear-up with the observers already off, the server's busy core rose noticeably
-(screenshot, 19:07), presumably the server handling the objects as Quandru's game took them over; watched next on
-leaving.
+**But the busy core didn't drop afterwards.** On returning to the farms after the clear-up, with their observers
+already off, the server's busiest core was at about 75–90% (screenshot, 19:07). At 19:13, with Quandru away at
+Tim's Halls, it was unchanged. So the main thread's steady load isn't those zones, and the pile may only have been
+part of the stalls. Task Manager shows CPU use, not long frames, so the stall measure from the logs is still the
+real test (see [What's next](#whats-next)).
 
 ## What was done (21 Nov, Quandru)
 
@@ -128,11 +130,14 @@ older than an hour of world time; `removedrops` is immediate.
    - time lost to stalls with players online (17.9% on 21 Nov; target October's ~0.1%);
    - the empty-server gap between `Connections … ZDOS` lines (~664 s on 21 Nov; target 600 s);
    - items on the ground in loaded zones (3,563 on 21 Nov; expect double figures).
-2. **If the stalls stay high:** turn "Simulate tames in loaded zones" off for an hour with nobody online and read the
+2. **Quick live checks, watching the server's busiest core:** turn "Simulate tames in loaded zones" off for 5
+   minutes, then switch all remaining observers off for 5 minutes (both reversible). If the core drops with either,
+   that's where the steady load is; if neither moves it, the load is outside the chunk loader.
+3. **If the stalls stay high:** turn "Simulate tames in loaded zones" off for an hour with nobody online and read the
    `Connections` gap, then switch every observer off for an hour (the vanilla baseline). If the gap returns to
    600 s, it's the chunk loader; switch bases back on one at a time to find the heavy one. Don't test by turning
    despawn protection off: hour-old items would be destroyed for good.
-3. **Log detail back to Info** on the server.
+4. **Log detail back to Info** on the server.
 
 ## Design follow-up (chunk loader)
 
