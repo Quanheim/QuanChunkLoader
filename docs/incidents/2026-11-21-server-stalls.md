@@ -1,6 +1,6 @@
 # Incident, 21 Nov 2026: server stalls, boats jolting, a pile of protected drops
 
-Status: **cause found and cleared; measuring the result.** Written 21 Nov 2026.
+Status: **two causes found and removed; measuring the result.** Written 21 Nov 2026.
 
 ## Summary
 
@@ -11,8 +11,12 @@ saw it as boats jolting and taking damage at sea, fish hanging in the air, and b
 The leading cause is our own despawn protection. Inside loaded zones it keeps items within 40 m of an active
 Phantom Spawner from despawning, with no limit. The phantom-run surtling farms had built up a carpet of coal and
 cores thousands of items deep, and the server ran physics on all of it whenever nobody was near. The pile was
-removed and the farms' observers switched off on 21 Nov; whether the stalls fall back to October's level is still
-to be measured (see [What's next](#whats-next)).
+removed and the farms' observers switched off on 21 Nov.
+
+The second is "Simulate tames in loaded zones", on for Quanheim: the server runs every tame's AI in loaded zones.
+Turning it off visibly lowered the server's main-thread load, and with both changes made, Quandru's base appeared
+the instant he arrived. Whether the stalls fall back to October's level is still to be measured from the logs (see
+[What's next](#whats-next)).
 
 ## What players saw
 
@@ -103,6 +107,13 @@ real test (see [What's next](#whats-next)).
 real share of the main thread's steady load, but not all of it. It also confirms that an admin's in-game change to
 this setting reaches the server live (Jotunn config sync), no restart needed. While it's off, tames in loaded zones
 pause with nobody near, so there's no offline breeding.
+
+**Settled, 19:18:** the busy core levelled off at about 70–80% and total CPU fell from 43% to 19% (screenshot): it
+took the edge off rather than curing it, and the rest may simply be the server's normal running level.
+
+**Base loading, shortly after:** Quandru teleported home and the whole base was there the instant he loaded in,
+against up to ~30 s in the days before. This is one observation, made with the pile gone and tames off, but it's the
+first symptom players reported and it has gone.
 
 ## What was done (21 Nov, Quandru)
 
