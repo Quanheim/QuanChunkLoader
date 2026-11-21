@@ -764,18 +764,104 @@ is in "Next run" below it.
 - Row 21 is closed, so **Log detail can go back to Info** on the server (Debug was on for the deer watch, and the
   design says not to leave it on).
 
+## Profiling the server
+
+Written 21 Nov 2026 for the open tames issue (see [Still open](#still-open)), but it applies to any server cost. The
+aim: know where the server's main-thread time goes, tell steady load apart from long frames (the stalls players
+feel), and pin each to a cause: tames, items, other mods, garbage collection or the engine.
+
+**No Unity Profiler.** The dedicated server is a release build, so the Unity Profiler can't attach. Swapping in a
+development player of the exact Unity version (6000.0.75) is possible in principle but fiddly and risky on a
+live server, so the plan below measures from inside, with a plugin.
+
+### 1. Measures we already have (no code)
+
+Use these for quick on/off comparisons; they say *how much*, not *what*.
+- **Time lost to stalls with players online:** from the 5-minute heartbeat, real seconds minus world seconds (see
+  the [21 Nov incident](incidents/2026-11-21-server-stalls.md)). October's old loader: about 0.1%.
+- **Stalls with nobody online:** the gap between vanilla's `Connections … ZDOS` console lines, nominally 600 s
+  (664 s on 21 Nov).
+- **Main-thread load:** Task Manager, CPU graph per logical processor; the busiest core is the main thread.
+
+### 2. A server-only profiling plugin
+
+A separate DLL, as the diagnostic plugin was: server only, not version-checked, so clients need nothing; read-only
+apart from its own log; removed by deleting it. Working name `QuanChunkLoaderProfile`. Keeping it out of the mod
+keeps the release clean.
+
+**a. Frame clock: how long each frame takes, and why the long ones are long.**
+- A component that runs first in every frame (`[DefaultExecutionOrder(-32000)]`) records the real time since the
+  previous frame (`Time.realtimeSinceStartupAsDouble`). That covers everything: scripts, physics, navmesh, garbage
+  collection.
+- Every 5 minutes, one summary line: frames, mean, 95th and 99th percentile, longest, count over 100 ms and over
+  333 ms (Unity's per-frame cap: only those frames make world time fall behind), and the total time those lost.
+- For every frame over 200 ms, one line: when, how long, how many garbage collections ran during it
+  (`GC.CollectionCount(0)` before and after), the change in managed memory (`GC.GetTotalMemory(false)`), the counts
+  in (c), and the three section timers in (b) that took longest in that frame. **Collections in most long frames
+  point at allocations, not work**, which changes the fix completely.
+
+**b. Section timers: which code the time goes on.**
+- A Harmony prefix (`Priority.First`) and postfix plus finalizer (`Priority.Last`) on each target method, timing it
+  with `Stopwatch.GetTimestamp()`. Wrapping outermost means the time includes every other mod's patches on the same
+  method. Per method, per 5 minutes: calls, total ms, longest call; per frame, the totals feed the long-frame lines.
+- **Targets (names from the 1.0.21 decompile):**
+  - AI: `MonsterAI.UpdateAI` and `AnimalAI.UpdateAI` (the overrides of `BaseAI.UpdateAI`), `BaseAI.FindEnemy`,
+    `BaseAI.FindPath`, `BaseAI.HavePath`.
+  - Navmesh: `Pathfinding.Update`, `Pathfinding.BuildTile` (tiles are built around AI agents; a pen of tames
+    in every loaded base may keep many tiles alive).
+  - Movement and physics-step scripts: `Character.CustomFixedUpdate`.
+  - Tame systems (run by `InvokeRepeating`): `Procreation.Procreate`, `Growup.GrowUpdate`,
+    `Tameable.TamingUpdate`, `Tameable.Update`.
+  - Totals: `MonoUpdaters.Update`, through which Valheim drives most per-object updates; `ZNetScene.Update` and
+    `ZDOMan.Update` (object creation and network); and the chunk loader's own 2-second pass.
+- **Other mods' share:** HarmonyX lists every patch on a method (`Harmony.GetPatchInfo`). In a second round, the
+  plugin wraps each of BetterTames' and LetMeTameYou's patch methods on the targets with its own timer, so their cost
+  shows separately from vanilla's.
+- **Engine work by subtraction:** physics, animation and navmesh carving run in native code that a patch can't wrap.
+  Frame time minus the timed sections is that remainder; a big remainder with no collections points at physics (as
+  the 21 Nov pile did).
+- Overhead: two timestamps per call, tens of nanoseconds each; fine for an evening, but switched off afterwards.
+
+**c. Counts, in each summary:** tames the server is running, by kind; wild creatures; items on the ground in loaded
+zones; navmesh tiles alive (`Pathfinding`'s tile list, by reflection); players online. Costs only mean something
+against what's running.
+
+### 3. The experiment
+
+- **Where:** with nobody online, so players don't disturb it and every run is comparable. With "Simulate tames" on,
+  the server runs the tames whether anyone is on or not, and the empty-server clock keeps world time moving for an
+  hour. Best on a copy of the world on a local dedicated server; the live server works too while it's empty.
+- **Runs, 30 minutes each:**
+  1. "Simulate tames" off (baseline).
+  2. On.
+  3. On, without BetterTames and LetMeTameYou (test copy only: the live server's mod list must match its players').
+  4. On, with one cluster's tames only (other observers off), to get a cost per tame.
+- **Read:** per-section totals between runs, the long-frame lines, and cost per tame.
+
+### 4. What each answer would mean
+
+- **`UpdateAI` and `FindEnemy` dominate:** run server-side tames' AI at a lower rate (for instance every Nth frame,
+  with the skipped time added on), or not at all with nobody near.
+- **`Pathfinding.BuildTile` dominates:** the navmesh kept around pens; look at keeping fewer tiles alive for
+  server-run tames, or freezing them in place.
+- **`Procreation` and `Growup` are cheap and the rest isn't:** the best trim. With nobody near, run only breeding
+  and growing up (both on `InvokeRepeating`, and `Procreate` doesn't need the tame to move) and skip `UpdateAI` and
+  movement, perhaps making the body kinematic. Offline breeding without the AI cost.
+- **Another mod's patches dominate:** report it to its author, or skip that mod's work for server-run tames.
+- **Long frames line up with collections:** the cost is allocations; find who allocates (other mods, our logging)
+  before changing any behaviour.
+- **The remainder dominates:** physics; look at what's piled up or packed tight, as on 21 Nov.
+
 ## Still open
 
 - **Open issue: server-run tames are too costly (Quandru, 21 Nov 2026).** With "Simulate tames in loaded zones" on,
   turning it off took the server's busiest core from about 75–90% to 70–80% and total CPU from 43% to 19%
   ([incident](incidents/2026-11-21-server-stalls.md)). There may be no fix, but it's worth a detailed understanding
   of what makes it expensive and whether it can be trimmed. To find out:
-  - **Measure first.** Count the tames the server runs (127 on 21 Nov) and time the cost: with nobody online, compare
-    the `Connections … ZDOS` gap with the setting on and off, and try a Unity profiler or timing patch on the
-    server's `MonsterAI`/`BaseAI` update, `Procreation`, `Tameable`, `Growup` and pathfinding (`Pathfinding`
-    navmesh builds around each running tame).
+  - **Measure first,** per [Profiling the server](#profiling-the-server) below.
   - **Suspects to check:** navmesh tiles kept built around every running tame across a 3×3 cluster; idle AI
-    searching for targets and food every frame; other mods' tame code running on the server (BetterTames' feeding
+    searching for targets every frame (not the food search: `MonsterAI.FindClosestConsumableItem` is a 5 m physics
+    query at most every 10 s, and only while hungry); other mods' tame code running on the server (BetterTames' feeding
     from chests, LetMeTameYou); physics of tames packed into pens.
   - **Possible trims, if the cost is AI:** run tames on the server at a lower rate (throttled updates, or only every
     Nth frame), or run only what offline breeding needs (`Procreation` and `Growup`) without movement and targeting.
