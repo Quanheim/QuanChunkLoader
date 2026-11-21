@@ -263,6 +263,10 @@ isn't hungry or alarmed rolls a chance, checks the crowd limit (`m_maxCreatures`
 `m_totalCheckRange`) and a partner within `m_partnerCheckRange`, gains a love point, and becomes pregnant at
 `m_requiredLovePoints`. BetterTames only tunes those numbers and shows them on hover. It all needs the tame running.
 
+**Update (Quandru, 21 Nov 2026): Quanheim runs it off for now.** Turning it off visibly lowered the server's
+main-thread load during the 21 Nov stalls investigation ([incident](incidents/2026-11-21-server-stalls.md)). The
+shipped default stays off. Why it costs so much is an open issue (see [Still open](#still-open)).
+
 ## Logging
 
 The diagnostic plugin retires at 1.0, so everything below is built into the mod. On 1 Nov 2026 the only reason we could reconstruct the incident was the diagnostic plugin's log: who switched which loader on and when, who owned what, and the exact second objects left the loaded zones. The real mod keeps the useful part of that at info level on the server, without the diagnostic's volume:
@@ -439,7 +443,7 @@ Settings are listed in the order they're bound.
 | | Zones in total | 108 (twelve clusters) | Enforced |
 | | Admins ignore limits | On | Enforced |
 | | Expire after hours without a refresh | 0 (never) | Enforced |
-| `2 - Tamed Creatures` | Simulate tames in loaded zones | Off (Quanheim runs it on) | Enforced |
+| `2 - Tamed Creatures` | Simulate tames in loaded zones | Off (Quanheim ran it on until 21 Nov 2026) | Enforced |
 | `3 - Empty server` | Empty-server window in minutes | 60 (0 = off, up to 240) | Enforced |
 | `4 - Phantom spawner` | Creature spawners | `Spawner_imp_respawn` | Enforced |
 | | Spawner areas | Off | Enforced |
@@ -761,6 +765,29 @@ is in "Next run" below it.
   design says not to leave it on).
 
 ## Still open
+
+- **Open issue: server-run tames are too costly (Quandru, 21 Nov 2026).** With "Simulate tames in loaded zones" on,
+  turning it off took the server's busiest core from about 75–90% to 70–80% and total CPU from 43% to 19%
+  ([incident](incidents/2026-11-21-server-stalls.md)). There may be no fix, but it's worth a detailed understanding
+  of what makes it expensive and whether it can be trimmed. To find out:
+  - **Measure first.** Count the tames the server runs (127 on 21 Nov) and time the cost: with nobody online, compare
+    the `Connections … ZDOS` gap with the setting on and off, and try a Unity profiler or timing patch on the
+    server's `MonsterAI`/`BaseAI` update, `Procreation`, `Tameable`, `Growup` and pathfinding (`Pathfinding`
+    navmesh builds around each running tame).
+  - **Suspects to check:** navmesh tiles kept built around every running tame across a 3×3 cluster; idle AI
+    searching for targets and food every frame; other mods' tame code running on the server (BetterTames' feeding
+    from chests, LetMeTameYou); physics of tames packed into pens.
+  - **Possible trims, if the cost is AI:** run tames on the server at a lower rate (throttled updates, or only every
+    Nth frame), or run only what offline breeding needs (`Procreation` and `Growup`) without movement and targeting.
+  - The shipped default stays off; Quanheim runs it off until this is understood.
+
+- **Open idea: Phantom Spawners active for a while after a touch (Quandru, 21 Nov 2026).** Instead of running
+  forever, a phantom runs for a set time after a player interacts with it (default: one in-game day), and still only
+  inside a zone a switched-on observer keeps loaded. That caps an unattended farm's output, and with it the pile of
+  protected drops that caused the 21 Nov stalls. Its despawn protection would end with it. To design: the setting
+  (world time or real time, since the world clock stops on an empty server; per phantom or server-wide), what counts
+  as a touch (E on the phantom), the hover showing time left, and whether a cap on protected items is still needed
+  alongside it (see the incident's design follow-up).
 
 - **Two observer pieces instead of an area-size setting: decided and built (5 Nov 2026).** A single 1×1 observer
   and a 3×3 cluster of three columns; "Area size" is gone, and limits count zones (see [Pieces](#pieces) and
