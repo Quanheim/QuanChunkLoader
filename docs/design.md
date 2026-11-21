@@ -779,6 +779,13 @@ is in "Next run" below it.
     from chests, LetMeTameYou); physics of tames packed into pens.
   - **Possible trims, if the cost is AI:** run tames on the server at a lower rate (throttled updates, or only every
     Nth frame), or run only what offline breeding needs (`Procreation` and `Growup`) without movement and targeting.
+  - **Alternative: a Breeding Totem (Quandru, 21 Nov 2026).** A piece like the Phantom Spawner: the server runs
+    tames only within about 20 m of an active totem, and a totem runs for a set time after a player touches it
+    (default one in-game day), still only inside a zone a switched-on observer keeps loaded. It would replace the
+    setting, or narrow it, so players choose which pens breed offline and for how long, and every other tame stays
+    paused. Same open questions as the timed phantoms below (world or real time, what counts as a touch, hover).
+    **Quandru's preference: the trims above are the better direction**; the totem limits how many tames run, but not
+    what each one costs.
   - The shipped default stays off; Quanheim runs it off until this is understood.
 
 - **Open idea: Phantom Spawners active for a while after a touch (Quandru, 21 Nov 2026).** Instead of running
