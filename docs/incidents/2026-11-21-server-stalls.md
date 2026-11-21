@@ -98,6 +98,12 @@ Tim's Halls, it was unchanged. So the main thread's steady load isn't those zone
 part of the stalls. Task Manager shows CPU use, not long frames, so the stall measure from the logs is still the
 real test (see [What's next](#whats-next)).
 
+**"Simulate tames" off, 19:15 (Quandru, in-game as admin):** the busy core began falling at once, from about
+75–90% to about 65–75% within two minutes and still trending down (screenshot, 19:17). So server-run tames are a
+real share of the main thread's steady load, but not all of it. It also confirms that an admin's in-game change to
+this setting reaches the server live (Jotunn config sync), no restart needed. While it's off, tames in loaded zones
+pause with nobody near, so there's no offline breeding.
+
 ## What was done (21 Nov, Quandru)
 
 1. Ran `removedrops` (admin, `devcommands`) standing in each farm. It deletes every item drop the player's own
@@ -130,9 +136,9 @@ older than an hour of world time; `removedrops` is immediate.
    - time lost to stalls with players online (17.9% on 21 Nov; target October's ~0.1%);
    - the empty-server gap between `Connections … ZDOS` lines (~664 s on 21 Nov; target 600 s);
    - items on the ground in loaded zones (3,563 on 21 Nov; expect double figures).
-2. **Quick live checks, watching the server's busiest core:** turn "Simulate tames in loaded zones" off for 5
-   minutes, then switch all remaining observers off for 5 minutes (both reversible). If the core drops with either,
-   that's where the steady load is; if neither moves it, the load is outside the chunk loader.
+2. **Quick live checks, watching the server's busiest core:** "Simulate tames" off (done 19:15: the core dropped,
+   see above), then all remaining observers off for 5 minutes (reversible). If the core drops further, the rest of
+   the chunk loader's load is significant; if not, the remaining load is outside it.
 3. **If the stalls stay high:** turn "Simulate tames in loaded zones" off for an hour with nobody online and read the
    `Connections` gap, then switch every observer off for an hour (the vanilla baseline). If the gap returns to
    600 s, it's the chunk loader; switch bases back on one at a time to find the heavy one. Don't test by turning
